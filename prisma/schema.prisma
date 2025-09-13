@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  discordId    String      @unique
+  username     String
+  createdAt    DateTime    @default(now())
+  character    Character?
+  assets       Asset[]
+  gangs        GangMember[]
+  ledGangs     Gang[]      @relation("GangLeader")
+  inventory    Inventory[]
+  actionLogs   ActionLog[]
+  robberies    AssetRobberyLog[]
+  missions     UserMission[]
+  leaderboards Leaderboard[]
+}
+
+model Character {
+  id           String   @id @default(uuid())
+  name         String
+  userId       String   @unique
+  stats        Json     // {strength: Int, stealth: Int, intelligence: Int, ...}
+  money        Int      @default(0)
+  reputation   Int      @default(0)
+  level        Int      @default(1)
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Gang {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  createdAt    DateTime      @default(now())
+  members      GangMember[]
+  bank         Int           @default(0)
+  leaderId     String
+  leader       User          @relation("GangLeader", fields: [leaderId], references: [id])
+}
+
+model GangMember {
+  id           String        @id @default(uuid())
+  userId       String
+  gangId       String
+  role         String        // "member", "co-leader", etc.
+  joinedAt     DateTime      @default(now())
+  user         User          @relation(fields: [userId], references: [id])
+  gang         Gang          @relation(fields: [gangId], references: [id])
+}
+
+model Item {
+  id           String        @id @default(uuid())
+  name         String
+  type         String        // "tool", "consumable", "trade_good", "collectible"
+  value        Int
+  description  String
+  rarity       String        // "common", "rare", "epic", etc.
+  inventories  Inventory[]
+}
+
+model Inventory {
+  id           String        @id @default(uuid())
+  userId       String
+  itemId       String
+  quantity     Int           @default(1)
+  user         User          @relation(fields: [userId], references: [id])
+  item         Item          @relation(fields: [itemId], references: [id])
+}
+
+model Asset {
+  id               String      @id @default(uuid())
+  ownerId          String
+  type             String      // "shop", "nightclub", "warehouse", etc.
+  name             String
+  level            Int         @default(1)
+  incomeRate       Int         @default(0)
+  securityLevel    Int         @default(0)
+  value            Int         @default(0)
+  lastIncomeTime   DateTime    @default(now())
+  isForSale        Boolean     @default(false)
+  owner            User        @relation(fields: [ownerId], references: [id])
+  robberyLogs      AssetRobberyLog[]
+  upgrades         AssetUpgrade[]
+}
+
+model AssetRobberyLog {
+  id             String      @id @default(uuid())
+  assetId        String
+  robberId       String
+  result         String      // "success", "fail"
+  stolenAmount   Int
+  timestamp      DateTime    @default(now())
+  asset          Asset       @relation(fields: [assetId], references: [id])
+  robber         User        @relation(fields: [robberId], references: [id])
+}
+
+model AssetUpgrade {
+  id           String      @id @default(uuid())
+  assetId      String
+  upgradeType  String      // "security", "income"
+  upgradeLevel Int         @default(1)
+  cost         Int
+  asset        Asset       @relation(fields: [assetId], references: [id])
+}
+
+model Crime {
+  id           String      @id @default(uuid())
+  name         String
+  difficulty   Int
+  cooldown     Int         // in seconds
+  rewardMin    Int
+  rewardMax    Int
+  risk         Int         // chance of failure
+  jailTime     Int         // jail time on fail
+  description  String
+}
+
+model Mission {
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  objectives   Json        // {type: "crime", count: 5, ...}
+  rewardMoney  Int
+  rewardItems  Json        // [{itemId: "id", quantity: 1}]
+  statBoosts   Json        // {strength: 1}
+  isDaily      Boolean     @default(false)
+  userMissions UserMission[]
+}
+
+model UserMission {
+  id           String      @id @default(uuid())
+  userId       String
+  missionId    String
+  status       String      // "pending", "completed"
+  progress     Json        // {current: 2, required: 5}
+  startedAt    DateTime    @default(now())
+  completedAt  DateTime?
+  user         User        @relation(fields: [userId], references: [id])
+  mission      Mission     @relation(fields: [missionId], references: [id])
+}
+
+model ActionLog {
+  id           String      @id @default(uuid())
+  userId       String
+  actionType   String      // "crime", "mission", "robbery", etc.
+  actionId     String?     // Reference to Crime, Mission, Asset, etc.
+  result       String      // "success", "fail"
+  details      Json
+  timestamp    DateTime    @default(now())
+  user         User        @relation(fields: [userId], references: [id])
+}
+
+model Leaderboard {
+  id           String      @id @default(uuid())
+  category     String      // "money", "reputation", "crimes", "assets", etc.
+  userId       String
+  value        Int
+  user         User        @relation(fields: [userId], references: [id])
+}

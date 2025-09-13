@@ -33,3 +33,5 @@ coverage/
 
 # Optional: build artifacts
 build/
+
+/src/generated/prisma
