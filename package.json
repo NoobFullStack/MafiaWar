@@ -17,6 +17,7 @@
     "economy:validate": "ts-node src/scripts/economy.ts validate",
     "economy:suggest": "ts-node src/scripts/economy.ts suggest",
     "level:demo": "ts-node src/scripts/levelGatingDemo.ts",
+    "crime:demo": "ts-node src/scripts/crimeSystemDemo.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {

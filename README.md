@@ -9,9 +9,9 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
 - 💰 **Real Economy System** - Gameplay-based pricing and balance analysis with XP valuation
 - 🎯 **XP & Level System** - MMO-style progression with 50 levels and milestone rewards
-- � **Level Gating** - Content unlocks based on player level and progression
-- �🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements
-- 🔫 **Crime System** - 9 criminal activities with balanced difficulty progression
+- 🚪 **Level Gating** - Content unlocks based on player level and progression
+- 🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements
+- 🔫 **Crime System** - 9 criminal activities with balanced difficulty progression and real-time execution
 - 🏢 **Asset System** - 6 business types from convenience stores to underground casinos
 - 📊 **Profile Management** - View character stats, level, XP progress, and reputation
 - 🌱 **Advanced Seeding** - Safe, extensible data management system
@@ -112,11 +112,13 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 
 ## 🎮 Commands
 
-| Command           | Description                          | Cooldown |
-| ----------------- | ------------------------------------ | -------- |
-| `/ping`           | Test bot connectivity and latency    | 5s       |
-| `/profile`        | View your criminal character profile | 10s      |
-| `/balance [user]` | Check money and financial status     | 5s       |
+| Command           | Description                            | Cooldown |
+| ----------------- | -------------------------------------- | -------- |
+| `/ping`           | Test bot connectivity and latency      | 5s       |
+| `/profile`        | View your criminal character profile   | 10s      |
+| `/balance [user]` | Check money and financial status       | 5s       |
+| `/crime <type>`   | Commit crimes for money and XP         | 30s      |
+| `/crimes`         | View available crimes and requirements | 10s      |
 
 ### **🔧 Development Commands**
 
@@ -124,6 +126,7 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | ----------------------- | -------------------------------------------- |
 | `yarn economy:analyze`  | Complete economy and XP progression analysis |
 | `yarn level:demo`       | Demonstrate level gating system              |
+| `yarn crime:demo`       | Test crime system and success calculations   |
 | `yarn economy:validate` | Validate item balance and pricing            |
 
 ## 🏗️ Architecture
@@ -133,6 +136,7 @@ src/
 ├── commands/          # Slash command implementations
 ├── config/           # Economy config and XP progression system
 ├── data/             # Game data (items, crimes, assets) with level requirements
+├── services/         # Business logic (CrimeService, etc.)
 ├── utils/            # Core utilities (database, logging, level validation)
 ├── scripts/          # Analysis and demonstration scripts
 ├── types/            # TypeScript type definitions
