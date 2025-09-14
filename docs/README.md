@@ -10,6 +10,11 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 
 ## 🛠️ Development
 
+### **Core Systems**
+
+- 🌱 **[Seeding System](setup/SEEDING.md)** - Managing game data (items, crimes, assets)
+- 💰 **[Economics System](economy/ECONOMICS.md)** - Gameplay-based economy balance and analysis
+
 ### **Game Design & Planning**
 
 - 🎮 **[Game Design](development/game-design.md)** - Core gameplay mechanics and features
@@ -22,7 +27,8 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 
 1. Start with [Installation Guide](setup/INSTALLATION.md)
 2. Review [Game Design](development/game-design.md) to understand the vision
-3. Check [Development Roadmap](development/roadmap.md) for current priorities
+3. Check [Seeding System](setup/SEEDING.md) to understand data management
+4. Learn [Economics System](economy/ECONOMICS.md) for balance principles
 
 ### **For Contributors**
 
