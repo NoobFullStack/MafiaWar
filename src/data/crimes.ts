@@ -43,7 +43,7 @@ export const crimeData: CrimeData[] = [
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 300, // 5 minutes
+    cooldown: 0, // 0 during development
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
@@ -70,7 +70,7 @@ export const crimeData: CrimeData[] = [
     baseSuccessRate: 0.7,
     jailTimeMin: 30,
     jailTimeMax: 60,
-    category: "theft",
+    category: "petty",
     requirements: {
       level: 1,
     },

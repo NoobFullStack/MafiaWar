@@ -80,9 +80,9 @@ export class ErrorHandler {
 
     try {
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+        await interaction.followUp({ embeds: [errorEmbed], flags: 64 });
       } else {
-        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [errorEmbed], flags: 64 });
       }
     } catch (followUpError) {
       logger.error("Failed to send error message to user", followUpError);
@@ -106,7 +106,7 @@ export class ErrorHandler {
       )
       .setTimestamp();
 
-    await interaction.reply({ embeds: [cooldownEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [cooldownEmbed], flags: 64 });
   }
 
   /**
@@ -122,7 +122,7 @@ export class ErrorHandler {
       .setDescription(message)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [validationEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [validationEmbed], flags: 64 });
   }
 }
 
@@ -137,7 +137,7 @@ export class ResponseUtil {
   ): EmbedBuilder {
     const embed = new EmbedBuilder()
       .setColor(0x00ff00)
-      .setTitle(`✅ ${title}`)
+      .setTitle(title) // Remove emoji from here, let commands decide
       .setDescription(description)
       .setTimestamp();
 
@@ -155,7 +155,7 @@ export class ResponseUtil {
   ): EmbedBuilder {
     const embed = new EmbedBuilder()
       .setColor(0x0099ff)
-      .setTitle(`ℹ️ ${title}`)
+      .setTitle(title) // Remove emoji prefix
       .setDescription(description)
       .setTimestamp();
 
@@ -191,7 +191,7 @@ export class ResponseUtil {
   ): EmbedBuilder {
     const embed = new EmbedBuilder()
       .setColor(0xff0000)
-      .setTitle(`❌ ${title}`)
+      .setTitle(title) // Remove emoji prefix
       .setDescription(description)
       .setTimestamp();
 

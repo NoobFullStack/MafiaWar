@@ -16,14 +16,14 @@ const crimeCommand: Command = {
         .addChoices(
           // Add choices based on available crimes
           { name: "Pickpocketing", value: "pickpocket" },
-          { name: "Shoplifting", value: "shoplift" },
+          { name: "Shoplifting", value: "shoplifting" },
+          { name: "Bike Theft", value: "bike_theft" },
+          { name: "Credit Card Fraud", value: "credit_card_fraud" },
           { name: "Car Theft", value: "car_theft" },
           { name: "Burglary", value: "burglary" },
-          { name: "Drug Dealing", value: "drug_deal" },
-          { name: "Armed Robbery", value: "armed_robbery" },
-          { name: "Hacking", value: "hacking" },
-          { name: "Money Laundering", value: "money_laundering" },
-          { name: "Bank Robbery", value: "bank_robbery" }
+          { name: "Store Robbery", value: "store_robbery" },
+          { name: "Bank Robbery", value: "bank_robbery" },
+          { name: "Hacking", value: "hacking" }
         )
     ),
 
@@ -36,11 +36,11 @@ const crimeCommand: Command = {
       // Check if player is in jail
       const jailStatus = await CrimeService.isPlayerInJail(userId);
       if (jailStatus.inJail) {
-        const embed = ResponseUtil.error(
+        const embed = ResponseUtil.warning(
           "🚔 You're in Jail!",
           `You're currently serving time and cannot commit crimes.\nTime remaining: ${jailStatus.timeLeft} minutes`
         );
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         return { success: false, error: "Player is in jail" };
       }
 
@@ -51,57 +51,58 @@ const crimeCommand: Command = {
           "Invalid Crime",
           "The crime type you selected is not available."
         );
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: 64 });
         return { success: false, error: "Invalid crime type" };
       }
 
       // Execute the crime
-      const result = await CrimeService.executeCrime(crimeType, userId);
+      try {
+        const result = await CrimeService.executeCrime(crimeType, userId);
 
-      // Create response embed
-      let embed;
-      if (result.success) {
-        embed = ResponseUtil.success(
-          "🎯 Crime Complete!",
-          result.message
-        );
+        // Create response embed
+        let embed;
+        if (result.success) {
+          embed = ResponseUtil.success(
+            "Crime Successful! 🎯",
+            result.message
+          );
+          
+          // Add extra info for successful crimes
+          if (result.criticalSuccess) {
+            embed.setColor(0xffd700); // Gold for critical success
+            embed.setTitle("🏆 Critical Success!");
+          }
+        } else {
+          embed = ResponseUtil.error(
+            "Crime Failed! 🚫",
+            result.message
+          );
+        }
+
+        // Add compact crime info in description instead of separate fields
+        const crimeInfo = `**${crime.name}** • Difficulty: ${crime.difficulty}/10 • Cooldown: ${Math.floor(crime.cooldown / 60)}min`;
+        embed.setDescription(`${result.message}\n\n*${crimeInfo}*`);
+
+        await interaction.reply({ embeds: [embed] });
+
+        // Log the crime attempt
+        logger.info(`Crime ${crimeType} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}`);
+
+        return { success: true };
+      } catch (error: any) {
+        // Handle level requirement errors gracefully
+        if (error.message.includes("Requires Level")) {
+          const embed = ResponseUtil.warning(
+            "Level Required! 🔒",
+            error.message
+          );
+          await interaction.reply({ embeds: [embed], flags: 64 }); // 64 = ephemeral flag
+          return { success: false, error: error.message };
+        }
         
-        // Add extra info for successful crimes
-        if (result.criticalSuccess) {
-          embed.setColor(0xffd700); // Gold for critical success
-        }
-      } else {
-        embed = ResponseUtil.error(
-          "❌ Crime Failed!",
-          result.message
-        );
+        // Re-throw other errors to be handled by outer catch
+        throw error;
       }
-
-      // Add crime details
-      embed.addFields(
-        {
-          name: "🎯 Crime",
-          value: crime.name,
-          inline: true,
-        },
-        {
-          name: "📊 Difficulty",
-          value: `${crime.difficulty}/10`,
-          inline: true,
-        },
-        {
-          name: "⏰ Cooldown",
-          value: `${Math.floor(crime.cooldown / 60)} minutes`,
-          inline: true,
-        }
-      );
-
-      await interaction.reply({ embeds: [embed] });
-
-      // Log the crime attempt
-      logger.info(`Crime ${crimeType} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}`);
-
-      return { success: true };
 
     } catch (error) {
       logger.error(`Crime command error for user ${userId}:`, error);
@@ -122,7 +123,7 @@ const crimeCommand: Command = {
         errorMessage
       );
       
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: 64 });
       return { success: false, error: errorMessage };
     }
   },

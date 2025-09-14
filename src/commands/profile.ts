@@ -20,7 +20,7 @@ const profileCommand: Command = {
           "Character Not Found",
           "There was an issue with your character. Please contact an administrator."
         );
-        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [errorEmbed], flags: 64 });
         return { success: false, error: "Character not found" };
       }
 
@@ -62,7 +62,7 @@ const profileCommand: Command = {
         "Failed to load your profile. Please try again later."
       );
 
-      await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [errorEmbed], flags: 64 });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
