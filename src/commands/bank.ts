@@ -123,18 +123,21 @@ const bankCommand: Command = {
                 cancelButton
               );
 
-              const response = await ResponseUtil.smartReply(interaction, {
+              await ResponseUtil.smartReply(interaction, {
                 embeds: [embed],
                 components: [row],
                 flags: 64,
               });
+
+              // Get the message for button interactions
+              const response = await interaction.fetchReply();
 
               // Handle button interactions
               try {
                 const buttonInteraction = await response.awaitMessageComponent({
                   componentType: ComponentType.Button,
                   time: 30000, // 30 seconds timeout
-                  filter: (i) => i.user.id === userId,
+                  filter: (i: any) => i.user.id === userId,
                 });
 
                 if (
@@ -344,18 +347,21 @@ const bankCommand: Command = {
                 cancelButton
               );
 
-              const response = await ResponseUtil.smartReply(interaction, {
+              await ResponseUtil.smartReply(interaction, {
                 embeds: [embed],
                 components: [row],
                 flags: 64,
               });
+
+              // Get the message for button interactions
+              const response = await interaction.fetchReply();
 
               // Handle button interactions
               try {
                 const buttonInteraction = await response.awaitMessageComponent({
                   componentType: ComponentType.Button,
                   time: 30000, // 30 seconds timeout
-                  filter: (i) => i.user.id === userId,
+                  filter: (i: any) => i.user.id === userId,
                 });
 
                 if (
