@@ -79,7 +79,7 @@ const bankCommand: Command = {
             embed = ResponseUtil.error("Deposit Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed] });
+          await interaction.reply({ embeds: [embed], flags: 64 });
           return { success: result.success };
         }
 
@@ -110,7 +110,7 @@ const bankCommand: Command = {
             embed = ResponseUtil.warning("Withdrawal Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed] });
+          await interaction.reply({ embeds: [embed], flags: 64 });
           return { success: result.success };
         }
 
@@ -125,9 +125,9 @@ const bankCommand: Command = {
           const embed = ResponseUtil.info(
             "🏦 Bank Account Information",
             `**${bankTier.name}**\n${
-              balance.bankBalance
+              balance.bankBalance > 0
                 ? `Current Balance: $${balance.bankBalance.toLocaleString()}`
-                : "No bank account"
+                : "No current balance"
             }`
           );
 
@@ -135,11 +135,24 @@ const bankCommand: Command = {
             name: "💰 Benefits",
             value: `• Daily Withdrawal Limit: $${bankTier.benefits.withdrawalLimit.toLocaleString()}\n• Interest Rate: ${(
               bankTier.benefits.interestRate * 100
-            ).toFixed(2)}% daily\n• Withdrawal Fee: ${(
+            ).toFixed(2)}% daily\n• Deposit Fee: ${(
+              bankTier.benefits.depositFee * 100
+            ).toFixed(2)}%\n• Withdrawal Fee: ${(
               bankTier.benefits.withdrawalFee * 100
             ).toFixed(1)}%\n• Government Protection: ${(
               bankTier.benefits.protectionLevel * 100
             ).toFixed(0)}%`,
+            inline: false,
+          });
+
+          // Add helpful fee calculator section
+          const maxWithdrawable = Math.floor(balance.bankBalance / (1 + bankTier.benefits.withdrawalFee));
+          const maxDepositFromCash = balance.cashOnHand;
+          const depositAfterFee = (amount: number) => Math.floor(amount * (1 - bankTier.benefits.depositFee));
+          
+          embed.addFields({
+            name: "💡 Quick Reference",
+            value: `**💸 Max Withdrawable:** $${maxWithdrawable.toLocaleString()} (after ${(bankTier.benefits.withdrawalFee * 100).toFixed(1)}% fee)\n**💵 Available Cash:** $${balance.cashOnHand.toLocaleString()}\n**📈 Deposit $100 → Get:** $${depositAfterFee(100)} in bank\n**📉 Withdraw $100 → Pay:** $${Math.floor(100 * bankTier.benefits.withdrawalFee)} fee`,
             inline: false,
           });
 
@@ -161,7 +174,7 @@ const bankCommand: Command = {
             });
           }
 
-          await interaction.reply({ embeds: [embed] });
+          await interaction.reply({ embeds: [embed], flags: 64 });
           return { success: true };
         }
 
@@ -173,7 +186,7 @@ const bankCommand: Command = {
               "Upgrade Not Available",
               upgradeInfo.reason || "Cannot upgrade at this time"
             );
-            await interaction.reply({ embeds: [embed] });
+            await interaction.reply({ embeds: [embed], flags: 64 });
             return { success: false };
           }
 
@@ -183,7 +196,7 @@ const bankCommand: Command = {
             "Bank upgrades will be available in a future update!"
           );
 
-          await interaction.reply({ embeds: [embed] });
+          await interaction.reply({ embeds: [embed], flags: 64 });
           return { success: true };
         }
 

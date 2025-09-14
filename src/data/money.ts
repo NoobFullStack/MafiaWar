@@ -231,7 +231,8 @@ export interface BankTier {
   benefits: {
     withdrawalLimit: number; // per day
     interestRate: number; // daily rate
-    withdrawalFee: number; // percentage
+    depositFee: number; // percentage for deposits
+    withdrawalFee: number; // percentage for withdrawals
     protectionLevel: number; // resistance to government seizure
   };
   upgradeCost: number;
@@ -248,7 +249,8 @@ export const bankTiers: BankTier[] = [
     benefits: {
       withdrawalLimit: 5000,
       interestRate: 0.001, // 0.1% daily
-      withdrawalFee: 0.05, // 5%
+      depositFee: 0.01, // 1% deposit fee
+      withdrawalFee: 0.05, // 5% withdrawal fee
       protectionLevel: 0, // No protection
     },
     upgradeCost: 0,
@@ -263,7 +265,8 @@ export const bankTiers: BankTier[] = [
     benefits: {
       withdrawalLimit: 15000,
       interestRate: 0.002, // 0.2% daily
-      withdrawalFee: 0.03, // 3%
+      depositFee: 0.005, // 0.5% deposit fee
+      withdrawalFee: 0.03, // 3% withdrawal fee
       protectionLevel: 0.1, // 10% protection
     },
     upgradeCost: 10000,
@@ -279,7 +282,8 @@ export const bankTiers: BankTier[] = [
     benefits: {
       withdrawalLimit: 50000,
       interestRate: 0.003, // 0.3% daily
-      withdrawalFee: 0.02, // 2%
+      depositFee: 0.003, // 0.3% deposit fee
+      withdrawalFee: 0.02, // 2% withdrawal fee
       protectionLevel: 0.25, // 25% protection
     },
     upgradeCost: 50000,
@@ -295,7 +299,8 @@ export const bankTiers: BankTier[] = [
     benefits: {
       withdrawalLimit: 200000,
       interestRate: 0.005, // 0.5% daily
-      withdrawalFee: 0.01, // 1%
+      depositFee: 0.002, // 0.2% deposit fee
+      withdrawalFee: 0.01, // 1% withdrawal fee
       protectionLevel: 0.4, // 40% protection
     },
     upgradeCost: 200000,
@@ -311,7 +316,8 @@ export const bankTiers: BankTier[] = [
     benefits: {
       withdrawalLimit: 1000000,
       interestRate: 0.007, // 0.7% daily
-      withdrawalFee: 0.005, // 0.5%
+      depositFee: 0.001, // 0.1% deposit fee
+      withdrawalFee: 0.005, // 0.5% withdrawal fee
       protectionLevel: 0.6, // 60% protection
     },
     upgradeCost: 1000000,

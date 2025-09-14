@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { logger } from "./ResponseUtil";
 import { initializeGameData } from "./GameSeeder";
+import { logger } from "./ResponseUtil";
 
 class DatabaseManager {
   private static instance: DatabaseManager;
@@ -30,7 +30,7 @@ class DatabaseManager {
     try {
       await this.prisma.$connect();
       logger.info("✅ Database connected successfully");
-      
+
       if (seedData) {
         logger.info("🌱 Initializing game data...");
         await initializeGameData(this.prisma);
@@ -84,7 +84,10 @@ class DatabaseManager {
                   stealth: 10,
                   intelligence: 10,
                 },
-                money: 1000, // Starting money
+                cashOnHand: 1000, // Starting money in new system
+                bankBalance: 0,
+                cryptoWallet: "{}",
+                money: 0, // Legacy field kept at 0
                 reputation: 0,
                 level: 1,
               },

@@ -42,11 +42,11 @@ export interface CrimeData {
 export const crimeData: CrimeData[] = [
   // === PETTY CRIMES ===
   {
-    id: "pickpocket",
+    id: "pickpocketing",
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 0, // 0 during development
+    cooldown: 30, // 30 seconds - changed from 0 to avoid potential division issues
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime

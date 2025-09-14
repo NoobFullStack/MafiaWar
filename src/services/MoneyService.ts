@@ -138,9 +138,10 @@ export class MoneyService {
         const totalWithdrawal = amount + fee;
 
         if (character.bankBalance < totalWithdrawal) {
+          const maxWithdrawable = Math.floor(character.bankBalance / (1 + bankTier.benefits.withdrawalFee));
           return {
             success: false,
-            message: `Insufficient bank funds. Need $${totalWithdrawal} (including $${fee} fee)`,
+            message: `Insufficient bank funds. Need $${totalWithdrawal} (including $${fee} fee).\n💡 **Max you can withdraw:** $${maxWithdrawable}`,
             error: "Insufficient funds",
           };
         }
@@ -158,13 +159,14 @@ export class MoneyService {
           };
         }
       } else {
-        // Cash deposit - small deposit fee
-        fee = Math.max(1, Math.floor(amount * 0.01)); // 1% deposit fee, minimum $1
+        // Cash deposit - use bank tier deposit fee
+        fee = Math.floor(amount * bankTier.benefits.depositFee);
 
         if (character.cashOnHand < amount) {
+          const netDeposit = Math.floor(amount * (1 - bankTier.benefits.depositFee));
           return {
             success: false,
-            message: `Insufficient cash. You have $${character.cashOnHand}`,
+            message: `Insufficient cash. You have $${character.cashOnHand}.\n💡 **Deposit $${character.cashOnHand} → Get:** $${Math.floor(character.cashOnHand * (1 - bankTier.benefits.depositFee))} in bank`,
             error: "Insufficient funds",
           };
         }
@@ -183,17 +185,17 @@ export class MoneyService {
         updates.cashOnHand = character.cashOnHand + amount;
       }
 
-      // Update database  
+      // Update database
       const db = DatabaseManager.getClient();
       await db.character.updateMany({
-        where: { user: { id: userId } },
+        where: { userId: user.id }, // Character.userId stores User.id (UUID)
         data: updates,
       });
 
       // Log transaction
       await db.bankTransaction.create({
         data: {
-          userId,
+          userId: user.id, // Use internal user.id, not Discord userId
           transactionType: from === "cash" ? "deposit" : "withdrawal",
           amount,
           fee,
@@ -375,7 +377,7 @@ export class MoneyService {
 
       const db = DatabaseManager.getClient();
       await db.character.updateMany({
-        where: { user: { id: userId } },
+        where: { userId: user.id }, // Character.userId stores User.id (UUID)
         data: {
           cashOnHand: character.cashOnHand - cashAmount,
           cryptoWallet: JSON.stringify(cryptoWallet),
@@ -385,7 +387,7 @@ export class MoneyService {
       // Log transaction
       await db.cryptoTransaction.create({
         data: {
-          userId,
+          userId: user.id, // Use internal user.id, not Discord userId
           coinType,
           transactionType: "buy",
           amount: coinAmount,
@@ -476,7 +478,7 @@ export class MoneyService {
 
       const db = DatabaseManager.getClient();
       await db.character.updateMany({
-        where: { user: { id: userId } },
+        where: { userId: user.id }, // Character.userId stores User.id (UUID)
         data: {
           cashOnHand: character.cashOnHand + netCash,
           cryptoWallet: JSON.stringify(cryptoWallet),
@@ -486,7 +488,7 @@ export class MoneyService {
       // Log transaction
       await db.cryptoTransaction.create({
         data: {
-          userId,
+          userId: user.id, // Use internal user.id, not Discord userId
           coinType,
           transactionType: "sell",
           amount: coinAmount,
@@ -560,8 +562,18 @@ export class MoneyService {
           return await this.buyCrypto(userId, coinType, amount);
       }
 
+      // Get user to find character
+      const user = await DatabaseManager.getOrCreateUser(userId, "");
+      if (!user.character) {
+        return {
+          success: false,
+          message: "Character not found",
+          error: "No character",
+        };
+      }
+
       await db.character.updateMany({
-        where: { user: { id: userId } },
+        where: { userId: user.id }, // Character.userId stores User.id (UUID)
         data: updateData,
       });
 

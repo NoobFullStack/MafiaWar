@@ -61,7 +61,7 @@ const walletCommand: Command = {
         text: "💡 Use /bank or /crypto commands to manage your money",
       });
 
-      await interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed], flags: 64 });
       return { success: true };
     } catch (error) {
       logger.error(`Wallet command error for user ${userId}:`, error);
@@ -71,7 +71,7 @@ const walletCommand: Command = {
         "Failed to load your wallet information. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return { success: false, error: "Failed to load wallet" };
     }
   },

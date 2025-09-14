@@ -89,7 +89,7 @@ const crimesCommand: Command = {
         text: "💡 Tip: Use /crime <type> to commit crimes • Level up to unlock more!\n✅ = Available • 🔒 = Level locked",
       });
 
-      await interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed], flags: 64 });
       return { success: true };
     } catch (error) {
       logger.error(`Crimes command error for user ${userId}:`, error);
