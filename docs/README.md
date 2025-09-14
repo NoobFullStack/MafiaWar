@@ -22,22 +22,38 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 - 🎮 **[Game Design](development/game-design.md)** - Core gameplay mechanics and features
 - 🗺️ **[Development Roadmap](development/roadmap.md)** - Project phases and implementation plan
 - 💡 **[Feature Ideas](development/feature-ideas.md)** - Brainstormed features and command concepts
+- 📢 **[Communications Planning](development/communications-planning.md)** - Public vs private message strategy for community engagement
 
-## 📖 Quick Navigation
+### **Feature Implementation**
+
+- 🏢 **[Asset Integration](development/ASSET_INTEGRATION.md)** - Complete asset system implementation and architecture
+- � **[Development Status](development/STATUS.md)** - Current progress and completed features
+- ✅ **[TODO List](development/TODO.md)** - Planned features and development tasks
+
+## �📖 Quick Navigation
 
 ### **For New Developers**
 
 1. Start with [Installation Guide](setup/INSTALLATION.md)
 2. Review [Game Design](development/game-design.md) to understand the vision
 3. Learn [Money System](economy/MONEY_SYSTEM.md) for the strategic three-tier architecture
-4. Check [Seeding System](setup/SEEDING.md) to understand data management
+4. Check [Asset Integration](development/ASSET_INTEGRATION.md) for the business system
 5. Review [Economics Analysis](economy/ECONOMICS.md) for balance principles
+6. Read [Communications Planning](development/communications-planning.md) for engagement strategy
 
 ### **For Contributors**
 
 - 🎯 See [Feature Ideas](development/feature-ideas.md) for implementation opportunities
 - 🏗️ Architecture overview in [Installation Guide](setup/INSTALLATION.md)
 - 📋 Development workflow in main [README](../README.md)
+- 📢 Community engagement in [Communications Planning](development/communications-planning.md)
+
+### **For System Understanding**
+
+- 🏢 **Asset System** - [Asset Integration Guide](development/ASSET_INTEGRATION.md)
+- 💰 **Money Management** - [Money System Architecture](economy/MONEY_SYSTEM.md)
+- 📊 **Game Balance** - [Economics Analysis](economy/ECONOMICS.md)
+- 🎮 **Core Mechanics** - [Game Design Document](development/game-design.md)
 
 ## 📁 Directory Structure
 
@@ -51,10 +67,34 @@ docs/
 │   ├── ECONOMICS.md       # Economic analysis and XP progression
 │   └── economy-analysis.md # Real-time balance validation data
 └── development/
-    ├── game-design.md      # Game mechanics and features
-    ├── roadmap.md          # Development phases and timeline
-    └── feature-ideas.md    # Command ideas and future features
+    ├── game-design.md          # Game mechanics and features
+    ├── roadmap.md              # Development phases and timeline
+    ├── feature-ideas.md        # Command ideas and future features
+    ├── communications-planning.md # Public/private message strategy
+    ├── ASSET_INTEGRATION.md    # Asset system implementation
+    ├── STATUS.md              # Current development progress
+    └── TODO.md               # Planned features and tasks
 ```
+
+## 🌟 Recent Updates
+
+### **Asset System Documentation** (September 2025)
+- **[Asset Integration Guide](development/ASSET_INTEGRATION.md)** - Complete implementation details
+- **Business management system** with 6 asset types and strategic income distribution
+- **Transaction safety** and race condition prevention documentation
+- **Upgrade mechanics** and risk management features
+
+### **Community Engagement Planning** (September 2025)
+- **[Communications Planning](development/communications-planning.md)** - Comprehensive strategy for public vs private messages
+- **Privacy balance** maintaining competitive secrecy while building community
+- **Implementation roadmap** for engagement features
+- **User control systems** for configurable privacy settings
+
+### **Performance & Reliability** (September 2025)
+- **Deferred interaction patterns** preventing Discord timeout errors
+- **Atomic transaction documentation** for data consistency
+- **Error handling strategies** for complex operations
+- **Development tooling** including cleanup scripts and validation
 
 ## 🤝 Contributing to Documentation
 
@@ -63,6 +103,15 @@ Help improve our documentation:
 1. **Found unclear instructions?** Open an issue or submit a PR
 2. **Missing information?** Add it to the relevant guide
 3. **New features?** Update the roadmap and design docs
+4. **Implementation details?** Document in the appropriate integration guide
+
+## 🎯 Documentation Standards
+
+- **Clear examples** with code snippets where applicable
+- **Step-by-step guides** for complex procedures
+- **Architecture explanations** for system understanding
+- **Implementation details** for developers
+- **User experience focus** for player-facing features
 
 ---
 

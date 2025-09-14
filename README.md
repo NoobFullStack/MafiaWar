@@ -8,26 +8,32 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
 - 💰 **Multi-Layered Money System** - Strategic three-tier money management (cash, bank, crypto)
-- 🔒 **Privacy Controls** - All financial commands use ephemeral responses for user privacy
+- 🔒 **Privacy Controls** - Configurable privacy settings with smart public/private balance
 - 🎯 **XP & Level System** - MMO-style progression with 50 levels and milestone rewards
 - 🛡️ **Level Gating** - Content unlocks based on player level and progression
 - 🔫 **Crime System** - 9 criminal activities with strategic payouts and real-time execution
+- 🏢 **Asset System** - Complete business management with 6 asset types and passive income
 - 📊 **Profile Management** - View character stats, level, XP progress, and reputation
+- ⚡ **Performance Optimization** - Atomic transactions, timeout handling, race condition prevention
+- 🛡️ **Cooldown System** - Built-in spam protection with deferred interactions
+- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM and comprehensive logging
 - 🌱 **Advanced Seeding** - Safe, extensible data management system
 - 📈 **Economic Analysis** - Real-time balance validation and XP progression analysis
-- ⚡ **Performance Optimization** - Eliminates timeout issues with optimized database operations
-- 🛡️ **Cooldown System** - Built-in spam protection
-- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM and XP tracking
 
-### **In Development**
+### **Asset Management System** ✨ NEW
 
-- 🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements (data ready)
-- � **Asset System** - 6 business types from convenience stores to casinos (data ready)
-- ₿ **Cryptocurrency Trading** - Market volatility and crypto exchange system (data ready)
+- **6 Business Types** - From convenience stores to underground casinos
+- **Strategic Income Distribution** - Businesses generate cash, bank, and crypto income
+- **Upgrade System** - Improve income rates and security levels  
+- **Risk Management** - Each business has raid vulnerability and market sensitivity
+- **Level-Gated Content** - Assets unlock as players progress
+- **Atomic Transactions** - Race condition prevention for reliable purchases
+- **Income Collection** - Automated passive income generation with multi-tier distribution
 
 ### **Planned Features**
 
-- � **Mission System** - Daily tasks and story-driven progression
+- 📢 **Community Engagement** - Public achievements and social features (planned)
+- 🎯 **Mission System** - Daily tasks and story-driven progression
 - 👥 **Gang System** - Social features and cooperative gameplay
 - ⚔️ **PvP Mechanics** - Asset robberies and player vs player combat
 - 📈 **Leaderboards** - Rankings for money, reputation, and achievements
@@ -42,19 +48,35 @@ MafiaWar features a sophisticated **three-tier money system** for strategic risk
 - **🏦 Bank Account** - Protected from players but subject to government raids/IRS seizures
 - **₿ Cryptocurrency** - Protected from all threats but subject to market volatility
 
-**Privacy by Design**: All financial information is displayed privately to users only, protecting your financial strategy from other players.
+**Strategic Income Distribution**: Assets generate income across all three tiers based on business type:
+- **Legitimate businesses** - Mostly cash and bank income
+- **Semi-legal operations** - Balanced distribution with some crypto
+- **Illegal enterprises** - Heavy crypto focus for anonymity
 
 Players must strategically balance liquidity, security, and growth potential across all three tiers.
+
+### **🏢 Asset Management System**
+
+**Business Categories:**
+- **🏪 Legitimate** - Convenience stores, restaurants (low risk, steady income)
+- **🎭 Semi-Legal** - Pawn shops, nightclubs (medium risk, good profits)  
+- **🕴️ Illegal** - Warehouses, casinos (high risk, massive returns)
+
+**Advanced Features:**
+- **Income Distribution** - Each business generates income across cash/bank/crypto
+- **Upgrade Paths** - Improve income rates and security levels
+- **Risk Profiles** - Raid vulnerability, market sensitivity, seasonality
+- **Level Requirements** - Content unlocks with player progression
+- **Transaction Safety** - Atomic purchases prevent race conditions and duplicates
 
 ### **🧮 Gameplay Economy with XP Progression**
 
 Unlike other bots with arbitrary pricing, MafiaWar uses **real gameplay analysis**:
 
-- **Privacy-First Design**: All financial information displayed privately to users
-- **Performance Optimized**: Eliminates timeout issues with single-transaction database operations
-- Items priced based on actual crime earnings and XP value
+- **Performance Optimized** - Atomic transactions, timeout handling, deferred interactions
+- Items and assets priced based on actual crime earnings and XP value
 - MMO-style progression with 50 levels and milestone rewards
-- Strategic crime payouts distributed across cash, bank, and crypto tiers
+- Strategic crime and asset payouts distributed across all money tiers
 - 1-5 hour payback periods for meaningful progression
 - Dynamic balance recommendations including XP economic valuation
 
@@ -67,13 +89,14 @@ Content unlocks naturally with player progression:
 - Realistic timing: Level 15 takes ~52 days, Level 30 takes ~285 days
 - Multiple requirement checks: level, stats, money, reputation
 
-### **🌱 Smart Seeding**
+### **🌱 Smart Seeding & Data Management**
 
 Extensible data management that grows with your game:
 
 - Safe upserts prevent data loss
 - Incremental updates for new content
 - Automatic validation and integrity checks
+- Cleanup scripts for data maintenance
 
 ## 🚀 Quick Start
 
@@ -141,6 +164,16 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/crime <type>`  | Commit crimes for money and XP         | 30s      |
 | `/crimes`        | View available crimes and requirements | 10s      |
 
+### **🏢 Asset Management Commands** ✨ NEW
+
+| Command                    | Description                                    | Cooldown |
+| -------------------------- | ---------------------------------------------- | -------- |
+| `/assets [category]`       | Browse available businesses to purchase        | 5s       |
+| `/business buy <asset>`    | Purchase a business asset with payment options | 3s       |
+| `/business list`           | View your owned business portfolio             | 3s       |
+| `/business collect`        | Collect income from all your assets           | 3s       |
+| `/business upgrade <type>` | Upgrade asset income or security levels       | 3s       |
+
 ### **🚧 Commands In Development**
 
 | Command            | Description                          | Status     |
@@ -148,17 +181,17 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/crypto <action>` | Trade cryptocurrencies               | Data Ready |
 | `/items`           | View available items and tools       | Data Ready |
 | `/buy <item>`      | Purchase items with various payments | Data Ready |
-| `/assets`          | View available businesses            | Data Ready |
-| `/business <cmd>`  | Manage owned properties              | Data Ready |
 
-### **🔧 Development Commands**
+### **🔧 Development & Maintenance Commands**
 
-| Command                 | Description                                  |
-| ----------------------- | -------------------------------------------- |
-| `yarn economy:analyze`  | Complete economy and XP progression analysis |
-| `yarn level:demo`       | Demonstrate level gating system              |
-| `yarn crime:demo`       | Test crime system and success calculations   |
-| `yarn economy:validate` | Validate item balance and pricing            |
+| Command                    | Description                                  |
+| -------------------------- | -------------------------------------------- |
+| `yarn economy:analyze`     | Complete economy and XP progression analysis |
+| `yarn level:demo`          | Demonstrate level gating system              |
+| `yarn crime:demo`          | Test crime system and success calculations   |
+| `yarn economy:validate`    | Validate item balance and pricing            |
+| `yarn cleanup:duplicates`  | Remove duplicate assets (with --execute)    |
+| `yarn assets:validate`     | Validate asset templates and requirements    |
 
 ## 🏗️ Architecture
 
@@ -245,7 +278,35 @@ yarn lint       # Run TypeScript checks
 - 🎮 **[Game Design](./docs/development/game-design.md)** - Core gameplay mechanics and features
 - 🗺️ **[Development Roadmap](./docs/development/roadmap.md)** - Project phases and timeline
 - 💡 **[Feature Ideas](./docs/development/feature-ideas.md)** - Command concepts and future features
-- 📖 **[Full Documentation](./docs/README.md)** - Complete documentation index
+- � **[Communications Planning](./docs/development/communications-planning.md)** - Public vs private message strategy
+- 🏢 **[Asset Integration](./docs/development/ASSET_INTEGRATION.md)** - Asset system implementation details
+- 💰 **[Money System](./docs/economy/MONEY_SYSTEM.md)** - Multi-tier financial architecture
+- 📊 **[Economics Analysis](./docs/economy/ECONOMICS.md)** - Balance validation and progression
+- �📖 **[Full Documentation](./docs/README.md)** - Complete documentation index
+
+## 🛠️ Recent Improvements
+
+### **Asset System Implementation** ✨ (September 2025)
+- **Complete business management** with 6 asset types (convenience stores to casinos)
+- **Strategic income distribution** across cash, bank, and cryptocurrency
+- **Atomic transaction safety** preventing race conditions and duplicate purchases
+- **Upgrade system** for income rates and security levels
+- **Risk management features** including raid vulnerability and market sensitivity
+- **Level-gated content** unlocking businesses as players progress
+
+### **Performance & Reliability** 🚀 (September 2025)
+- **Deferred Discord interactions** preventing timeout errors
+- **Atomic database transactions** ensuring data consistency
+- **Race condition prevention** in asset purchases and income collection
+- **Improved JSON parsing** for cryptocurrency wallet handling
+- **Transaction timeout handling** with extended timeouts for complex operations
+
+### **Developer Experience** 🔧 (September 2025)
+- **Test business** (Lemonade Stand) for easy development and testing
+- **Cleanup scripts** for removing duplicate assets and data maintenance
+- **Fixed display issues** with proper emoji rendering
+- **Enhanced error handling** with specific timeout and transaction error messages
+- **Comprehensive logging** for debugging and monitoring
 
 ## 🗄️ Database Schema
 
@@ -291,4 +352,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Ready to build your criminal empire?** Start with `/profile` to create your character, then use `/wallet` to check your money portfolio and `/bank deposit` to secure your earnings! All financial information is kept private to you. 🎭
+**Ready to build your criminal empire?** Start with `/create-account` to create your character, then use `/assets` to browse businesses and `/business buy` to start generating passive income! 🎭
+
+### **🎯 Quick Start Guide**
+1. **Create Character** - `/create-account` to join the underworld
+2. **Check Finances** - `/wallet` to see your starting $1,000
+3. **Browse Businesses** - `/assets` to see available investments
+4. **Buy First Asset** - `/business buy test_lemonade_stand` (perfect for testing!)
+5. **Collect Income** - `/business collect` to gather your earnings
+6. **Commit Crimes** - `/crime` to earn money and experience
+7. **Level Up** - Progress through 50 levels unlocking new content
