@@ -19,9 +19,9 @@ Complete guide for deploying MafiaWar Discord Bot on your VPS using PM2 (similar
 
 ```bash
 # Clone your repository
-cd /var/www  # or wherever you keep your projects
-git clone https://github.com/NoobFullStack/MafiaWar.git
-cd MafiaWar
+cd ~/projects/discord  # Your actual VPS directory structure
+git clone https://github.com/NoobFullStack/MafiaWar.git mafiawar
+cd mafiawar
 
 # Install dependencies
 npm install
@@ -52,6 +52,11 @@ DATABASE_URL="postgresql://username:password@host:5432/mafia_war_prod"
 # Supabase Configuration (if using)
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# VPS Deployment Configuration (for PM2)
+VPS_HOST=your_vps_ip_address
+VPS_USER=debian
+BOT_CWD=/home/debian/projects/discord/mafiawar
 
 # Environment
 NODE_ENV=production
@@ -87,7 +92,7 @@ module.exports = {
     {
       name: 'mafia-war-bot',
       script: 'dist/bot.js',
-      cwd: '/var/www/MafiaWar',
+      cwd: process.env.BOT_CWD || '/home/debian/projects/discord/mafiawar',  // From .env
       instances: 1,  // Discord bots should run single instance
       exec_mode: 'fork',  // Not cluster mode for Discord bots
       
@@ -210,9 +215,15 @@ echo "✅ Deployment complete!"
 pm2 status mafia-war-bot
 ```
 
-## 🛡️ Best Practices for Discord Bot Deployment
+## 🛡️ Security Best Practices
 
-### **1. Single Instance Only**
+### **1. Environment Variables for VPS Configuration**
+- All VPS-specific settings are now in `.env` file (not committed to Git)
+- `VPS_HOST`: Your server IP address
+- `VPS_USER`: Your server username (typically `debian`)
+- `BOT_CWD`: Full path to your bot directory on the VPS
+
+### **2. Single Instance Only**
 - Discord bots should **NOT** use PM2 cluster mode
 - Use `instances: 1` and `exec_mode: 'fork'`
 - Multiple instances would cause conflicts with Discord's Gateway
