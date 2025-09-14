@@ -138,7 +138,7 @@ const assetsCommand: Command = {
           
           // Cleaner format
           assetList += `${statusIcon} **${asset.name}**\n`;
-          assetList += `� $${asset.basePrice.toLocaleString()} • � $${asset.baseIncomeRate}/hr • �️ ${asset.baseSecurityLevel}\n`;
+          assetList += `💰 $${asset.basePrice.toLocaleString()} • 💵 $${asset.baseIncomeRate}/hr • 🛡️ ${asset.baseSecurityLevel}\n`;
 
           // Income distribution in a cleaner format
           const dist = asset.incomeDistribution;
@@ -176,7 +176,7 @@ const assetsCommand: Command = {
       // Add legend if showing filtered results
       if (!availableOnly) {
         embed.addFields({
-          name: "� How to Read",
+          name: "📖 How to Read",
           value: 
             `✅ **Available** - You can purchase this asset\n` +
             `❌ **Unavailable** - Missing requirements shown below\n` +

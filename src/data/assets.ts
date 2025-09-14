@@ -33,6 +33,43 @@ export interface AssetTemplate {
 }
 
 export const assetTemplates: AssetTemplate[] = [
+  // === DEVELOPMENT TEST BUSINESS ===
+  {
+    id: "test_lemonade_stand",
+    type: "shop",
+    name: "Lemonade Stand",
+    description: "Simple test business for development - generates small income every few minutes.",
+    basePrice: 100, // Very affordable for testing
+    baseIncomeRate: 60, // $1 per minute (60/hour) for quick testing
+    baseSecurityLevel: 1,
+    maxLevel: 3,
+    category: "legitimate",
+    requirements: {
+      level: 1, // No level lock
+    },
+    upgrades: {
+      income: [
+        { cost: 50, multiplier: 1.5 },
+        { cost: 100, multiplier: 2.0 },
+      ],
+      security: [
+        { cost: 25, value: 2 },
+        { cost: 50, value: 3 },
+      ],
+    },
+    incomeDistribution: {
+      cash: 40, // 40% cash for quick testing
+      bank: 30, // 30% bank for testing bank mechanics
+      crypto: 30, // 30% crypto for testing crypto mechanics
+      cryptoType: "bitcoin",
+    },
+    characteristics: {
+      seasonality: 1.0,
+      marketSensitivity: 0.1,
+      raidVulnerability: 0.01, // Almost no risk for testing
+    },
+  },
+
   // === LEGITIMATE BUSINESSES ===
   {
     id: "convenience_store",

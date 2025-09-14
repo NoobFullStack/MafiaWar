@@ -227,56 +227,54 @@ export class AssetService {
         };
       }
 
-      // Process payment
-      let paymentResult;
-      const totalCost = asset.basePrice;
+      // Process entire purchase in a single transaction to prevent race conditions
+      const result = await db.$transaction(async (tx) => {
+        // Re-validate within transaction to prevent race conditions
+        const currentUser = await tx.user.findUnique({
+          where: { id: user.id },
+          include: { character: true },
+        });
 
-      switch (paymentMethod) {
-        case "cash":
-          if (user.character.cashOnHand < totalCost) {
-            return {
-              success: false,
-              message: `Insufficient cash - need $${totalCost.toLocaleString()}, have $${user.character.cashOnHand.toLocaleString()}`,
-              error: "Insufficient cash",
-            };
-          }
-          // Deduct from cash
-          await db.character.updateMany({
-            where: { userId: user.id },
-            data: { cashOnHand: { decrement: totalCost } },
-          });
-          break;
+        if (!currentUser?.character) {
+          throw new Error("Character not found");
+        }
 
-        case "bank":
-          if (user.character.bankBalance < totalCost) {
-            return {
-              success: false,
-              message: `Insufficient bank funds - need $${totalCost.toLocaleString()}, have $${user.character.bankBalance.toLocaleString()}`,
-              error: "Insufficient bank funds",
-            };
-          }
-          // Deduct from bank
-          await db.character.updateMany({
-            where: { userId: user.id },
-            data: { bankBalance: { decrement: totalCost } },
-          });
-          break;
+        const totalCost = asset.basePrice;
 
-        case "mixed":
-          // Try to use bank first, then cash
-          const bankAmount = Math.min(user.character.bankBalance, totalCost);
-          const cashAmount = totalCost - bankAmount;
-          
-          if (cashAmount > user.character.cashOnHand) {
-            return {
-              success: false,
-              message: `Insufficient funds - need $${totalCost.toLocaleString()}, have $${(user.character.cashOnHand + user.character.bankBalance).toLocaleString()}`,
-              error: "Insufficient funds",
-            };
-          }
+        // Check payment availability within transaction
+        switch (paymentMethod) {
+          case "cash":
+            if (currentUser.character.cashOnHand < totalCost) {
+              throw new Error(`Insufficient cash - need $${totalCost.toLocaleString()}, have $${currentUser.character.cashOnHand.toLocaleString()}`);
+            }
+            // Deduct from cash
+            await tx.character.updateMany({
+              where: { userId: user.id },
+              data: { cashOnHand: { decrement: totalCost } },
+            });
+            break;
 
-          // Process mixed payment in transaction
-          await db.$transaction(async (tx) => {
+          case "bank":
+            if (currentUser.character.bankBalance < totalCost) {
+              throw new Error(`Insufficient bank funds - need $${totalCost.toLocaleString()}, have $${currentUser.character.bankBalance.toLocaleString()}`);
+            }
+            // Deduct from bank
+            await tx.character.updateMany({
+              where: { userId: user.id },
+              data: { bankBalance: { decrement: totalCost } },
+            });
+            break;
+
+          case "mixed":
+            // Try to use bank first, then cash
+            const bankAmount = Math.min(currentUser.character.bankBalance, totalCost);
+            const cashAmount = totalCost - bankAmount;
+            
+            if (cashAmount > currentUser.character.cashOnHand) {
+              throw new Error(`Insufficient funds - need $${totalCost.toLocaleString()}, have $${(currentUser.character.cashOnHand + currentUser.character.bankBalance).toLocaleString()}`);
+            }
+
+            // Process mixed payment
             if (bankAmount > 0) {
               await tx.character.updateMany({
                 where: { userId: user.id },
@@ -289,57 +287,78 @@ export class AssetService {
                 data: { cashOnHand: { decrement: cashAmount } },
               });
             }
-          });
-          break;
-      }
+            break;
+        }
 
-      // Create the asset
-      const newAsset = await db.asset.create({
-        data: {
-          ownerId: user.id,
-          type: asset.type,
-          name: asset.name,
-          level: 1,
-          incomeRate: asset.baseIncomeRate,
-          securityLevel: asset.baseSecurityLevel,
-          value: asset.basePrice,
-          lastIncomeTime: new Date(),
-        },
-      });
-
-      // Log the purchase
-      await db.actionLog.create({
-        data: {
-          userId: user.id,
-          actionType: "asset_purchase",
-          actionId: newAsset.id,
-          result: "success",
-          details: {
-            assetId: asset.id,
-            assetName: asset.name,
-            cost: totalCost,
-            paymentMethod,
+        // Create the asset
+        const newAsset = await tx.asset.create({
+          data: {
+            ownerId: user.id,
+            type: asset.type,
+            name: asset.name,
+            level: 1,
+            incomeRate: asset.baseIncomeRate,
+            securityLevel: asset.baseSecurityLevel,
+            value: asset.basePrice,
+            lastIncomeTime: new Date(),
           },
-        },
+        });
+
+        // Log the purchase
+        await tx.actionLog.create({
+          data: {
+            userId: user.id,
+            actionType: "asset_purchase",
+            actionId: newAsset.id,
+            result: "success",
+            details: {
+              assetId: asset.id,
+              assetName: asset.name,
+              cost: totalCost,
+              paymentMethod,
+            },
+          },
+        });
+
+        return {
+          newAsset,
+          totalCost,
+        };
+      }, {
+        timeout: 10000, // 10 second timeout for purchase transaction
       });
 
       return {
         success: true,
         message: `🏢 Successfully purchased ${asset.name}!`,
         asset: {
-          id: newAsset.id,
+          id: result.newAsset.id,
           name: asset.name,
           type: asset.type,
           incomeRate: asset.baseIncomeRate,
           securityLevel: asset.baseSecurityLevel,
         },
-        cost: totalCost,
+        cost: result.totalCost,
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error("Error purchasing asset:", error);
+      
+      // Handle specific transaction errors
+      if (error.message && (
+        error.message.includes("Insufficient") || 
+        error.message.includes("need $") ||
+        error.message.includes("have $")
+      )) {
+        return {
+          success: false,
+          message: error.message,
+          error: "Insufficient funds",
+        };
+      }
+      
       return {
         success: false,
-        message: "Failed to purchase asset",
+        message: "Failed to purchase asset. Please try again.",
         error: "Database error",
       };
     }
@@ -479,13 +498,44 @@ export class AssetService {
           });
         }
 
-        // Handle crypto income
-        for (const [coinType, amount] of Object.entries(totalCrypto)) {
-          if (amount > 0) {
-            // Use MoneyService to add crypto (it handles current wallet + conversion)
-            await this.moneyService.addMoney(userId, amount, "crypto", coinType);
+        // Handle crypto income directly in transaction
+        if (Object.keys(totalCrypto).length > 0) {
+          const character = await tx.character.findFirst({
+            where: { userId: user.id },
+          });
+          
+          if (character) {
+            // Parse the crypto wallet JSON properly
+            let currentWallet: { [key: string]: number } = {};
+            
+            try {
+              if (character.cryptoWallet) {
+                if (typeof character.cryptoWallet === 'string') {
+                  currentWallet = JSON.parse(character.cryptoWallet);
+                } else {
+                  currentWallet = character.cryptoWallet as { [key: string]: number };
+                }
+              }
+            } catch (error) {
+              console.warn("Error parsing crypto wallet, using empty wallet:", error);
+              currentWallet = {};
+            }
+            
+            // Add crypto amounts to existing wallet
+            for (const [coinType, amount] of Object.entries(totalCrypto)) {
+              if (amount > 0) {
+                currentWallet[coinType] = (currentWallet[coinType] || 0) + amount;
+              }
+            }
+            
+            await tx.character.updateMany({
+              where: { userId: user.id },
+              data: { cryptoWallet: currentWallet },
+            });
           }
         }
+      }, {
+        timeout: 10000, // Increase timeout to 10 seconds
       });
 
       // Log the income collection

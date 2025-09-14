@@ -1,7 +1,7 @@
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { Command, CommandContext, CommandResult } from "../types/command";
-import { AssetService } from "../services/AssetService";
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { assetTemplates } from "../data/assets";
+import { AssetService } from "../services/AssetService";
+import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil } from "../utils/ResponseUtil";
 
@@ -53,7 +53,9 @@ const businessCommand: Command = {
         .addStringOption((option) =>
           option
             .setName("asset_id")
-            .setDescription("The ID of the asset to upgrade (use /business list to see IDs)")
+            .setDescription(
+              "The ID of the asset to upgrade (use /business list to see IDs)"
+            )
             .setRequired(true)
         )
         .addStringOption((option) =>
@@ -84,12 +86,15 @@ const businessCommand: Command = {
     const userTag = interaction.user.tag;
     const subcommand = interaction.options.getSubcommand();
 
+    // Defer the reply to prevent timeout for database operations
+    await interaction.deferReply({ ephemeral: true });
+
     try {
       // Check if user has an account
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user?.character) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await interaction.editReply({ embeds: [noAccountEmbed] });
         return { success: false, error: "User not registered" };
       }
 
@@ -98,7 +103,11 @@ const businessCommand: Command = {
       switch (subcommand) {
         case "buy": {
           const assetId = interaction.options.getString("asset", true);
-          const paymentMethod = interaction.options.getString("payment") as "cash" | "bank" | "mixed" || "mixed";
+          const paymentMethod =
+            (interaction.options.getString("payment") as
+              | "cash"
+              | "bank"
+              | "mixed") || "mixed";
 
           // Get asset template
           const assetTemplate = assetService.getAssetTemplate(assetId);
@@ -107,18 +116,21 @@ const businessCommand: Command = {
               "Asset Not Found",
               "The specified asset could not be found."
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await interaction.editReply({ embeds: [embed] });
             return { success: false, error: "Asset not found" };
           }
 
           // Validate purchase
-          const validation = await assetService.validateAssetPurchase(userId, assetId);
+          const validation = await assetService.validateAssetPurchase(
+            userId,
+            assetId
+          );
           if (!validation.canPurchase) {
             const embed = ResponseUtil.error(
               "Cannot Purchase Asset",
               `**${assetTemplate.name}** - ${validation.reason}`
             );
-            
+
             if (validation.requirements.length > 0) {
               embed.addFields({
                 name: "📋 Requirements",
@@ -127,25 +139,26 @@ const businessCommand: Command = {
               });
             }
 
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await interaction.editReply({ embeds: [embed] });
             return { success: false, error: "Requirements not met" };
           }
 
           // Attempt purchase
-          const result = await assetService.purchaseAsset(userId, assetId, paymentMethod);
-          
+          const result = await assetService.purchaseAsset(
+            userId,
+            assetId,
+            paymentMethod
+          );
+
           let embed;
           if (result.success) {
-            embed = ResponseUtil.success(
-              "🏢 Asset Purchased!",
-              result.message
-            );
+            embed = ResponseUtil.success("🏢 Asset Purchased!", result.message);
 
             if (result.asset && result.cost) {
               embed.addFields(
                 {
                   name: "📊 Asset Details",
-                  value: 
+                  value:
                     `**Name:** ${result.asset.name}\n` +
                     `**Type:** ${result.asset.type}\n` +
                     `**Income Rate:** $${result.asset.incomeRate}/hour\n` +
@@ -154,7 +167,7 @@ const businessCommand: Command = {
                 },
                 {
                   name: "💰 Purchase Info",
-                  value: 
+                  value:
                     `**Cost:** $${result.cost.toLocaleString()}\n` +
                     `**Payment Method:** ${paymentMethod}\n` +
                     `**Status:** ✅ Purchased`,
@@ -183,30 +196,34 @@ const businessCommand: Command = {
             embed = ResponseUtil.error("Purchase Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await interaction.editReply({ embeds: [embed] });
           return { success: result.success };
         }
 
         case "list": {
           const assets = await assetService.getPlayerAssets(userId);
-          
+
           if (assets.length === 0) {
             const embed = ResponseUtil.info(
               "🏢 No Assets Owned",
               "You don't own any business assets yet!\n\n" +
-              "**Getting Started:**\n" +
-              "• Use `/assets` to browse available businesses\n" +
-              "• Use `/business buy <asset>` to purchase your first asset\n" +
-              "• Start with a Convenience Store for $15,000"
+                "**Getting Started:**\n" +
+                "• Use `/assets` to browse available businesses\n" +
+                "• Use `/business buy <asset>` to purchase your first asset\n" +
+                "• Start with a Convenience Store for $15,000"
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await interaction.editReply({ embeds: [embed] });
             return { success: true };
           }
 
           const embed = new EmbedBuilder()
             .setTitle("🏢 Your Business Portfolio")
             .setColor(0x3498db)
-            .setDescription(`You own ${assets.length} business asset${assets.length !== 1 ? "s" : ""}.`);
+            .setDescription(
+              `You own ${assets.length} business asset${
+                assets.length !== 1 ? "s" : ""
+              }.`
+            );
 
           let totalPendingIncome = 0;
           let totalHourlyIncome = 0;
@@ -215,7 +232,8 @@ const businessCommand: Command = {
             totalPendingIncome += asset.pendingIncome;
             totalHourlyIncome += asset.incomeRate;
 
-            const hoursElapsed = Math.max(0, 
+            const hoursElapsed = Math.max(
+              0,
               (Date.now() - asset.lastIncomeTime.getTime()) / (1000 * 60 * 60)
             );
 
@@ -223,7 +241,9 @@ const businessCommand: Command = {
             assetInfo += `**Level:** ${asset.level}/${asset.template.maxLevel} • **Security:** ${asset.securityLevel}\n`;
             assetInfo += `**Income Rate:** $${asset.incomeRate}/hour\n`;
             assetInfo += `**Pending Income:** $${asset.pendingIncome.toLocaleString()}\n`;
-            assetInfo += `**Last Collection:** ${hoursElapsed.toFixed(1)} hours ago\n`;
+            assetInfo += `**Last Collection:** ${hoursElapsed.toFixed(
+              1
+            )} hours ago\n`;
 
             // Income breakdown
             if (asset.pendingIncomeBreakdown && asset.pendingIncome > 0) {
@@ -234,11 +254,13 @@ const businessCommand: Command = {
               if (asset.pendingIncomeBreakdown.bank > 0) {
                 breakdown += `🏦 $${asset.pendingIncomeBreakdown.bank.toLocaleString()}\n`;
               }
-              Object.entries(asset.pendingIncomeBreakdown.crypto).forEach(([coin, amount]) => {
-                if (amount > 0) {
-                  breakdown += `₿ $${amount.toLocaleString()} (${coin})\n`;
+              Object.entries(asset.pendingIncomeBreakdown.crypto).forEach(
+                ([coin, amount]) => {
+                  if (amount > 0) {
+                    breakdown += `₿ $${amount.toLocaleString()} (${coin})\n`;
+                  }
                 }
-              });
+              );
               assetInfo += breakdown;
             }
 
@@ -252,7 +274,7 @@ const businessCommand: Command = {
           // Summary
           embed.addFields({
             name: "📊 Portfolio Summary",
-            value: 
+            value:
               `**Total Hourly Income:** $${totalHourlyIncome.toLocaleString()}/hour\n` +
               `**Total Pending Income:** $${totalPendingIncome.toLocaleString()}\n` +
               `**Assets Owned:** ${assets.length}`,
@@ -263,65 +285,90 @@ const businessCommand: Command = {
             text: "💡 Use /business collect to gather all pending income • /business upgrade to improve assets",
           });
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await interaction.editReply({ embeds: [embed] });
           return { success: true };
         }
 
         case "collect": {
-          const result = await assetService.collectAllIncome(userId);
-          
-          let embed;
-          if (result.success) {
-            embed = ResponseUtil.success(
-              "💰 Income Collected!",
-              result.message
-            );
+          try {
+            const result = await assetService.collectAllIncome(userId);
+            
+            let embed;
+            if (result.success) {
+              embed = ResponseUtil.success(
+                "💰 Income Collected!",
+                result.message
+              );
 
-            if (result.incomeBreakdown && result.totalIncome) {
-              let breakdown = "**Income Distribution:**\n";
-              if (result.incomeBreakdown.cash > 0) {
-                breakdown += `💵 Cash: $${result.incomeBreakdown.cash.toLocaleString()}\n`;
-              }
-              if (result.incomeBreakdown.bank > 0) {
-                breakdown += `🏦 Bank: $${result.incomeBreakdown.bank.toLocaleString()}\n`;
-              }
-              Object.entries(result.incomeBreakdown.crypto).forEach(([coin, amount]) => {
-                if (amount > 0) {
-                  breakdown += `₿ ${coin}: $${amount.toLocaleString()}\n`;
+              if (result.incomeBreakdown && result.totalIncome) {
+                let breakdown = "**Income Distribution:**\n";
+                if (result.incomeBreakdown.cash > 0) {
+                  breakdown += `💵 Cash: $${result.incomeBreakdown.cash.toLocaleString()}\n`;
                 }
-              });
+                if (result.incomeBreakdown.bank > 0) {
+                  breakdown += `🏦 Bank: $${result.incomeBreakdown.bank.toLocaleString()}\n`;
+                }
+                Object.entries(result.incomeBreakdown.crypto).forEach(
+                  ([coin, amount]) => {
+                    if (amount > 0) {
+                      breakdown += `₿ ${coin}: $${amount.toLocaleString()}\n`;
+                    }
+                  }
+                );
 
-              embed.addFields({
-                name: "📈 Income Breakdown",
-                value: breakdown,
-                inline: false,
+                embed.addFields({
+                  name: "📈 Income Breakdown",
+                  value: breakdown,
+                  inline: false,
+                });
+              }
+
+              embed.setFooter({
+                text: "💡 Assets generate income over time • Check back later for more!",
               });
+            } else {
+              embed = ResponseUtil.error("Collection Failed", result.message);
             }
 
-            embed.setFooter({
-              text: "💡 Assets generate income over time • Check back later for more!",
-            });
-          } else {
-            embed = ResponseUtil.error("Collection Failed", result.message);
+            await interaction.editReply({ embeds: [embed] });
+            return { success: result.success };
+          } catch (error: any) {
+            console.error("Error collecting income:", error);
+            
+            let errorMessage = "An error occurred while collecting income.";
+            
+            // Handle specific database timeout errors
+            if (error.message && error.message.includes("transaction timeout")) {
+              errorMessage = "Income collection is taking longer than expected. Please try again in a moment.";
+            } else if (error.message && error.message.includes("Transaction already closed")) {
+              errorMessage = "Transaction timeout - your assets may be generating too much income to process quickly. Please try again.";
+            }
+            
+            const embed = ResponseUtil.error("Collection Error", errorMessage);
+            await interaction.editReply({ embeds: [embed] });
+            return { success: false, error: "Collection failed" };
           }
-
-          await interaction.reply({ embeds: [embed], flags: 64 });
-          return { success: result.success };
-        }
-
-        case "upgrade": {
+        }        case "upgrade": {
           const assetId = interaction.options.getString("asset_id", true);
-          const upgradeType = interaction.options.getString("type", true) as "income" | "security";
-          const paymentMethod = interaction.options.getString("payment") as "cash" | "bank" | "mixed" || "mixed";
+          const upgradeType = interaction.options.getString("type", true) as
+            | "income"
+            | "security";
+          const paymentMethod =
+            (interaction.options.getString("payment") as
+              | "cash"
+              | "bank"
+              | "mixed") || "mixed";
 
-          const result = await assetService.upgradeAsset(userId, assetId, upgradeType, paymentMethod);
-          
+          const result = await assetService.upgradeAsset(
+            userId,
+            assetId,
+            upgradeType,
+            paymentMethod
+          );
+
           let embed;
           if (result.success) {
-            embed = ResponseUtil.success(
-              "🔧 Asset Upgraded!",
-              result.message
-            );
+            embed = ResponseUtil.success("🔧 Asset Upgraded!", result.message);
 
             if (result.cost) {
               embed.addFields({
@@ -334,7 +381,7 @@ const businessCommand: Command = {
             embed = ResponseUtil.error("Upgrade Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await interaction.editReply({ embeds: [embed] });
           return { success: result.success };
         }
 
@@ -343,24 +390,24 @@ const businessCommand: Command = {
             "Invalid Subcommand",
             "Please use a valid subcommand: buy, list, collect, or upgrade."
           );
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await interaction.editReply({ embeds: [embed] });
           return { success: false, error: "Invalid subcommand" };
       }
-
     } catch (error) {
       console.error("Error in business command:", error);
       const embed = ResponseUtil.error(
         "Command Failed",
         "An error occurred while processing your business command."
       );
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await interaction.editReply({ embeds: [embed] });
       return { success: false, error: "Command execution failed" };
     }
   },
 
   cooldown: 3,
   category: "economy",
-  description: "Purchase and manage business assets for passive income generation",
+  description:
+    "Purchase and manage business assets for passive income generation",
 };
 
 export default businessCommand;
