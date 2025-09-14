@@ -204,3 +204,11 @@ docker-compose.override.yml
 *.tgz
 *.tar.gz
 .DS_Store
+
+# Project specific
+test-db.js
+*.tmp
+
+# IDE
+.vscode/
+.idea/
