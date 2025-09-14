@@ -15,6 +15,8 @@ import { crimeData, CrimeData } from "../data/crimes";
 import { gameItems } from "../data/items";
 import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
+import MoneyService from "./MoneyService";
+import { cryptoCoins } from "../data/money";
 
 export interface CrimeResult {
   success: boolean;
@@ -27,6 +29,12 @@ export interface CrimeResult {
   leveledUp?: boolean;
   newLevel?: number;
   criticalSuccess?: boolean;
+  // NEW: Strategic payout information
+  paymentDetails?: {
+    type: "cash" | "bank" | "crypto" | "mixed";
+    reason?: string;
+    breakdown?: { cash?: number; bank?: number; crypto?: { coin: string; amount: number } };
+  };
 }
 
 export interface PlayerStats {
@@ -175,7 +183,7 @@ export class CrimeService {
       level: currentLevel,
       experience: character.experience,
       reputation: character.reputation,
-      money: character.money,
+      money: character.cashOnHand, // Use new cash system
       stats: playerStats
     };
 
@@ -241,10 +249,19 @@ export class CrimeService {
     const newLevel = LevelCalculator.getLevelFromXP(newExperience);
     const leveledUp = newLevel > currentLevel;
 
-    // Generate success message
+    // Generate success message with payout details
     let message = `✅ **${crime.name} Successful!**\n`;
-    message += `💰 Earned: **$${moneyEarned.toLocaleString()}**\n`;
-    message += `⭐ XP Gained: **${xpGained}**`;
+    message += `💰 Earned: **$${moneyEarned.toLocaleString()}**`;
+    
+    // Add payout method information
+    if (crime.paymentType && crime.paymentType !== "cash") {
+      message += `\n💳 **${this.getPaymentDescription(crime.paymentType)}**`;
+      if (crime.paymentReason) {
+        message += `\n💡 ${crime.paymentReason}`;
+      }
+    }
+    
+    message += `\n⭐ XP Gained: **${xpGained}**`;
 
     if (criticalSuccess) {
       message += `\n🎯 **CRITICAL SUCCESS!** Double XP earned!`;
@@ -254,6 +271,13 @@ export class CrimeService {
       message += `\n🎉 **LEVEL UP!** You are now Level ${newLevel}!`;
     }
 
+    // Prepare payment details for strategic processing
+    const paymentDetails = {
+      type: crime.paymentType || "cash",
+      reason: crime.paymentReason,
+      breakdown: this.calculatePaymentBreakdown(moneyEarned, crime.paymentType || "cash")
+    } as any;
+
     return {
       success: true,
       moneyEarned,
@@ -261,8 +285,43 @@ export class CrimeService {
       message,
       leveledUp,
       newLevel: leveledUp ? newLevel : undefined,
-      criticalSuccess
+      criticalSuccess,
+      paymentDetails
     };
+  }
+
+  /**
+   * Get human-readable payment method description
+   */
+  private static getPaymentDescription(paymentType: string): string {
+    switch (paymentType) {
+      case "bank": return "Funds transferred to bank account";
+      case "crypto": return "Payment received in cryptocurrency";
+      case "mixed": return "Mixed payout: cash + bank transfer";
+      default: return "Cash payment received";
+    }
+  }
+
+  /**
+   * Calculate how money should be distributed across payment types
+   */
+  private static calculatePaymentBreakdown(amount: number, paymentType: string) {
+    switch (paymentType) {
+      case "bank":
+        return { bank: amount };
+      case "crypto":
+        // For crypto payments, pick a random coin (prefer less volatile for crime payouts)
+        const stableCoins = cryptoCoins.filter(c => c.category === "stable");
+        const selectedCoin = stableCoins[Math.floor(Math.random() * stableCoins.length)] || cryptoCoins[0];
+        return { crypto: { coin: selectedCoin.id, amount: amount } };
+      case "mixed":
+        // 60% cash, 40% bank for mixed payments
+        const cashAmount = Math.floor(amount * 0.6);
+        const bankAmount = amount - cashAmount;
+        return { cash: cashAmount, bank: bankAmount };
+      default:
+        return { cash: amount };
+    }
   }
 
   /**
@@ -315,8 +374,10 @@ export class CrimeService {
       const updateData: any = {};
 
       if (result.success) {
-        // Update money and experience
-        updateData.money = { increment: result.moneyEarned };
+        // Handle strategic payout processing
+        await this.processStrategicPayout(userId, result);
+        
+        // Update experience 
         updateData.experience = { increment: result.experienceGained };
         
         // Increase reputation for successful crimes
@@ -325,16 +386,68 @@ export class CrimeService {
       }
       // Note: Jail time functionality will be added when jailUntil field is added to schema
 
-      // Update character
-      await DatabaseManager.getClient().character.updateMany({
-        where: { user: { discordId: userId } },
-        data: updateData
-      });
+      // Update character (experience and reputation only, money handled separately)
+      if (Object.keys(updateData).length > 0) {
+        await DatabaseManager.getClient().character.updateMany({
+          where: { user: { discordId: userId } },
+          data: updateData
+        });
+      }
 
-      logger.info(`Crime ${crime.id} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}`);
+      logger.info(`Crime ${crime.id} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}, PaymentType=${result.paymentDetails?.type || 'cash'}`);
     } catch (error) {
       logger.error(`Failed to update player after crime ${crime.id}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Process strategic payout based on crime type
+   */
+  private static async processStrategicPayout(userId: string, result: CrimeResult): Promise<void> {
+    if (!result.paymentDetails || !result.success || !result.paymentDetails.breakdown) return;
+
+    const moneyService = MoneyService.getInstance();
+    const breakdown = result.paymentDetails.breakdown;
+
+    try {
+      if (breakdown.cash) {
+        // Add to cash on hand
+        const db = DatabaseManager.getClient();
+        await db.character.update({
+          where: { userId },
+          data: { cashOnHand: { increment: breakdown.cash } }
+        });
+      }
+
+      if (breakdown.bank) {
+        // Add to bank account directly (skip transfer fees for crime payouts)
+        const db = DatabaseManager.getClient();
+        await db.character.update({
+          where: { userId },
+          data: { bankBalance: { increment: breakdown.bank } }
+        });
+      }
+
+      if (breakdown.crypto) {
+        // Add cash first, then convert to crypto
+        const db = DatabaseManager.getClient();
+        await db.character.update({
+          where: { userId },
+          data: { cashOnHand: { increment: breakdown.crypto.amount } }
+        });
+        
+        // Then immediately convert to crypto
+        await moneyService.buyCrypto(userId, breakdown.crypto.coin, breakdown.crypto.amount);
+      }
+    } catch (error) {
+      logger.error(`Failed to process strategic payout for ${userId}:`, error);
+      // Fall back to cash payment
+      const db = DatabaseManager.getClient();
+      await db.character.update({
+        where: { userId },
+        data: { cashOnHand: { increment: result.moneyEarned } }
+      });
     }
   }
 

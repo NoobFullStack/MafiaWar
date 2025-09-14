@@ -1,10 +1,13 @@
-# Gameplay Economy Analysis
+# Crime & Item Economy Analysis
 
-This analysis shows actual crime income vs item costs to validate pricing.
+This analysis validates crime income vs item costs to ensure balanced progression.
+
+> **Note**: This focuses on crime earnings and item balance. For the money storage system (cash/bank/crypto), see [MONEY_SYSTEM.md](MONEY_SYSTEM.md)
 
 ## Key Findings
 
 ### Crime Income by Tier
+
 - Pickpocketing (Diff 1): $1125/hour
 - Shoplifting (Diff 2): $1260/hour
 - Bike Theft (Diff 2): $1120/hour
@@ -16,10 +19,12 @@ This analysis shows actual crime income vs item costs to validate pricing.
 - Bank Robbery (Diff 9): $2100/hour
 
 ### Problematic Items
+
 - Cheap Pistol: Takes Infinity hours to pay for itself - too expensive
 - Stolen Electronics: Takes 12 hours to pay for itself - too expensive
 
-### Well-Balanced Items  
+### Well-Balanced Items
+
 - Basic Lockpick: 1 hour payback
 - Advanced Lockpick Set: 2 hour payback
 - Crowbar: 2 hour payback

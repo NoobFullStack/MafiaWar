@@ -7,9 +7,9 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 ### **Currently Implemented**
 
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
-- 💰 **Real Economy System** - Gameplay-based pricing and balance analysis with XP valuation
+- 💰 **Multi-Layered Money System** - Strategic three-tier money management with different risk profiles
 - 🎯 **XP & Level System** - MMO-style progression with 50 levels and milestone rewards
-- 🚪 **Level Gating** - Content unlocks based on player level and progression
+- �️ **Level Gating** - Content unlocks based on player level and progression
 - 🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements
 - 🔫 **Crime System** - 9 criminal activities with balanced difficulty progression and real-time execution
 - 🏢 **Asset System** - 6 business types from convenience stores to underground casinos
@@ -28,6 +28,16 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 - 📈 **Leaderboards** - Rankings for money, reputation, and achievements
 
 ## 🎯 Unique Systems
+
+### **💰 Multi-Layered Strategic Money Management**
+
+MafiaWar features a sophisticated **three-tier money system** for strategic risk management:
+
+- **💵 Cash (On Hand)** - Immediate access but vulnerable to player theft
+- **🏦 Bank Account** - Protected from players but subject to government raids/IRS seizures
+- **₿ Cryptocurrency** - Protected from all threats but subject to market volatility
+
+Players must strategically balance liquidity, security, and growth potential across all three tiers.
 
 ### **🧮 Gameplay Economy with XP Progression**
 
@@ -112,13 +122,14 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 
 ## 🎮 Commands
 
-| Command           | Description                            | Cooldown |
-| ----------------- | -------------------------------------- | -------- |
-| `/ping`           | Test bot connectivity and latency      | 5s       |
-| `/profile`        | View your criminal character profile   | 10s      |
-| `/balance [user]` | Check money and financial status       | 5s       |
-| `/crime <type>`   | Commit crimes for money and XP         | 30s      |
-| `/crimes`         | View available crimes and requirements | 10s      |
+| Command          | Description                            | Cooldown |
+| ---------------- | -------------------------------------- | -------- |
+| `/ping`          | Test bot connectivity and latency      | 5s       |
+| `/profile`       | View your criminal character profile   | 10s      |
+| `/wallet`        | View your complete money portfolio     | 5s       |
+| `/bank <action>` | Manage bank deposits, withdrawals      | 10s      |
+| `/crime <type>`  | Commit crimes for money and XP         | 30s      |
+| `/crimes`        | View available crimes and requirements | 10s      |
 
 ### **🔧 Development Commands**
 
@@ -221,7 +232,11 @@ yarn lint       # Run TypeScript checks
 The bot uses PostgreSQL with the following main entities:
 
 - **Users** - Discord user accounts linked to game profiles
-- **Characters** - Player stats, money, level, experience points, reputation
+- **Characters** - Player stats, level, XP, reputation, and **multi-layered money system**
+- **MoneyEvents** - Random events affecting cash, bank, or cryptocurrency values
+- **CryptoPrices** - Real-time cryptocurrency market data and price fluctuations
+- **BankTransactions** - Complete audit trail of deposits, withdrawals, and fees
+- **CryptoTransactions** - Trading history and portfolio management records
 - **Assets** - Ownable properties with level requirements (shops, nightclubs, warehouses)
 - **Gangs** - Player organizations with shared resources
 - **Items** - Tools, weapons, consumables with level gates and crime bonuses
@@ -256,4 +271,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Ready to build your criminal empire?** Start with `/profile` to create your character and begin your journey in the underworld! 🎭
+**Ready to build your criminal empire?** Start with `/profile` to create your character, then use `/wallet` to check your money portfolio and `/bank deposit` to secure your earnings! 🎭

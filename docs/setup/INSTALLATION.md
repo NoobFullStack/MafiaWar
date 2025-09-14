@@ -1,5 +1,68 @@
-# 🎮 MafiaWar Discord Bot - Setup Complete!
+# 🎮 MafiaWar Discord Bot - Setup # 🎮 MafiaWar Discord Bot - Setup Guide
 
+Your modular, maintainable Discord bot infrastructure is now ready! Here's what we've built:
+
+## 🏗️ **Architecture Overview**
+
+### **Modular Command System**
+
+- 📁 `src/commands/` - Individual command files with auto-loading
+- 🔧 `src/utils/CommandManager.ts` - Command registration & cooldown management
+- 📝 `src/types/command.ts` - TypeScript interfaces for type safety
+
+### **Database Integration**
+
+- 🗄️ `src/utils/DatabaseManager.ts` - Prisma client wrapper
+- 🔄 **Auto-user registration**: Users created automatically on first command use
+- 📊 Built-in action logging and character management
+
+### **Error Handling & Response System**
+
+- 🚨 `src/utils/ResponseUtil.ts` - Centralized error handling
+- 📋 Consistent Discord embed responses (success, error, info, warning)
+- 🎨 Pre-built game profile templates
+
+## 🚀 **Working Commands**
+
+### **`/ping`**
+
+- ✅ Tests bot connectivity and latency
+- ⏱️ 5-second cooldown
+
+### **`/profile`**
+
+- 👤 Shows character stats, money, reputation, level
+- 📊 Displays owned assets and gang memberships
+- 🆕 Auto-creates character for new users (starts with $1,000 and level 1)
+- ⏱️ 10-second cooldown
+
+### **`/wallet`**
+
+- 💰 Complete portfolio view with cash, bank, and crypto
+- 📈 Strategic recommendations and wealth distribution
+- 🏆 Displays wealth tier and security analysis
+- ⏱️ 5-second cooldown
+
+### **`/bank`**
+
+- 🏦 Banking operations (deposit, withdraw, info, upgrade)
+- 🛡️ Secure money from player theft
+- 📊 View bank tier benefits and fees
+- ⏱️ 10-second cooldown
+
+### **`/crime`** & **`/crimes`**
+
+- 🔫 Execute criminal activities for money and XP
+- 📋 View available crimes and requirements
+- 💰 Strategic payouts in cash, bank, or crypto
+- ⏱️ Variable cooldowns based on crime difficulty
+
+### **`/wallet`**
+
+- 💰 Complete portfolio view with cash, bank, and crypto
+- 📈 Strategic recommendations and wealth distribution
+- 🏆 Displays wealth tier and security analysis
+- ⏱️ 5-second cooldown
 Your modular, maintainable Discord bot infrastructure is now ready! Here's what we've built:
 
 ## 🏗️ **Architecture Overview**
@@ -168,7 +231,7 @@ Your foundation supports easy implementation of:
 2. Run `yarn db:migrate` to set up database
 3. Start bot with `yarn dev`
 4. In Discord, type `/` to see available commands
-5. Test with `/ping`, `/profile`, and `/balance`
+5. Test with `/ping`, `/profile`, and `/wallet`
 
 ## 🐛 **Troubleshooting**
 

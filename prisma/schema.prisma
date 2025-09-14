@@ -15,31 +15,47 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  discordId    String      @unique
-  username     String
-  createdAt    DateTime    @default(now())
-  character    Character?
-  assets       Asset[]
-  gangs        GangMember[]
-  ledGangs     Gang[]      @relation("GangLeader")
-  inventory    Inventory[]
-  actionLogs   ActionLog[]
-  robberies    AssetRobberyLog[]
-  missions     UserMission[]
-  leaderboards Leaderboard[]
+  id             String      @id @default(uuid())
+  discordId      String      @unique
+  username       String
+  createdAt      DateTime    @default(now())
+  character      Character?
+  assets         Asset[]
+  gangs          GangMember[]
+  ledGangs       Gang[]      @relation("GangLeader")
+  inventory      Inventory[]
+  actionLogs     ActionLog[]
+  robberies      AssetRobberyLog[]
+  missions       UserMission[]
+  leaderboards   Leaderboard[]
+  moneyEvents    MoneyEvent[]
+  bankTransactions BankTransaction[]
+  cryptoTransactions CryptoTransaction[]
 }
 
 model Character {
-  id           String   @id @default(uuid())
-  name         String
-  userId       String   @unique
-  stats        Json     // {strength: Int, stealth: Int, intelligence: Int, ...}
-  money        Int      @default(0)
-  reputation   Int      @default(0)
-  level        Int      @default(1)
-  experience   Int      @default(0) // Total XP earned
-  user         User     @relation(fields: [userId], references: [id])
+  id              String   @id @default(uuid())
+  name            String
+  userId          String   @unique
+  stats           Json     // {strength: Int, stealth: Int, intelligence: Int, ...}
+  
+  // Multi-layered money system
+  cashOnHand      Int      @default(0)     // Vulnerable to theft
+  bankBalance     Int      @default(0)     // Vulnerable to government
+  cryptoWallet    Json     @default("{}")  // {"bitcoin": 1.5, "ethereum": 0.8}
+  
+  // Banking system
+  bankAccessLevel Int      @default(1)     // Unlocks higher limits and better protection
+  lastBankVisit   DateTime?
+  bankInterestAccrued Float @default(0)
+  
+  // Legacy field for backward compatibility (will be migrated to cashOnHand)
+  money           Int      @default(0)
+  
+  reputation      Int      @default(0)
+  level           Int      @default(1)
+  experience      Int      @default(0) // Total XP earned
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model Gang {
@@ -170,4 +186,73 @@ model Leaderboard {
   userId       String
   value        Int
   user         User        @relation(fields: [userId], references: [id])
+}
+
+// === MONEY SYSTEM MODELS ===
+
+model CryptoPrice {
+  id        String   @id @default(uuid())
+  coinType  String   @unique // "bitcoin", "ethereum", "dogecoin", etc.
+  price     Float    // Current USD value
+  change24h Float    // Percentage change in last 24 hours
+  change7d  Float    // Percentage change in last 7 days
+  marketCap Float    // Market capitalization
+  volume24h Float    // 24 hour trading volume
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model MoneyEvent {
+  id          String   @id @default(uuid())
+  userId      String
+  eventType   String   // "irs_audit", "market_crash", "theft", etc.
+  severity    String   // "minor", "moderate", "major"
+  amount      Int      // Money affected
+  percentage  Float?   // Percentage of wealth affected
+  moneyType   String   // "cash", "bank", "crypto", "all"
+  details     Json     // Additional event data
+  resolved    Boolean  @default(false)
+  duration    Int?     // Hours the effect lasts (null = permanent)
+  expiresAt   DateTime?
+  timestamp   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model BankTransaction {
+  id            String   @id @default(uuid())
+  userId        String
+  transactionType String // "deposit", "withdrawal", "interest", "fee", "seizure"
+  amount        Int
+  fee           Int      @default(0)
+  balanceBefore Int
+  balanceAfter  Int
+  description   String?
+  timestamp     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model CryptoTransaction {
+  id            String   @id @default(uuid())
+  userId        String
+  coinType      String   // "bitcoin", "ethereum", etc.
+  transactionType String // "buy", "sell", "market_change"
+  amount        Float    // Amount of crypto
+  pricePerCoin  Float    // Price at time of transaction
+  totalValue    Int      // Total USD value
+  fee           Int      @default(0)
+  fromCurrency  String?  // "cash", "bank", or crypto type
+  toCurrency    String?  // "cash", "bank", or crypto type
+  timestamp     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model MoneyEventHistory {
+  id              String   @id @default(uuid())
+  eventType       String   // "irs_audit", "crypto_bull_run", etc.
+  affectedPlayers Int      // Number of players affected
+  totalImpact     Int      // Total money gained/lost across all players
+  startTime       DateTime
+  endTime         DateTime?
+  isActive        Boolean  @default(true)
+  eventData       Json     // Configuration and results
+  timestamp       DateTime @default(now())
 }
