@@ -17,6 +17,19 @@ export interface AssetTemplate {
     income: { cost: number; multiplier: number }[];
     security: { cost: number; value: number }[];
   };
+  // NEW: Strategic income distribution across 3-layered money system
+  incomeDistribution: {
+    cash: number; // Percentage (0-100) - immediate, vulnerable to theft
+    bank: number; // Percentage (0-100) - secure, government seizure risk
+    crypto: number; // Percentage (0-100) - anonymous, market volatility risk
+    cryptoType?: string; // Preferred crypto coin for payments (optional)
+  };
+  // Business-specific characteristics for income generation
+  characteristics?: {
+    seasonality?: number; // 0.8-1.2 multiplier for seasonal businesses
+    marketSensitivity?: number; // How much market events affect this business
+    raidVulnerability?: number; // Chance of government raids (0-1)
+  };
 }
 
 export const assetTemplates: AssetTemplate[] = [
@@ -48,6 +61,16 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 20000, value: 8 },
       ],
     },
+    incomeDistribution: {
+      cash: 90, // Daily sales, mostly cash transactions
+      bank: 10, // Small card payments and suppliers
+      crypto: 0, // No crypto for basic legitimate business
+    },
+    characteristics: {
+      seasonality: 1.0,
+      marketSensitivity: 0.3,
+      raidVulnerability: 0.05, // Very low chance
+    },
   },
   {
     id: "restaurant",
@@ -75,6 +98,16 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 25000, value: 8 },
         { cost: 50000, value: 12 },
       ],
+    },
+    incomeDistribution: {
+      cash: 85, // Tips and some cash customers
+      bank: 15, // Credit cards, proper business banking
+      crypto: 0, // Legitimate restaurant doesn't use crypto
+    },
+    characteristics: {
+      seasonality: 1.1,
+      marketSensitivity: 0.4,
+      raidVulnerability: 0.02, // Extremely low for legitimate business
     },
   },
 
@@ -106,6 +139,17 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 50000, value: 12 },
       ],
     },
+    incomeDistribution: {
+      cash: 80, // Cash business, "no questions asked"
+      bank: 15, // Some legitimate banking
+      crypto: 5, // Small anonymous transactions
+      cryptoType: "bitcoin", // Game-specific currency for sketchy deals
+    },
+    characteristics: {
+      seasonality: 0.9,
+      marketSensitivity: 0.6,
+      raidVulnerability: 0.15, // Higher risk due to questionable practices
+    },
   },
   {
     id: "nightclub",
@@ -134,6 +178,17 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 100000, value: 18 },
         { cost: 200000, value: 25 },
       ],
+    },
+    incomeDistribution: {
+      cash: 50, // Door fees, drinks, private room payments
+      bank: 35, // Card payments, DJ fees, legitimate business
+      crypto: 15, // VIP services, underground activities
+      cryptoType: "bitcoin", // Popular for club scenes
+    },
+    characteristics: {
+      seasonality: 1.2,
+      marketSensitivity: 0.5,
+      raidVulnerability: 0.25, // Higher profile attracts attention
     },
   },
 
@@ -166,6 +221,17 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 320000, value: 30 },
       ],
     },
+    incomeDistribution: {
+      cash: 25, // Direct contraband sales
+      bank: 25, // Laundered through shell companies
+      crypto: 50, // Anonymous transactions for illegal goods
+      cryptoType: "bitcoin", // Underground currency for illegal activities
+    },
+    characteristics: {
+      seasonality: 1.0,
+      marketSensitivity: 0.8,
+      raidVulnerability: 0.4, // High risk of government raids
+    },
   },
   {
     id: "casino",
@@ -195,6 +261,17 @@ export const assetTemplates: AssetTemplate[] = [
         { cost: 400000, value: 26 },
         { cost: 800000, value: 35 },
       ],
+    },
+    incomeDistribution: {
+      cash: 20, // Small bets, tips
+      bank: 30, // Laundered winnings through front businesses
+      crypto: 50, // High-stakes anonymous gambling
+      cryptoType: "bitcoin", // Preferred for big money laundering
+    },
+    characteristics: {
+      seasonality: 1.1,
+      marketSensitivity: 0.9,
+      raidVulnerability: 0.35, // Very high profile, attracts law enforcement
     },
   },
 ];

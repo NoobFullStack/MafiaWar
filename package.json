@@ -12,6 +12,7 @@
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "seed": "ts-node src/scripts/seed.ts",
+    "assets:validate": "ts-node src/scripts/assetValidation.ts",
     "economy:analyze": "ts-node src/scripts/economy.ts analyze",
     "economy:rebalance": "ts-node src/scripts/economy.ts rebalance",
     "economy:validate": "ts-node src/scripts/economy.ts validate",
