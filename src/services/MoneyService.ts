@@ -217,16 +217,16 @@ export class MoneyService {
         };
       }
 
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
         return {
           success: false,
-          message: "Character not found",
+          message: "Character not found - please create account first",
           error: "No character",
         };
       }
 
-      const character = user.character;
+      const character = user.character!
       const bankTier =
         bankTiers.find((t) => t.level === character.bankAccessLevel) ||
         bankTiers[0];
@@ -747,11 +747,11 @@ export class MoneyService {
       }
 
       // Get user to find character
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
         return {
           success: false,
-          message: "Character not found",
+          message: "Character not found - please create account first",
           error: "No character",
         };
       }
@@ -801,12 +801,12 @@ export class MoneyService {
     userId: string
   ): Promise<{ canUpgrade: boolean; nextTier?: BankTier; reason?: string }> {
     try {
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
-        return { canUpgrade: false, reason: "Character not found" };
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        return { canUpgrade: false, reason: "Character not found - please create account first" };
       }
 
-      const character = user.character;
+      const character = user.character!
       const currentTier = this.getUserBankTier(character.bankAccessLevel);
       const nextTier = bankTiers.find((t) => t.level === currentTier.level + 1);
 

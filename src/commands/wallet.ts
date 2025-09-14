@@ -3,6 +3,7 @@ import { cryptoCoins } from "../data/money";
 import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
+import DatabaseManager from "../utils/DatabaseManager";
 
 const walletCommand: Command = {
   data: new SlashCommandBuilder()
@@ -13,13 +14,21 @@ const walletCommand: Command = {
     const { interaction, userId, userTag } = context;
 
     try {
+      // Check if user has an account
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        const noAccountEmbed = ResponseUtil.noAccount(userTag);
+        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        return { success: false, error: "User not registered" };
+      }
+
       const moneyService = MoneyService.getInstance();
       const balance = await moneyService.getUserBalance(userId, true);
 
       if (!balance) {
         const embed = ResponseUtil.error(
           "Character Not Found",
-          "You need to create a character first! Use `/profile` to get started."
+          "There was an issue with your character. Please contact an administrator."
         );
         await interaction.reply({ embeds: [embed], flags: 64 });
         return { success: false, error: "No character" };

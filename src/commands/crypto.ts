@@ -13,24 +13,22 @@ import { ResponseUtil, logger } from "../utils/ResponseUtil";
 
 // Helper functions for each subcommand
 async function handlePrices(context: CommandContext): Promise<CommandResult> {
-  const { interaction, userId } = context;
+  const { interaction, userId, userTag } = context;
 
   try {
+    // Check if user has an account
+    const user = await DatabaseManager.getUserForAuth(userId);
+    if (!user) {
+      const noAccountEmbed = ResponseUtil.noAccount(userTag);
+      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      return { success: false, error: "User not registered" };
+    }
+
     // Defer immediately to avoid timeout
     await interaction.deferReply({ flags: 64 });
 
-    const user = await DatabaseManager.getOrCreateUser(userId, "");
-    if (!user.character) {
-      const embed = ResponseUtil.error(
-        "No Character",
-        "You need to create a character first! Use `/profile` to get started."
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "No character" };
-    }
-
     const moneyService = MoneyService.getInstance();
-    const character = user.character;
+    const character = user.character!; // Safe because getUserForAuth checks for character existence
     const availableCoins = moneyService.getAvailableCoins(character.level);
 
     const embed = ResponseUtil.info(
@@ -111,9 +109,17 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
 }
 
 async function handleBuy(context: CommandContext): Promise<CommandResult> {
-  const { interaction, userId } = context;
+  const { interaction, userId, userTag } = context;
 
   try {
+    // Check if user has an account
+    const user = await DatabaseManager.getUserForAuth(userId);
+    if (!user) {
+      const noAccountEmbed = ResponseUtil.noAccount(userTag);
+      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      return { success: false, error: "User not registered" };
+    }
+
     // IMMEDIATELY defer the response to avoid 3-second timeout
     await interaction.deferReply({ flags: 64 });
 
@@ -128,8 +134,8 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     const balances = await moneyService.getUserBalance(userId);
     if (!balances) {
       const embed = ResponseUtil.error(
-        "No Character",
-        "You need to create a character first! Use `/profile` to get started."
+        "Character Not Found",
+        "There was an issue with your character. Please contact an administrator."
       );
       await interaction.editReply({ embeds: [embed] });
       return { success: false, error: "No character" };
@@ -474,24 +480,22 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 }
 
 async function handleSell(context: CommandContext): Promise<CommandResult> {
-  const { interaction, userId } = context;
+  const { interaction, userId, userTag } = context;
 
   try {
+    // Check if user has an account
+    const user = await DatabaseManager.getUserForAuth(userId);
+    if (!user) {
+      const noAccountEmbed = ResponseUtil.noAccount(userTag);
+      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      return { success: false, error: "User not registered" };
+    }
+
     // Defer immediately to avoid timeout
     await interaction.deferReply({ flags: 64 });
 
     const coinType = interaction.options.getString("coin", true);
     const coinAmount = interaction.options.getNumber("amount", true);
-
-    const user = await DatabaseManager.getOrCreateUser(userId, "");
-    if (!user.character) {
-      const embed = ResponseUtil.error(
-        "No Character",
-        "You need to create a character first! Use `/profile` to get started."
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "No character" };
-    }
 
     const coin = cryptoCoins.find((c) => c.id === coinType);
 
@@ -767,21 +771,19 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
 async function handlePortfolio(
   context: CommandContext
 ): Promise<CommandResult> {
-  const { interaction, userId } = context;
+  const { interaction, userId, userTag } = context;
 
   try {
+    // Check if user has an account
+    const user = await DatabaseManager.getUserForAuth(userId);
+    if (!user) {
+      const noAccountEmbed = ResponseUtil.noAccount(userTag);
+      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      return { success: false, error: "User not registered" };
+    }
+
     // Defer immediately to avoid timeout
     await interaction.deferReply({ flags: 64 });
-
-    const user = await DatabaseManager.getOrCreateUser(userId, "");
-    if (!user.character) {
-      const embed = ResponseUtil.error(
-        "No Character",
-        "You need to create a character first! Use `/profile` to get started."
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "No character" };
-    }
 
     const moneyService = MoneyService.getInstance();
     const balance = await moneyService.getUserBalance(userId);

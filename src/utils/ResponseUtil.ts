@@ -237,4 +237,25 @@ export class ResponseUtil {
       )
       .setTimestamp();
   }
+
+  /**
+   * Generate standard "no account found" response
+   */
+  static noAccount(userTag: string): EmbedBuilder {
+    return ResponseUtil.info(
+      "No Account Found",
+      `**${userTag}**, you don't have a MafiaWar account yet!`
+    ).addFields(
+      {
+        name: "🎭 Get Started",
+        value: "Use `/create-account` to create your criminal character and join the underworld!",
+        inline: false,
+      },
+      {
+        name: "🎮 What You'll Get",
+        value: "• Your own criminal character\n• $1,000 starting money\n• Access to crimes and activities\n• Multi-tier money management\n• Level progression system",
+        inline: false,
+      }
+    );
+  }
 }

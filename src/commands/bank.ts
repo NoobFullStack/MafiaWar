@@ -8,6 +8,7 @@ import {
 import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
+import DatabaseManager from "../utils/DatabaseManager";
 
 const bankCommand: Command = {
   data: new SlashCommandBuilder()
@@ -55,6 +56,14 @@ const bankCommand: Command = {
     const subcommand = interaction.options.getSubcommand();
 
     try {
+      // Check if user has an account
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        const noAccountEmbed = ResponseUtil.noAccount(userTag);
+        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        return { success: false, error: "User not registered" };
+      }
+
       const moneyService = MoneyService.getInstance();
 
       switch (subcommand) {

@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from "discord.js";
 import { CrimeService } from "../services/CrimeService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
+import DatabaseManager from "../utils/DatabaseManager";
 
 const crimeCommand: Command = {
   data: new SlashCommandBuilder()
@@ -27,9 +28,17 @@ const crimeCommand: Command = {
     ),
 
   async execute(context: CommandContext): Promise<CommandResult> {
-    const { interaction, userId } = context;
+    const { interaction, userId, userTag } = context;
 
     try {
+      // Check if user has an account
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        const noAccountEmbed = ResponseUtil.noAccount(userTag);
+        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        return { success: false, error: "User not registered" };
+      }
+
       const crimeType = interaction.options.getString("type", true);
 
       // Check if player is in jail

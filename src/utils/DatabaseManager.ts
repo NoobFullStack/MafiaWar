@@ -232,6 +232,319 @@ class DatabaseManager {
       return false;
     }
   }
+
+  /**
+   * Delete a user and all their related data (CASCADE DELETE)
+   * This is a comprehensive deletion that handles all foreign key relationships
+   */
+  async deleteUser(userId: string): Promise<{ success: boolean; deletedData?: any; error?: string }> {
+    try {
+      logger.info(`Starting deletion process for user: ${userId}`);
+
+      // Start a transaction to ensure all deletions succeed or fail together
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Get user data before deletion for logging
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          include: {
+            character: true,
+            assets: true,
+            gangs: true,
+            ledGangs: true,
+            inventory: true,
+            actionLogs: true,
+            robberies: true,
+            missions: true,
+            leaderboards: true,
+            moneyEvents: true,
+            bankTransactions: true,
+            cryptoTransactions: true,
+          },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const deletionStats = {
+          username: user.username,
+          discordId: user.discordId,
+          character: user.character ? 1 : 0,
+          assets: user.assets.length,
+          gangMemberships: user.gangs.length,
+          ledGangs: user.ledGangs.length,
+          inventory: user.inventory.length,
+          actionLogs: user.actionLogs.length,
+          robberies: user.robberies.length,
+          missions: user.missions.length,
+          leaderboards: user.leaderboards.length,
+          moneyEvents: user.moneyEvents.length,
+          bankTransactions: user.bankTransactions.length,
+          cryptoTransactions: user.cryptoTransactions.length,
+        };
+
+        // Step 1: Handle gang leadership transfers
+        // If user leads any gangs, transfer leadership or delete gangs if no other members
+        for (const gang of user.ledGangs) {
+          const otherMembers = await tx.gangMember.findMany({
+            where: {
+              gangId: gang.id,
+              userId: { not: userId },
+            },
+            orderBy: { joinedAt: 'asc' },
+          });
+
+          if (otherMembers.length > 0) {
+            // Transfer leadership to the oldest remaining member
+            await tx.gang.update({
+              where: { id: gang.id },
+              data: { leaderId: otherMembers[0].userId },
+            });
+            logger.info(`Transferred gang leadership of ${gang.name} to user ${otherMembers[0].userId}`);
+          } else {
+            // No other members, delete the gang (this will cascade to gang members)
+            await tx.gang.delete({
+              where: { id: gang.id },
+            });
+            logger.info(`Deleted empty gang: ${gang.name}`);
+          }
+        }
+
+        // Step 2: Handle asset robberies - delete logs where user was the robber
+        await tx.assetRobberyLog.deleteMany({
+          where: { robberId: userId },
+        });
+
+        // Step 3: Handle asset upgrades for owned assets (cascade via asset deletion)
+        // This will be handled automatically when we delete assets
+
+        // Step 4: Delete all user-related data in the correct order
+        // (Following foreign key dependencies)
+
+        // Delete crypto transactions
+        await tx.cryptoTransaction.deleteMany({
+          where: { userId },
+        });
+
+        // Delete bank transactions
+        await tx.bankTransaction.deleteMany({
+          where: { userId },
+        });
+
+        // Delete money events
+        await tx.moneyEvent.deleteMany({
+          where: { userId },
+        });
+
+        // Delete leaderboard entries
+        await tx.leaderboard.deleteMany({
+          where: { userId },
+        });
+
+        // Delete user missions
+        await tx.userMission.deleteMany({
+          where: { userId },
+        });
+
+        // Delete action logs
+        await tx.actionLog.deleteMany({
+          where: { userId },
+        });
+
+        // Delete inventory items
+        await tx.inventory.deleteMany({
+          where: { userId },
+        });
+
+        // Delete gang memberships
+        await tx.gangMember.deleteMany({
+          where: { userId },
+        });
+
+        // Delete assets and their related data (upgrades will cascade)
+        for (const asset of user.assets) {
+          // Delete asset upgrade logs first
+          await tx.assetUpgrade.deleteMany({
+            where: { assetId: asset.id },
+          });
+
+          // Delete asset robbery logs
+          await tx.assetRobberyLog.deleteMany({
+            where: { assetId: asset.id },
+          });
+
+          // Delete the asset
+          await tx.asset.delete({
+            where: { id: asset.id },
+          });
+        }
+
+        // Delete character (this has a 1-to-1 relationship)
+        if (user.character) {
+          await tx.character.delete({
+            where: { userId },
+          });
+        }
+
+        // Finally, delete the user
+        await tx.user.delete({
+          where: { id: userId },
+        });
+
+        return deletionStats;
+      });
+
+      logger.info(`✅ Successfully deleted user ${result.username} (${result.discordId}) and all related data`, result);
+      
+      return { 
+        success: true, 
+        deletedData: result 
+      };
+
+    } catch (error) {
+      logger.error("Error deleting user", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error during deletion" 
+      };
+    }
+  }
+
+  /**
+   * Get user deletion preview - shows what would be deleted
+   */
+  async getUserDeletionPreview(discordId: string): Promise<{ 
+    found: boolean; 
+    preview?: any; 
+    error?: string 
+  }> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { discordId },
+        include: {
+          character: true,
+          assets: {
+            include: {
+              upgrades: true,
+              robberyLogs: true,
+            },
+          },
+          gangs: {
+            include: {
+              gang: true,
+            },
+          },
+          ledGangs: {
+            include: {
+              members: true,
+            },
+          },
+          inventory: {
+            include: {
+              item: true,
+            },
+          },
+          actionLogs: true,
+          robberies: true,
+          missions: true,
+          leaderboards: true,
+          moneyEvents: true,
+          bankTransactions: true,
+          cryptoTransactions: true,
+        },
+      });
+
+      if (!user) {
+        return { found: false };
+      }
+
+      const preview = {
+        user: {
+          username: user.username,
+          discordId: user.discordId,
+          joinedAt: user.createdAt,
+        },
+        character: user.character ? {
+          name: user.character.name,
+          level: user.character.level,
+          cashOnHand: user.character.cashOnHand,
+          bankBalance: user.character.bankBalance,
+          reputation: user.character.reputation,
+        } : null,
+        assets: user.assets.map(asset => ({
+          name: asset.name,
+          type: asset.type,
+          level: asset.level,
+          value: asset.value,
+          upgrades: asset.upgrades.length,
+          robberyLogs: asset.robberyLogs.length,
+        })),
+        gangs: {
+          memberships: user.gangs.map(membership => ({
+            gangName: membership.gang.name,
+            role: membership.role,
+            joinedAt: membership.joinedAt,
+          })),
+          leadership: user.ledGangs.map(gang => ({
+            gangName: gang.name,
+            memberCount: gang.members.length,
+            willTransferTo: gang.members.find(m => m.userId !== user.id)?.userId || null,
+            willDelete: gang.members.length === 1, // Only the leader
+          })),
+        },
+        inventory: user.inventory.map(inv => ({
+          itemName: inv.item.name,
+          quantity: inv.quantity,
+          value: inv.item.value,
+        })),
+        statistics: {
+          totalActionLogs: user.actionLogs.length,
+          totalRobberies: user.robberies.length,
+          totalMissions: user.missions.length,
+          leaderboardEntries: user.leaderboards.length,
+          moneyEvents: user.moneyEvents.length,
+          bankTransactions: user.bankTransactions.length,
+          cryptoTransactions: user.cryptoTransactions.length,
+        },
+      };
+
+      return { found: true, preview };
+
+    } catch (error) {
+      logger.error("Error getting user deletion preview", error);
+      return { 
+        found: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      };
+    }
+  }
+
+  /**
+   * Check if user exists and has a valid character (for authentication)
+   * Returns null if user doesn't exist or doesn't have a character
+   */
+  async getUserForAuth(discordId: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { discordId },
+        include: {
+          character: true,
+          assets: true,
+          gangs: true,
+        },
+      });
+
+      // Return null if user doesn't exist or doesn't have a character
+      if (!user || !user.character) {
+        return null;
+      }
+
+      return user;
+    } catch (error) {
+      logger.error("Error checking user authentication", error);
+      return null;
+    }
+  }
 }
 
 export default DatabaseManager.getInstance();

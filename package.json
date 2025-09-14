@@ -18,6 +18,7 @@
     "economy:suggest": "ts-node src/scripts/economy.ts suggest",
     "level:demo": "ts-node src/scripts/levelGatingDemo.ts",
     "crime:demo": "ts-node src/scripts/crimeSystemDemo.ts",
+    "deletion:test": "ts-node src/scripts/testUserDeletion.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {

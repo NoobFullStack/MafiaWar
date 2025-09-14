@@ -12,8 +12,22 @@ const profileCommand: Command = {
     const { interaction, userId, userTag } = context;
 
     try {
-      // Get or create user (auto-registration)
-      const user = await DatabaseManager.getOrCreateUser(userId, userTag);
+      // Check if user exists
+      const user = await DatabaseManager.getClient().user.findUnique({
+        where: { discordId: userId },
+        include: {
+          character: true,
+          assets: true,
+          gangs: true,
+        },
+      });
+
+      // If user doesn't exist, redirect to create-account
+      if (!user) {
+        const noAccountEmbed = ResponseUtil.noAccount(userTag);
+        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        return { success: true };
+      }
 
       if (!user.character) {
         const errorEmbed = ResponseUtil.error(
@@ -46,7 +60,7 @@ const profileCommand: Command = {
         }
       );
 
-      await interaction.reply({ embeds: [profileEmbed] });
+      await interaction.reply({ embeds: [profileEmbed], flags: 64 });
 
       // Log the action
       await DatabaseManager.logAction(user.id, "profile_view", "success", {

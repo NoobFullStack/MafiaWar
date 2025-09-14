@@ -27,18 +27,15 @@ const crimesCommand: Command = {
     const { interaction, userId, userTag } = context;
 
     try {
-      // Get player data
-      const user = await DatabaseManager.getOrCreateUser(userId, userTag);
-      if (!user.character) {
-        const embed = ResponseUtil.error(
-          "Character Not Found",
-          "Please use `/profile` first to create your character."
-        );
-        await interaction.reply({ embeds: [embed], flags: 64 });
-        return { success: false, error: "Character not found" };
+      // Check if user has an account
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        const noAccountEmbed = ResponseUtil.noAccount(userTag);
+        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        return { success: false, error: "User not registered" };
       }
 
-      const character = user.character;
+      const character = user.character!; // Safe because getUserForAuth checks for character existence
       const currentLevel = LevelCalculator.getLevelFromXP(character.experience);
 
       // Get available crimes
