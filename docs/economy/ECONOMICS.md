@@ -1,6 +1,8 @@
-# 💰 MafiaWar Economics & Progression System
+# � MafiaWar Economics & XP Progression System
 
-Real gameplay-based economy analysis and balance system with MMO-style XP progression.
+Gameplay-based economy analysis, crime balance validation, and MMO-style XP progression system.
+
+> **Note**: For the multi-layered money system (cash/bank/crypto), see [MONEY_SYSTEM.md](MONEY_SYSTEM.md)
 
 ## 🎯 Quick Commands
 

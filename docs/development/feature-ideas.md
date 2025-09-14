@@ -6,7 +6,10 @@
 
 - `/crime [type]` - Perform various criminal activities
 - `/mission [mission_id]` - Accept and complete missions
-- `/profile` - View character stats, money, and reputation
+- `/profile` - View character stats, level, and reputation
+- `/wallet` - ✅ **View complete money portfolio (cash/bank/crypto)**
+- `/bank [action]` - ✅ **Manage bank deposits, withdrawals, upgrades**
+- `/crypto [action]` - Buy/sell cryptocurrencies (planned)
 - `/inventory` - Manage items and equipment
 - `/assets` - View and manage owned properties
 - `/gang [action]` - Gang management and interaction
@@ -89,6 +92,24 @@
 - **Protection Rackets:** Extort money from NPC businesses
 - **Gang Rivalries:** Ongoing conflicts with other gangs
 
+## Money System Features ✅
+
+### Implemented Money Management
+
+- **✅ Multi-tier System:** Cash, Bank, Cryptocurrency with different risk profiles
+- **✅ Strategic Storage:** Players choose between liquidity, security, and growth
+- **✅ Bank Tiers:** 5 levels with different fees and withdrawal limits
+- **✅ Crypto Exchange:** 5 coins with varying volatility (Bitcoin to CrimeChain)
+- **✅ Portfolio View:** Complete financial overview via `/wallet` command
+
+### Planned Money Features
+
+- **Random Events:** Government raids, market crashes, investment opportunities
+- **Crypto Trading:** Buy/sell between different cryptocurrency pairs
+- **Bank Interest:** Passive income on bank deposits
+- **Insurance System:** Protect against specific types of losses
+- **Loan System:** Borrow against cryptocurrency holdings
+
 ## Economy Balancing Ideas
 
 ### Money Sinks
@@ -98,6 +119,8 @@
 - **Asset Maintenance:** 5% of asset value monthly
 - **Gang Dues:** Weekly payments for gang membership
 - **Luxury Items:** Expensive cosmetics and status symbols
+- **Bank Fees:** Withdrawal fees based on account tier
+- **Exchange Fees:** Cryptocurrency trading costs
 
 ### Anti-Inflation Measures
 

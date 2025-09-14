@@ -13,7 +13,8 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ### **Core Systems**
 
 - 🌱 **[Seeding System](setup/SEEDING.md)** - Managing game data (items, crimes, assets)
-- 💰 **[Economics System](economy/ECONOMICS.md)** - Gameplay-based economy balance and MMO-style XP progression analysis
+- 💰 **[Money System](economy/MONEY_SYSTEM.md)** - Multi-layered strategic money management with risk profiles
+- 📊 **[Economics Analysis](economy/ECONOMICS.md)** - Gameplay-based economy balance and XP progression analysis
 - 📈 **[XP Progression](economy/ECONOMICS.md#mmo-style-xp-progression)** - 50-level progression system with content gating
 
 ### **Game Design & Planning**
@@ -28,8 +29,9 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 
 1. Start with [Installation Guide](setup/INSTALLATION.md)
 2. Review [Game Design](development/game-design.md) to understand the vision
-3. Check [Seeding System](setup/SEEDING.md) to understand data management
-4. Learn [Economics System](economy/ECONOMICS.md) for balance principles
+3. Learn [Money System](economy/MONEY_SYSTEM.md) for the strategic three-tier architecture
+4. Check [Seeding System](setup/SEEDING.md) to understand data management
+5. Review [Economics Analysis](economy/ECONOMICS.md) for balance principles
 
 ### **For Contributors**
 
@@ -42,7 +44,12 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ```
 docs/
 ├── setup/
-│   └── INSTALLATION.md     # Complete setup and configuration guide
+│   ├── INSTALLATION.md     # Complete setup and configuration guide
+│   └── SEEDING.md         # Data management and seeding system
+├── economy/
+│   ├── MONEY_SYSTEM.md    # Multi-layered money system with player strategy guide
+│   ├── ECONOMICS.md       # Economic analysis and XP progression
+│   └── economy-analysis.md # Real-time balance validation data
 └── development/
     ├── game-design.md      # Game mechanics and features
     ├── roadmap.md          # Development phases and timeline

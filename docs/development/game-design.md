@@ -51,12 +51,20 @@ Players join via Discord, create a character, and perform various criminal activ
 - **Chain Missions:** Multi-part storylines with progressive difficulty
 - **Requirements:** May require specific stats, items, or gang membership
 
-### 3. Economy & Items
+### 3. Economy & Multi-Layered Money System
 
-**Currency:**
+**Multi-Tier Currency System:**
 
-- **Primary:** Cash (earned via crimes, missions, asset income, trading)
-- **Secondary:** Premium currency (special events, optional microtransactions)
+- **💵 Cash (On Hand)** - Immediate access, vulnerable to player theft
+- **🏦 Bank Account** - Protected from players, subject to government events
+- **₿ Cryptocurrency** - Protected from all threats, subject to market volatility
+- **Strategic Decisions** - Players choose storage based on risk tolerance and needs
+
+**Money Storage Strategy:**
+
+- Players must balance liquidity vs security across three tiers
+- Random events can affect bank funds (IRS raids) or crypto values (market crashes)
+- Different crimes and activities may target specific money types
 
 **Item Categories:**
 
@@ -72,11 +80,12 @@ Players join via Discord, create a character, and perform various criminal activ
 - **Auction System:** Bidding on rare items
 - **Direct Trading:** Person-to-person item exchanges
 
-**Banking:**
+**Banking & Financial Services:**
 
-- Safe storage for cash (limit on carried cash)
-- Risk of losing unprotected money in PvP/crimes
-- Loan system for major purchases
+- **Bank Tiers:** 5 levels of banking with different withdrawal fees and limits
+- **Cryptocurrency Exchange:** 5 different coins with varying volatility profiles
+- **Risk Management:** Strategic allocation between cash, bank, and crypto portfolios
+- **Random Events:** Government seizures, market crashes, and investment opportunities
 
 ### 4. Assets & Passive Income
 

@@ -6,6 +6,9 @@ export interface GameItem {
   description: string;
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
   metadata?: Record<string, any>;
+  // NEW: Strategic purchasing system
+  purchaseMethod?: "cash" | "bank" | "crypto" | "any"; // Required payment method
+  purchaseReason?: string; // Explanation for payment method restriction
 }
 
 export const gameItems: GameItem[] = [
@@ -65,6 +68,8 @@ export const gameItems: GameItem[] = [
     value: 14,
     description: "Unreliable handgun. +10% success rate, +5% jail risk.",
     rarity: "uncommon",
+    purchaseMethod: "cash", // Street weapons require cash only
+    purchaseReason: "Street dealers only accept cash, no paper trail",
     metadata: {
       levelRequirement: 8, // Unlocked at Professional Criminal
       crimeBonus: {
@@ -83,6 +88,8 @@ export const gameItems: GameItem[] = [
     value: 1200,
     description: "Modified laptop for cybercrime. Required for hacking crimes.",
     rarity: "rare",
+    purchaseMethod: "crypto", // High-tech items require crypto payment
+    purchaseReason: "Purchased through dark web vendors, payment in cryptocurrency only",
     metadata: {
       levelRequirement: 12, // Unlocked at Crime Specialist
       crimeBonus: {
@@ -186,6 +193,8 @@ export const gameItems: GameItem[] = [
     value: 2500,
     description: "Luxury timepiece stolen from a wealthy target.",
     rarity: "rare",
+    purchaseMethod: "bank", // Luxury items require bank transfers
+    purchaseReason: "High-value auction, requires verified bank transfer",
     metadata: {
       levelRequirement: 15, // Unlocked at Criminal Mastermind
       prestige_value: 10,
@@ -198,6 +207,8 @@ export const gameItems: GameItem[] = [
     value: 10000,
     description: "Ceremonial ring proving membership in an old crime family.",
     rarity: "legendary",
+    purchaseMethod: "bank", // Exclusive items require bank verification
+    purchaseReason: "Exclusive auction house, requires bank account verification",
     metadata: {
       levelRequirement: 25, // Unlocked at Mafia Lieutenant
       prestige_value: 100,

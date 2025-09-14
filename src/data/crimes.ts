@@ -17,6 +17,9 @@ export interface CrimeData {
     | "violence"
     | "white_collar"
     | "organized";
+  // NEW: Strategic payout system
+  paymentType?: "cash" | "bank" | "crypto" | "mixed"; // Where money goes
+  paymentReason?: string; // Explanation for players
   requirements?: {
     level?: number;
     reputation?: number;
@@ -39,11 +42,11 @@ export interface CrimeData {
 export const crimeData: CrimeData[] = [
   // === PETTY CRIMES ===
   {
-    id: "pickpocket",
+    id: "pickpocketing",
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 0, // 0 during development
+    cooldown: 30, // 30 seconds - changed from 0 to avoid potential division issues
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
@@ -209,6 +212,8 @@ export const crimeData: CrimeData[] = [
     jailTimeMin: 300,
     jailTimeMax: 720,
     category: "robbery",
+    paymentType: "mixed", // Cash + some goes to bank (money laundering)
+    paymentReason: "Cash stolen + laundered funds transferred to bank",
     requirements: {
       level: 15, // Unlocked at Criminal Mastermind
       strength: 35,
@@ -238,6 +243,8 @@ export const crimeData: CrimeData[] = [
     jailTimeMin: 180,
     jailTimeMax: 480,
     category: "white_collar",
+    paymentType: "crypto", // Digital crimes pay in cryptocurrency
+    paymentReason: "Digital theft converted to untraceable cryptocurrency",
     requirements: {
       level: 12, // Unlocked at Crime Specialist
       intelligence: 30,

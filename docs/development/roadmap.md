@@ -48,20 +48,43 @@
   - Multi-step objectives and narrative elements
   - Chain missions for progression
 
-### Phase 4: Economy & Items
+### Phase 4: Economy & Multi-Layered Money System ✅
 
-- **Currency System:** Primary cash + optional premium currency
+- **✅ Multi-Tier Currency System:**
+  - Cash (on hand) - immediate access, theft vulnerable
+  - Bank accounts - player-protected, government vulnerable
+  - Cryptocurrency - all-threat protected, market volatile
+- **✅ Strategic Risk Management:** Players choose storage based on threat models
+- **✅ Banking System:** 5-tier bank accounts with different fees and limits
+- **✅ Cryptocurrency Exchange:** 5 coins with varying volatility profiles
+- **✅ Strategic Crime Integration:** Different crimes pay in different currencies
+- **✅ Strategic Item Purchasing:** Items require specific payment methods
+- **✅ Complete Integration:** CrimeService, MoneyService, and commands fully updated
+
+#### **✅ Implementation Status**
+- **✅ Database Migration**: All data migrated from old `money` field to `cashOnHand`
+- **✅ Service Architecture**: MoneyService replaces direct database access
+- **✅ Transaction Logging**: Complete audit trail for all money operations
+- **✅ Strategic Payouts**: Crimes can pay in cash, bank, crypto, or mixed combinations
+- **✅ Payment Restrictions**: Items can require specific payment methods (cash/bank/crypto)
+- **✅ Command Integration**: `/wallet`, `/bank`, and `/crime` commands fully operational
+- **✅ Portfolio Calculations**: Include crypto market values in wealth calculations
+- **⚠️ Random Events**: System designed but not yet triggered (planned for Phase 7)
+
+#### **✅ Service Changes**
+- **MoneyService**: Three-tier architecture enables strategic gameplay
+- **CrimeService**: Strategic payout processing with payment type explanations
+- **Commands**: Removed redundant `/balance`, enhanced `/wallet` and `/bank`
+- **Database**: All character.update() queries fixed for proper relationship navigation
 - **Items:**
   - Tools (lockpicks, weapons, vehicles)
   - Consumables (medkits, energy drinks)
   - Trade goods, collectibles
 - **Shop/Marketplace:**
+
   - Static NPC shop for basic items
   - Player-to-player trading system
-  - Dynamic pricing based on supply/demand
-- **Bank System:** Safe storage with risk/reward mechanics
-
-### Phase 5: Assets & Passive Income
+  - Dynamic pricing based on supply/demand### Phase 5: Assets & Passive Income
 
 - **Ownable Assets:**
   - Shops, nightclubs, warehouses, bars, casinos
