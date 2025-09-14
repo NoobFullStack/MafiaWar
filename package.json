@@ -1,8 +1,17 @@
 {
-  "name": "MafiaWar",
+  "name": "mafia-war",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/bot.js",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/bot.js",
+    "dev": "ts-node src/bot.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio"
+  },
   "devDependencies": {
     "@types/node": "^24.3.3",
     "ts-node": "^10.9.2",

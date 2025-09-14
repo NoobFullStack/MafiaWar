@@ -1,66 +1,209 @@
-# MafiaWar Discord Bot
+# 🎮 MafiaWar Discord Bot
 
-A multiplayer mafia-themed game for Discord, inspired by bootleggers.us. Built with Node.js, TypeScript, Discord.js, and Supabase.
+A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Build your criminal empire, commit crimes, manage assets, and compete with other players in an immersive criminal underworld.
 
-## Features
+## 🌟 Features
 
-- Jobs, missions, and crimes for players
-- Items, upgrades, and assets (businesses)
-- Businesses generate passive income and can be robbed
-- PvP mechanics and leaderboards
-- Supabase backend for data storage
+### **Currently Implemented**
 
-## Getting Started
+- 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
+- 💰 **Economy** - Money management and financial status tracking
+- 📊 **Profile Management** - View character stats, level, and reputation
+- 🛡️ **Cooldown System** - Built-in spam protection
+- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM
 
-### Prerequisites
+### **Planned Features**
 
-- Node.js & Yarn
-- Discord bot token
-- Supabase project (URL & anon key)
+- 🔫 **Crime System** - Various criminal activities with risk/reward mechanics
+- 🎯 **Mission System** - Daily tasks and story-driven progression
+- 🏢 **Asset System** - Ownable properties generating passive income
+- 👥 **Gang System** - Social features and cooperative gameplay
+- ⚔️ **PvP Mechanics** - Asset robberies and player vs player combat
+- 📈 **Leaderboards** - Rankings for money, reputation, and achievements
 
-### Installation
+## 🚀 Quick Start
 
-```sh
-yarn install
+### **Prerequisites**
+
+- Node.js 18+
+- PostgreSQL database (or Supabase)
+- Discord Bot Token
+
+### **Installation**
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/NoobFullStack/MafiaWar.git
+   cd MafiaWar
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   yarn install
+   ```
+
+3. **Set up environment variables**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Discord bot token and database URL
+   ```
+
+4. **Set up database**
+
+   ```bash
+   yarn db:generate
+   yarn db:migrate
+   ```
+
+5. **Start the bot**
+   ```bash
+   yarn dev
+   ```
+
+### **Bot Permissions**
+
+⚠️ **Important**: Invite your bot with these scopes:
+
+- `bot`
+- `applications.commands`
+
+**Invite URL format:**
+
+```
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=2048&scope=bot%20applications.commands
 ```
 
-### Configuration
+## 🎮 Commands
 
-Create a `.env` file:
+| Command           | Description                          | Cooldown |
+| ----------------- | ------------------------------------ | -------- |
+| `/ping`           | Test bot connectivity and latency    | 5s       |
+| `/profile`        | View your criminal character profile | 10s      |
+| `/balance [user]` | Check money and financial status     | 5s       |
 
-```
-DISCORD_BOT_TOKEN=your_discord_bot_token_here
-SUPABASE_URL=your_supabase_url_here
-SUPABASE_ANON_KEY=your_supabase_anon_key_here
-```
-
-### Running the Bot
-
-```sh
-yarn ts-node src/bot.ts
-```
-
-### Invite the Bot
-
-Generate an OAuth2 URL in the Discord Developer Portal with the `bot` scope and required permissions, then invite it to your server.
-
-## Folder Structure
+## 🏗️ Architecture
 
 ```
-/src
-  /commands
-  /models
-  /services
-  /utils
-  bot.ts
-/supabase
-  schema.sql
-/gameplay.md
-/developmentplan.md
-/package.json
-/tsconfig.json
+src/
+├── commands/          # Slash command implementations
+├── utils/            # Core utilities (database, logging, responses)
+├── types/            # TypeScript type definitions
+└── bot.ts           # Main bot entry point
+
+prisma/
+├── schema.prisma    # Database schema
+└── migrations/      # Database migration files
+
+docs/
+├── setup/             # Installation and configuration guides
+├── development/       # Development documentation and planning
+└── README.md         # Documentation index
 ```
 
-## License
+## 🛠️ Development
 
-MIT
+### **Adding New Commands**
+
+1. Create a new file in `src/commands/` (e.g., `crime.ts`)
+2. Implement the command interface:
+
+```typescript
+import { SlashCommandBuilder } from "discord.js";
+import { Command, CommandContext, CommandResult } from "../types/command";
+
+const crimeCommand: Command = {
+  data: new SlashCommandBuilder()
+    .setName("crime")
+    .setDescription("Commit a crime for money and experience"),
+
+  async execute(context: CommandContext): Promise<CommandResult> {
+    // Command logic here
+    return { success: true };
+  },
+
+  cooldown: 30,
+  category: "game",
+};
+
+export default crimeCommand;
+```
+
+3. Restart the bot - commands are auto-loaded!
+
+### **Database Operations**
+
+```bash
+# Generate Prisma client after schema changes
+yarn db:generate
+
+# Create and apply new migration
+yarn db:migrate
+
+# Open database GUI
+yarn db:studio
+
+# Reset database (development only)
+yarn db:reset
+```
+
+### **Available Scripts**
+
+```bash
+yarn dev        # Development mode with auto-reload
+yarn build      # Build for production
+yarn start      # Run production build
+yarn lint       # Run TypeScript checks
+```
+
+## 📚 Documentation
+
+- 🚀 **[Installation Guide](./docs/setup/INSTALLATION.md)** - Complete setup instructions and configuration
+- 🎮 **[Game Design](./docs/development/game-design.md)** - Core gameplay mechanics and features
+- 🗺️ **[Development Roadmap](./docs/development/roadmap.md)** - Project phases and timeline
+- 💡 **[Feature Ideas](./docs/development/feature-ideas.md)** - Command concepts and future features
+- 📖 **[Full Documentation](./docs/README.md)** - Complete documentation index
+
+## 🗄️ Database Schema
+
+The bot uses PostgreSQL with the following main entities:
+
+- **Users** - Discord user accounts linked to game profiles
+- **Characters** - Player stats, money, level, reputation
+- **Assets** - Ownable properties (shops, nightclubs, warehouses)
+- **Gangs** - Player organizations with shared resources
+- **Items** - Tools, weapons, consumables
+- **Crimes/Missions** - Available activities and objectives
+- **Action Logs** - Complete audit trail of player actions
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by [bootleggers.us](https://bootleggers.us) - Classic mafia browser game
+- Built with [Discord.js](https://discord.js.org/) for Discord integration
+- Database powered by [Prisma](https://prisma.io/) ORM
+- Hosted on [Supabase](https://supabase.com/) for PostgreSQL
+
+## 📞 Support
+
+- 🐛 [Report Issues](https://github.com/NoobFullStack/MafiaWar/issues)
+- 💬 [Discussions](https://github.com/NoobFullStack/MafiaWar/discussions)
+- 📖 [Documentation](./docs/README.md)
+- 🚀 [Installation Guide](./docs/setup/INSTALLATION.md)
+
+---
+
+**Ready to build your criminal empire?** Start with `/profile` to create your character and begin your journey in the underworld! 🎭
