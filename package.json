@@ -12,11 +12,13 @@
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "seed": "ts-node src/scripts/seed.ts",
+    "assets:validate": "ts-node src/scripts/assetValidation.ts",
     "economy:analyze": "ts-node src/scripts/economy.ts analyze",
     "economy:rebalance": "ts-node src/scripts/economy.ts rebalance",
     "economy:validate": "ts-node src/scripts/economy.ts validate",
     "economy:suggest": "ts-node src/scripts/economy.ts suggest",
     "level:demo": "ts-node src/scripts/levelGatingDemo.ts",
+    "cleanup:duplicates": "ts-node src/scripts/cleanupDuplicateAssets.ts",
     "crime:demo": "ts-node src/scripts/crimeSystemDemo.ts",
     "deletion:test": "ts-node src/scripts/testUserDeletion.ts",
     "lint": "tsc --noEmit"
