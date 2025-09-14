@@ -18,7 +18,7 @@ const walletCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
       }
 
@@ -30,7 +30,7 @@ const walletCommand: Command = {
           "Character Not Found",
           "There was an issue with your character. Please contact an administrator."
         );
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
         return { success: false, error: "No character" };
       }
 
@@ -79,7 +79,7 @@ const walletCommand: Command = {
         text: "💡 Use /bank or /crypto commands to manage your money",
       });
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: true };
     } catch (error) {
       logger.error(`Wallet command error for user ${userId}:`, error);
@@ -89,7 +89,7 @@ const walletCommand: Command = {
         "Failed to load your wallet information. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Failed to load wallet" };
     }
   },

@@ -31,7 +31,7 @@ const crimesCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
       }
 
@@ -86,7 +86,7 @@ const crimesCommand: Command = {
         text: "💡 Tip: Use /crime <type> to commit crimes • Level up to unlock more!\n✅ = Available • 🔒 = Level locked",
       });
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: true };
     } catch (error) {
       logger.error(`Crimes command error for user ${userId}:`, error);
@@ -96,7 +96,7 @@ const crimesCommand: Command = {
         "Failed to load crime information. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Failed to load crimes" };
     }
   },

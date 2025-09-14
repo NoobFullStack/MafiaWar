@@ -25,7 +25,7 @@ const profileCommand: Command = {
       // If user doesn't exist, redirect to create-account
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: true };
       }
 
@@ -34,7 +34,7 @@ const profileCommand: Command = {
           "Character Not Found",
           "There was an issue with your character. Please contact an administrator."
         );
-        await interaction.reply({ embeds: [errorEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
         return { success: false, error: "Character not found" };
       }
 
@@ -60,7 +60,7 @@ const profileCommand: Command = {
         }
       );
 
-      await interaction.reply({ embeds: [profileEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [profileEmbed], flags: 64 });
 
       // Log the action
       await DatabaseManager.logAction(user.id, "profile_view", "success", {
@@ -76,7 +76,7 @@ const profileCommand: Command = {
         "Failed to load your profile. Please try again later."
       );
 
-      await interaction.reply({ embeds: [errorEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

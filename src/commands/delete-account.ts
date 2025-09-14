@@ -30,7 +30,7 @@ const deleteAccountCommand: Command = {
           "No Account Found",
           "You don't have a MafiaWar account to delete. Use `/profile` to create one!"
         );
-        await interaction.reply({ embeds: [notFoundEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [notFoundEmbed], flags: 64 });
         return { success: true };
       }
 
@@ -39,7 +39,7 @@ const deleteAccountCommand: Command = {
           "Error",
           "Failed to load your account information. Please try again later."
         );
-        await interaction.reply({ embeds: [errorEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
         return { success: false, error: previewResult.error };
       }
 
@@ -55,7 +55,7 @@ const deleteAccountCommand: Command = {
         "Failed to process account deletion request. Please try again later."
       );
 
-      await interaction.reply({ embeds: [errorEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -151,7 +151,7 @@ async function showDeletionWarning(interaction: any, preview: any, userId: strin
         .setStyle(ButtonStyle.Primary)
     );
 
-  await interaction.reply({
+  await ResponseUtil.smartReply(interaction, {
     embeds: [warningEmbed],
     components: [actionRow],
     flags: 64 // Ephemeral

@@ -20,7 +20,7 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
@@ -116,7 +116,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
@@ -487,7 +487,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
@@ -778,7 +778,7 @@ async function handlePortfolio(
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
@@ -990,7 +990,7 @@ const cryptoCommand: Command = {
         case "portfolio":
           return await handlePortfolio(context);
         default:
-          await interaction.reply({
+          await ResponseUtil.smartReply(interaction, {
             content: "Unknown subcommand",
             flags: 64,
           });
@@ -1004,7 +1004,7 @@ const cryptoCommand: Command = {
         "An error occurred while processing your crypto transaction. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Crypto command failed" };
     }
   },
