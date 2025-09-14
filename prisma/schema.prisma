@@ -38,6 +38,7 @@ model Character {
   money        Int      @default(0)
   reputation   Int      @default(0)
   level        Int      @default(1)
+  experience   Int      @default(0) // Total XP earned
   user         User     @relation(fields: [userId], references: [id])
 }
 

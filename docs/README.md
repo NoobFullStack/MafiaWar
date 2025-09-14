@@ -13,7 +13,8 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ### **Core Systems**
 
 - 🌱 **[Seeding System](setup/SEEDING.md)** - Managing game data (items, crimes, assets)
-- 💰 **[Economics System](economy/ECONOMICS.md)** - Gameplay-based economy balance and analysis
+- 💰 **[Economics System](economy/ECONOMICS.md)** - Gameplay-based economy balance and MMO-style XP progression analysis
+- 📈 **[XP Progression](economy/ECONOMICS.md#mmo-style-xp-progression)** - 50-level progression system with content gating
 
 ### **Game Design & Planning**
 

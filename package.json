@@ -16,6 +16,7 @@
     "economy:rebalance": "ts-node src/scripts/economy.ts rebalance",
     "economy:validate": "ts-node src/scripts/economy.ts validate",
     "economy:suggest": "ts-node src/scripts/economy.ts suggest",
+    "level:demo": "ts-node src/scripts/levelGatingDemo.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
