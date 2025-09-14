@@ -55,7 +55,7 @@ model Character {
   reputation      Int      @default(0)
   level           Int      @default(1)
   experience      Int      @default(0) // Total XP earned
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Gang {
@@ -74,8 +74,8 @@ model GangMember {
   gangId       String
   role         String        // "member", "co-leader", etc.
   joinedAt     DateTime      @default(now())
-  user         User          @relation(fields: [userId], references: [id])
-  gang         Gang          @relation(fields: [gangId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gang         Gang          @relation(fields: [gangId], references: [id], onDelete: Cascade)
 }
 
 model Item {
@@ -93,8 +93,8 @@ model Inventory {
   userId       String
   itemId       String
   quantity     Int           @default(1)
-  user         User          @relation(fields: [userId], references: [id])
-  item         Item          @relation(fields: [itemId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item         Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model Asset {
@@ -108,7 +108,7 @@ model Asset {
   value            Int         @default(0)
   lastIncomeTime   DateTime    @default(now())
   isForSale        Boolean     @default(false)
-  owner            User        @relation(fields: [ownerId], references: [id])
+  owner            User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   robberyLogs      AssetRobberyLog[]
   upgrades         AssetUpgrade[]
 }
@@ -120,8 +120,8 @@ model AssetRobberyLog {
   result         String      // "success", "fail"
   stolenAmount   Int
   timestamp      DateTime    @default(now())
-  asset          Asset       @relation(fields: [assetId], references: [id])
-  robber         User        @relation(fields: [robberId], references: [id])
+  asset          Asset       @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  robber         User        @relation(fields: [robberId], references: [id], onDelete: Cascade)
 }
 
 model AssetUpgrade {
@@ -130,7 +130,7 @@ model AssetUpgrade {
   upgradeType  String      // "security", "income"
   upgradeLevel Int         @default(1)
   cost         Int
-  asset        Asset       @relation(fields: [assetId], references: [id])
+  asset        Asset       @relation(fields: [assetId], references: [id], onDelete: Cascade)
 }
 
 model Crime {
@@ -165,8 +165,8 @@ model UserMission {
   progress     Json        // {current: 2, required: 5}
   startedAt    DateTime    @default(now())
   completedAt  DateTime?
-  user         User        @relation(fields: [userId], references: [id])
-  mission      Mission     @relation(fields: [missionId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission      Mission     @relation(fields: [missionId], references: [id], onDelete: Cascade)
 }
 
 model ActionLog {
@@ -177,7 +177,7 @@ model ActionLog {
   result       String      // "success", "fail"
   details      Json
   timestamp    DateTime    @default(now())
-  user         User        @relation(fields: [userId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Leaderboard {
@@ -185,7 +185,7 @@ model Leaderboard {
   category     String      // "money", "reputation", "crimes", "assets", etc.
   userId       String
   value        Int
-  user         User        @relation(fields: [userId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // === MONEY SYSTEM MODELS ===
@@ -214,7 +214,7 @@ model MoneyEvent {
   duration    Int?     // Hours the effect lasts (null = permanent)
   expiresAt   DateTime?
   timestamp   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model BankTransaction {
@@ -227,7 +227,7 @@ model BankTransaction {
   balanceAfter  Int
   description   String?
   timestamp     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CryptoTransaction {
@@ -242,7 +242,7 @@ model CryptoTransaction {
   fromCurrency  String?  // "cash", "bank", or crypto type
   toCurrency    String?  // "cash", "bank", or crypto type
   timestamp     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MoneyEventHistory {

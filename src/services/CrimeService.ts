@@ -198,15 +198,10 @@ export class CrimeService {
     });
 
     if (!user?.character) {
-      // Create user if doesn't exist, but do it efficiently
-      const newUser = await DatabaseManager.getOrCreateUser(userId, "Unknown");
-      if (!newUser.character) {
-        throw new Error("Failed to create player character");
-      }
-      user = newUser;
+      throw new Error("User does not have a character - please create account first");
     }
 
-    const character = user.character!;
+    const character = user.character;
     const currentLevel = LevelCalculator.getLevelFromXP(character.experience);
 
     // Parse stats from JSON
