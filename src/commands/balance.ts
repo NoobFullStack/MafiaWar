@@ -33,7 +33,7 @@ const balanceCommand: Command = {
           "Character Not Found",
           "Character data not found for this user."
         );
-        await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [errorEmbed], flags: 64 });
         return { success: false, error: "Character not found" };
       }
 
@@ -89,7 +89,7 @@ const balanceCommand: Command = {
         "Failed to retrieve balance information. Please try again later."
       );
 
-      await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [errorEmbed], flags: 64 });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
