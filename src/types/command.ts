@@ -15,7 +15,7 @@ export interface CommandResult {
   success: boolean;
   message?: string;
   error?: string;
-  ephemeral?: boolean;
+  flags?: number;
 }
 
 export interface Command {

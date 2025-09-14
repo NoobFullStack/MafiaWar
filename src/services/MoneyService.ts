@@ -28,6 +28,14 @@ export interface MoneyTransferResult {
   newBalance?: MoneyBalance;
   fees?: number;
   error?: string;
+  data?: {
+    amountProcessed: number;
+    fees: number;
+    coinAmount?: number;
+    fromBalance: number;
+    toBalance: number;
+    cryptoBalance?: Record<string, number>;
+  };
 }
 
 export class MoneyService {
@@ -47,13 +55,37 @@ export class MoneyService {
   // ===== BALANCE OPERATIONS =====
 
   /**
-   * Get complete money balance for a user
+   * Get user's current balances (optimized for performance with single query)
    */
-  async getUserBalance(userId: string): Promise<MoneyBalance> {
+  async getUserBalance(
+    userId: string,
+    includePortfolioValue: boolean = false
+  ): Promise<{
+    cashOnHand: number;
+    bankBalance: number;
+    cryptoWallet: Record<string, number>;
+    level: number;
+    totalValue?: number;
+  } | null> {
     try {
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
-        throw new Error("Character not found");
+      const db = DatabaseManager.getClient();
+
+      const user = await db.user.findUnique({
+        where: { discordId: userId },
+        include: {
+          character: {
+            select: {
+              cashOnHand: true,
+              bankBalance: true,
+              cryptoWallet: true,
+              level: true,
+            },
+          },
+        },
+      });
+
+      if (!user?.character) {
+        return null;
       }
 
       const character = user.character;
@@ -62,23 +94,92 @@ export class MoneyService {
           ? JSON.parse(character.cryptoWallet)
           : character.cryptoWallet;
 
-      // Calculate crypto portfolio value
-      let cryptoValue = 0;
-      for (const [coinType, amount] of Object.entries(cryptoWallet)) {
-        const price = await this.getCoinPrice(coinType);
-        cryptoValue += (amount as number) * price;
-      }
-
-      return {
+      const balance = {
         cashOnHand: character.cashOnHand,
         bankBalance: character.bankBalance,
         cryptoWallet: cryptoWallet,
-        totalValue: character.cashOnHand + character.bankBalance + cryptoValue,
+        level: character.level,
       };
+
+      // Only calculate portfolio value if requested (for better performance)
+      if (includePortfolioValue) {
+        let cryptoValue = 0;
+        for (const [coinType, amount] of Object.entries(cryptoWallet)) {
+          const price = await this.getCoinPrice(coinType);
+          cryptoValue += (amount as number) * price;
+        }
+
+        return {
+          ...balance,
+          totalValue:
+            character.cashOnHand + character.bankBalance + cryptoValue,
+        };
+      }
+
+      return balance;
     } catch (error) {
       logger.error("Error getting user balance:", error);
-      throw new Error("Failed to retrieve balance");
+      return null;
     }
+  }
+
+  /**
+   * Convert optimized balance to legacy MoneyBalance format
+   */
+  private async balanceToLegacyFormat(
+    balance: {
+      cashOnHand: number;
+      bankBalance: number;
+      cryptoWallet: Record<string, number>;
+      level: number;
+      totalValue?: number;
+    } | null
+  ): Promise<MoneyBalance | null> {
+    if (!balance) return null;
+
+    let totalValue = balance.totalValue;
+    if (totalValue === undefined) {
+      // Calculate crypto value if not provided
+      let cryptoValue = 0;
+      for (const [coinType, amount] of Object.entries(balance.cryptoWallet)) {
+        const price = await this.getCoinPrice(coinType);
+        cryptoValue += amount * price;
+      }
+      totalValue = balance.cashOnHand + balance.bankBalance + cryptoValue;
+    }
+
+    return {
+      cashOnHand: balance.cashOnHand,
+      bankBalance: balance.bankBalance,
+      cryptoWallet: balance.cryptoWallet,
+      totalValue,
+    };
+  }
+
+  /**
+   * Get complete money balance for a user (legacy format for backward compatibility)
+   */
+  async getFullBalance(userId: string): Promise<MoneyBalance | null> {
+    const balance = await this.getUserBalance(userId, true);
+    return this.balanceToLegacyFormat(balance);
+  }
+  calculateMaxAmounts(
+    balances: {
+      cashOnHand: number;
+      bankBalance: number;
+      cryptoWallet: Record<string, number>;
+    },
+    coinPrice: number
+  ) {
+    const maxCashBuy = balances.cashOnHand > 10 ? balances.cashOnHand : 0;
+    const maxBankBuy = balances.bankBalance > 10 ? balances.bankBalance : 0;
+
+    return {
+      maxCashBuy,
+      maxBankBuy,
+      maxCashCoinAmount: maxCashBuy > 0 ? (maxCashBuy * 0.97) / coinPrice : 0, // After 3% fee
+      maxBankCoinAmount: maxBankBuy > 0 ? (maxBankBuy * 0.97) / coinPrice : 0, // After 3% fee
+    };
   }
 
   /**
@@ -138,7 +239,9 @@ export class MoneyService {
         const totalWithdrawal = amount + fee;
 
         if (character.bankBalance < totalWithdrawal) {
-          const maxWithdrawable = Math.floor(character.bankBalance / (1 + bankTier.benefits.withdrawalFee));
+          const maxWithdrawable = Math.floor(
+            character.bankBalance / (1 + bankTier.benefits.withdrawalFee)
+          );
           return {
             success: false,
             message: `Insufficient bank funds. Need $${totalWithdrawal} (including $${fee} fee).\n💡 **Max you can withdraw:** $${maxWithdrawable}`,
@@ -163,10 +266,16 @@ export class MoneyService {
         fee = Math.floor(amount * bankTier.benefits.depositFee);
 
         if (character.cashOnHand < amount) {
-          const netDeposit = Math.floor(amount * (1 - bankTier.benefits.depositFee));
+          const netDeposit = Math.floor(
+            amount * (1 - bankTier.benefits.depositFee)
+          );
           return {
             success: false,
-            message: `Insufficient cash. You have $${character.cashOnHand}.\n💡 **Deposit $${character.cashOnHand} → Get:** $${Math.floor(character.cashOnHand * (1 - bankTier.benefits.depositFee))} in bank`,
+            message: `Insufficient cash. You have $${
+              character.cashOnHand
+            }.\n💡 **Deposit $${character.cashOnHand} → Get:** $${Math.floor(
+              character.cashOnHand * (1 - bankTier.benefits.depositFee)
+            )} in bank`,
             error: "Insufficient funds",
           };
         }
@@ -207,14 +316,14 @@ export class MoneyService {
         },
       });
 
-      const newBalance = await this.getUserBalance(userId);
+      const newBalance = await this.getFullBalance(userId);
 
       return {
         success: true,
         message: `Successfully ${
           from === "cash" ? "deposited" : "withdrew"
         } $${amount}${fee > 0 ? ` (fee: $${fee})` : ""}`,
-        newBalance,
+        newBalance: newBalance || undefined,
         fees: fee,
       };
     } catch (error) {
@@ -305,16 +414,19 @@ export class MoneyService {
   }
 
   /**
-   * Buy cryptocurrency with cash
+   * Buy cryptocurrency with cash or bank funds
    */
   async buyCrypto(
     userId: string,
     coinType: string,
-    cashAmount: number
+    amount: number,
+    paymentMethod: "cash" | "bank" = "cash"
   ): Promise<MoneyTransferResult> {
+    const startTime = Date.now();
+
     try {
       // Input validation
-      if (!userId || !coinType || !cashAmount || cashAmount <= 0) {
+      if (!userId || !coinType || !amount || amount <= 0) {
         return {
           success: false,
           message: "Invalid parameters provided",
@@ -322,8 +434,15 @@ export class MoneyService {
         };
       }
 
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
+      const db = DatabaseManager.getClient();
+
+      // Single optimized query to get user and character data
+      const user = await db.user.findUnique({
+        where: { discordId: userId },
+        include: { character: true },
+      });
+
+      if (!user?.character) {
         return {
           success: false,
           message: "Character not found",
@@ -333,12 +452,12 @@ export class MoneyService {
 
       const character = user.character;
 
-      // Check if coin exists and user has access
+      // Validate coin and level requirements
       const coin = cryptoCoins.find((c) => c.id === coinType);
       if (!coin) {
         return {
           success: false,
-          message: "Unknown cryptocurrency",
+          message: "Invalid cryptocurrency",
           error: "Invalid coin",
         };
       }
@@ -351,63 +470,89 @@ export class MoneyService {
         };
       }
 
-      // Check cash availability
-      if (character.cashOnHand < cashAmount) {
+      // Get current crypto price (cached)
+      const coinPrice = await this.getCoinPrice(coinType);
+
+      // Calculate transaction details
+      const fee = Math.floor(amount * 0.03); // 3% fee
+      const netAmount = amount - fee;
+      const coinAmount = netAmount / coinPrice;
+
+      // Check payment source and validate funds
+      const sourceBalance =
+        paymentMethod === "cash" ? character.cashOnHand : character.bankBalance;
+      if (sourceBalance < amount) {
         return {
           success: false,
-          message: `Insufficient cash. You have $${character.cashOnHand}`,
+          message: `Insufficient ${paymentMethod}. Need $${amount.toLocaleString()}, have $${sourceBalance.toLocaleString()}`,
           error: "Insufficient funds",
         };
       }
 
-      // Get current price and calculate fees
-      const coinPrice = await this.getCoinPrice(coinType);
-      const baseFee = 0.03; // 3% base exchange fee
-      const fee = Math.floor(cashAmount * baseFee);
-      const netAmount = cashAmount - fee;
-      const coinAmount = netAmount / coinPrice;
-
-      // Update character
+      // Parse current crypto wallet
       const cryptoWallet =
         typeof character.cryptoWallet === "string"
           ? JSON.parse(character.cryptoWallet)
           : character.cryptoWallet;
 
+      // Update crypto holdings
       cryptoWallet[coinType] = (cryptoWallet[coinType] || 0) + coinAmount;
 
-      const db = DatabaseManager.getClient();
+      // Prepare update data
+      const updateData: any = {
+        cryptoWallet: JSON.stringify(cryptoWallet),
+      };
+
+      if (paymentMethod === "cash") {
+        updateData.cashOnHand = character.cashOnHand - amount;
+      } else {
+        updateData.bankBalance = character.bankBalance - amount;
+      }
+
+      // Single atomic update
       await db.character.updateMany({
-        where: { userId: user.id }, // Character.userId stores User.id (UUID)
-        data: {
-          cashOnHand: character.cashOnHand - cashAmount,
-          cryptoWallet: JSON.stringify(cryptoWallet),
-        },
+        where: { userId: user.id },
+        data: updateData,
       });
 
-      // Log transaction
-      await db.cryptoTransaction.create({
-        data: {
-          userId: user.id, // Use internal user.id, not Discord userId
-          coinType,
-          transactionType: "buy",
-          amount: coinAmount,
-          pricePerCoin: coinPrice,
-          totalValue: cashAmount,
-          fee,
-          fromCurrency: "cash",
-          toCurrency: coinType,
-        },
+      // Log transaction asynchronously (don't wait for completion)
+      setImmediate(async () => {
+        try {
+          await db.cryptoTransaction.create({
+            data: {
+              userId: user.id,
+              coinType,
+              transactionType: "buy",
+              amount: coinAmount,
+              pricePerCoin: coinPrice,
+              totalValue: amount,
+              fee,
+              fromCurrency: paymentMethod,
+              toCurrency: coinType,
+            },
+          });
+        } catch (logError) {
+          logger.warn("Failed to log crypto transaction:", logError);
+        }
       });
 
-      const newBalance = await this.getUserBalance(userId);
+      const endTime = Date.now();
+      logger.info(`Crypto buy completed in ${endTime - startTime}ms`);
 
       return {
         success: true,
         message: `Bought ${coinAmount.toFixed(6)} ${
           coin.symbol
-        } for $${cashAmount} (fee: $${fee})`,
-        newBalance,
+        } for $${amount.toLocaleString()}`,
         fees: fee,
+        data: {
+          amountProcessed: amount,
+          fees: fee,
+          coinAmount,
+          fromBalance: sourceBalance - amount,
+          toBalance: sourceBalance - amount,
+          cryptoBalance: cryptoWallet,
+        },
       };
     } catch (error) {
       logger.error("Error buying crypto:", error);
@@ -420,13 +565,16 @@ export class MoneyService {
   }
 
   /**
-   * Sell cryptocurrency for cash
+   * Sell cryptocurrency for cash or bank deposit
    */
   async sellCrypto(
     userId: string,
     coinType: string,
-    coinAmount: number
+    coinAmount: number,
+    depositTo: "cash" | "bank" = "cash"
   ): Promise<MoneyTransferResult> {
+    const startTime = Date.now();
+
     try {
       // Input validation
       if (!userId || !coinType || !coinAmount || coinAmount <= 0) {
@@ -437,8 +585,15 @@ export class MoneyService {
         };
       }
 
-      const user = await DatabaseManager.getOrCreateUser(userId, "");
-      if (!user.character) {
+      const db = DatabaseManager.getClient();
+
+      // Single optimized query to get user and character data
+      const user = await db.user.findUnique({
+        where: { discordId: userId },
+        include: { character: true },
+      });
+
+      if (!user?.character) {
         return {
           success: false,
           message: "Character not found",
@@ -447,68 +602,97 @@ export class MoneyService {
       }
 
       const character = user.character;
+
+      // Parse current crypto wallet
       const cryptoWallet =
         typeof character.cryptoWallet === "string"
           ? JSON.parse(character.cryptoWallet)
           : character.cryptoWallet;
 
-      // Check if user has enough crypto
-      const currentAmount = cryptoWallet[coinType] || 0;
-      if (currentAmount < coinAmount) {
+      // Check holdings
+      const currentHolding = cryptoWallet[coinType] || 0;
+      if (currentHolding < coinAmount) {
         return {
           success: false,
-          message: `Insufficient ${coinType}. You have ${currentAmount.toFixed(
+          message: `Insufficient ${coinType}. Have ${currentHolding.toFixed(
             6
-          )}`,
+          )}, trying to sell ${coinAmount.toFixed(6)}`,
           error: "Insufficient crypto",
         };
       }
 
-      // Get current price and calculate values
+      // Get current crypto price (cached)
       const coinPrice = await this.getCoinPrice(coinType);
+
+      // Calculate transaction details
       const grossAmount = coinAmount * coinPrice;
-      const fee = Math.floor(grossAmount * 0.04); // 4% selling fee (higher than buying)
+      const fee = Math.floor(grossAmount * 0.04); // 4% selling fee
       const netCash = grossAmount - fee;
 
-      // Update character
-      cryptoWallet[coinType] = currentAmount - coinAmount;
+      // Update crypto holdings
+      cryptoWallet[coinType] = currentHolding - coinAmount;
       if (cryptoWallet[coinType] <= 0) {
         delete cryptoWallet[coinType]; // Remove empty holdings
       }
 
-      const db = DatabaseManager.getClient();
+      // Prepare update data
+      const updateData: any = {
+        cryptoWallet: JSON.stringify(cryptoWallet),
+      };
+
+      const originalBalance =
+        depositTo === "cash" ? character.cashOnHand : character.bankBalance;
+
+      if (depositTo === "cash") {
+        updateData.cashOnHand = character.cashOnHand + netCash;
+      } else {
+        updateData.bankBalance = character.bankBalance + netCash;
+      }
+
+      // Single atomic update
       await db.character.updateMany({
-        where: { userId: user.id }, // Character.userId stores User.id (UUID)
-        data: {
-          cashOnHand: character.cashOnHand + netCash,
-          cryptoWallet: JSON.stringify(cryptoWallet),
-        },
+        where: { userId: user.id },
+        data: updateData,
       });
 
-      // Log transaction
-      await db.cryptoTransaction.create({
-        data: {
-          userId: user.id, // Use internal user.id, not Discord userId
-          coinType,
-          transactionType: "sell",
-          amount: coinAmount,
-          pricePerCoin: coinPrice,
-          totalValue: Math.floor(grossAmount),
-          fee,
-          fromCurrency: coinType,
-          toCurrency: "cash",
-        },
+      // Log transaction asynchronously (don't wait for completion)
+      setImmediate(async () => {
+        try {
+          await db.cryptoTransaction.create({
+            data: {
+              userId: user.id,
+              coinType,
+              transactionType: "sell",
+              amount: coinAmount,
+              pricePerCoin: coinPrice,
+              totalValue: Math.floor(grossAmount),
+              fee,
+              fromCurrency: coinType,
+              toCurrency: depositTo,
+            },
+          });
+        } catch (logError) {
+          logger.warn("Failed to log crypto transaction:", logError);
+        }
       });
 
-      const newBalance = await this.getUserBalance(userId);
+      const endTime = Date.now();
+      logger.info(`Crypto sell completed in ${endTime - startTime}ms`);
 
       return {
         success: true,
         message: `Sold ${coinAmount.toFixed(
           6
-        )} ${coinType} for $${netCash} (fee: $${fee})`,
-        newBalance,
+        )} ${coinType} for $${netCash.toLocaleString()}`,
         fees: fee,
+        data: {
+          amountProcessed: Math.floor(grossAmount),
+          fees: fee,
+          coinAmount: coinAmount,
+          fromBalance: originalBalance,
+          toBalance: originalBalance + netCash,
+          cryptoBalance: cryptoWallet,
+        },
       };
     } catch (error) {
       logger.error("Error selling crypto:", error);
@@ -577,12 +761,12 @@ export class MoneyService {
         data: updateData,
       });
 
-      const newBalance = await this.getUserBalance(userId);
+      const newBalance = await this.getFullBalance(userId);
 
       return {
         success: true,
         message: `Added $${amount} to ${type} account`,
-        newBalance,
+        newBalance: newBalance || undefined,
       };
     } catch (error) {
       logger.error("Error adding money:", error);
@@ -630,7 +814,10 @@ export class MoneyService {
         return { canUpgrade: false, reason: "Already at maximum bank tier" };
       }
 
-      const balance = await this.getUserBalance(userId);
+      const balance = await this.getUserBalance(userId, true);
+      if (!balance) {
+        return { canUpgrade: false, reason: "Character not found" };
+      }
 
       if (character.level < nextTier.requirements.minLevel) {
         return {
@@ -640,11 +827,12 @@ export class MoneyService {
         };
       }
 
-      if (balance.totalValue < nextTier.requirements.minMoney) {
+      const totalValue = balance.totalValue || 0;
+      if (totalValue < nextTier.requirements.minMoney) {
         return {
           canUpgrade: false,
           nextTier,
-          reason: `Requires $${nextTier.requirements.minMoney} total wealth (current: $${balance.totalValue})`,
+          reason: `Requires $${nextTier.requirements.minMoney} total wealth (current: $${totalValue})`,
         };
       }
 

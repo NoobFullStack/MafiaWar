@@ -14,7 +14,16 @@ const walletCommand: Command = {
 
     try {
       const moneyService = MoneyService.getInstance();
-      const balance = await moneyService.getUserBalance(userId);
+      const balance = await moneyService.getUserBalance(userId, true);
+
+      if (!balance) {
+        const embed = ResponseUtil.error(
+          "Character Not Found",
+          "You need to create a character first! Use `/profile` to get started."
+        );
+        await interaction.reply({ embeds: [embed], flags: 64 });
+        return { success: false, error: "No character" };
+      }
 
       // Create portfolio display
       let cryptoDisplay = "None";
@@ -36,7 +45,7 @@ const walletCommand: Command = {
 
       const embed = ResponseUtil.info(
         "💰 Your Wallet",
-        `**Total Net Worth: $${balance.totalValue.toLocaleString()}**`
+        `**Total Net Worth: $${(balance.totalValue || 0).toLocaleString()}**`
       );
 
       embed.addFields(
@@ -71,7 +80,7 @@ const walletCommand: Command = {
         "Failed to load your wallet information. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: 64 });
       return { success: false, error: "Failed to load wallet" };
     }
   },
