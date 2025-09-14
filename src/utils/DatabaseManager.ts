@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "./ResponseUtil";
+import { initializeGameData } from "./GameSeeder";
 
 class DatabaseManager {
   private static instance: DatabaseManager;
@@ -23,12 +24,17 @@ class DatabaseManager {
   }
 
   /**
-   * Initialize database connection
+   * Initialize database connection and optionally seed game data
    */
-  async connect(): Promise<void> {
+  async connect(seedData: boolean = false): Promise<void> {
     try {
       await this.prisma.$connect();
       logger.info("✅ Database connected successfully");
+      
+      if (seedData) {
+        logger.info("🌱 Initializing game data...");
+        await initializeGameData(this.prisma);
+      }
     } catch (error) {
       logger.error("❌ Failed to connect to database", error);
       throw error;

@@ -7,19 +7,36 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 ### **Currently Implemented**
 
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
-- 💰 **Economy** - Money management and financial status tracking
+- 💰 **Real Economy System** - Gameplay-based pricing and balance analysis
+- 🛠️ **Item Management** - Tools, consumables, and trade goods with actual gameplay value
+- 🔫 **Crime System** - Various criminal activities with risk/reward mechanics
 - 📊 **Profile Management** - View character stats, level, and reputation
+- 🌱 **Advanced Seeding** - Safe, extensible data management system
+- 📈 **Economic Analysis** - Real-time balance validation and recommendations
 - 🛡️ **Cooldown System** - Built-in spam protection
 - 🗄️ **Database Integration** - PostgreSQL with Prisma ORM
 
 ### **Planned Features**
 
-- 🔫 **Crime System** - Various criminal activities with risk/reward mechanics
 - 🎯 **Mission System** - Daily tasks and story-driven progression
 - 🏢 **Asset System** - Ownable properties generating passive income
 - 👥 **Gang System** - Social features and cooperative gameplay
 - ⚔️ **PvP Mechanics** - Asset robberies and player vs player combat
 - 📈 **Leaderboards** - Rankings for money, reputation, and achievements
+
+## 🎯 Unique Systems
+
+### **🧮 Gameplay Economy**
+Unlike other bots with arbitrary pricing, MafiaWar uses **real gameplay analysis**:
+- Items priced based on actual crime earnings
+- 1-5 hour payback periods for meaningful progression
+- Dynamic balance recommendations and validation
+
+### **🌱 Smart Seeding**
+Extensible data management that grows with your game:
+- Safe upserts prevent data loss
+- Incremental updates for new content
+- Automatic validation and integrity checks
 
 ## 🚀 Quick Start
 
