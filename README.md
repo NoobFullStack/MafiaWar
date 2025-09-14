@@ -7,22 +7,27 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 ### **Currently Implemented**
 
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
-- 💰 **Multi-Layered Money System** - Strategic three-tier money management with different risk profiles
+- 💰 **Multi-Layered Money System** - Strategic three-tier money management (cash, bank, crypto)
+- 🔒 **Privacy Controls** - All financial commands use ephemeral responses for user privacy
 - 🎯 **XP & Level System** - MMO-style progression with 50 levels and milestone rewards
-- �️ **Level Gating** - Content unlocks based on player level and progression
-- 🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements
-- 🔫 **Crime System** - 9 criminal activities with balanced difficulty progression and real-time execution
-- 🏢 **Asset System** - 6 business types from convenience stores to underground casinos
+- 🛡️ **Level Gating** - Content unlocks based on player level and progression
+- 🔫 **Crime System** - 9 criminal activities with strategic payouts and real-time execution
 - 📊 **Profile Management** - View character stats, level, XP progress, and reputation
 - 🌱 **Advanced Seeding** - Safe, extensible data management system
 - 📈 **Economic Analysis** - Real-time balance validation and XP progression analysis
+- ⚡ **Performance Optimization** - Eliminates timeout issues with optimized database operations
 - 🛡️ **Cooldown System** - Built-in spam protection
 - 🗄️ **Database Integration** - PostgreSQL with Prisma ORM and XP tracking
 
+### **In Development**
+
+- 🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements (data ready)
+- � **Asset System** - 6 business types from convenience stores to casinos (data ready)
+- ₿ **Cryptocurrency Trading** - Market volatility and crypto exchange system (data ready)
+
 ### **Planned Features**
 
-- 🎯 **Mission System** - Daily tasks and story-driven progression
-- 🏢 **Asset System** - Ownable properties generating passive income
+- � **Mission System** - Daily tasks and story-driven progression
 - 👥 **Gang System** - Social features and cooperative gameplay
 - ⚔️ **PvP Mechanics** - Asset robberies and player vs player combat
 - 📈 **Leaderboards** - Rankings for money, reputation, and achievements
@@ -37,14 +42,19 @@ MafiaWar features a sophisticated **three-tier money system** for strategic risk
 - **🏦 Bank Account** - Protected from players but subject to government raids/IRS seizures
 - **₿ Cryptocurrency** - Protected from all threats but subject to market volatility
 
+**Privacy by Design**: All financial information is displayed privately to users only, protecting your financial strategy from other players.
+
 Players must strategically balance liquidity, security, and growth potential across all three tiers.
 
 ### **🧮 Gameplay Economy with XP Progression**
 
 Unlike other bots with arbitrary pricing, MafiaWar uses **real gameplay analysis**:
 
+- **Privacy-First Design**: All financial information displayed privately to users
+- **Performance Optimized**: Eliminates timeout issues with single-transaction database operations
 - Items priced based on actual crime earnings and XP value
 - MMO-style progression with 50 levels and milestone rewards
+- Strategic crime payouts distributed across cash, bank, and crypto tiers
 - 1-5 hour payback periods for meaningful progression
 - Dynamic balance recommendations including XP economic valuation
 
@@ -130,6 +140,16 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/bank <action>` | Manage bank deposits, withdrawals      | 10s      |
 | `/crime <type>`  | Commit crimes for money and XP         | 30s      |
 | `/crimes`        | View available crimes and requirements | 10s      |
+
+### **🚧 Commands In Development**
+
+| Command            | Description                          | Status     |
+| ------------------ | ------------------------------------ | ---------- |
+| `/crypto <action>` | Trade cryptocurrencies               | Data Ready |
+| `/items`           | View available items and tools       | Data Ready |
+| `/buy <item>`      | Purchase items with various payments | Data Ready |
+| `/assets`          | View available businesses            | Data Ready |
+| `/business <cmd>`  | Manage owned properties              | Data Ready |
 
 ### **🔧 Development Commands**
 
@@ -271,4 +291,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Ready to build your criminal empire?** Start with `/profile` to create your character, then use `/wallet` to check your money portfolio and `/bank deposit` to secure your earnings! 🎭
+**Ready to build your criminal empire?** Start with `/profile` to create your character, then use `/wallet` to check your money portfolio and `/bank deposit` to secure your earnings! All financial information is kept private to you. 🎭
