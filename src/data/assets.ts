@@ -60,7 +60,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "legitimate",
     requirements: {
-      level: 3,
+      level: 5, // Unlocked at Amateur Thief
     },
     upgrades: {
       income: [
@@ -90,7 +90,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "semi_legal",
     requirements: {
-      level: 2,
+      level: 3, // Unlocked at Petty Criminal
     },
     upgrades: {
       income: [
@@ -149,7 +149,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "illegal",
     requirements: {
-      level: 10,
+      level: 12, // Unlocked at Crime Specialist
       reputation: 50,
     },
     upgrades: {
@@ -178,7 +178,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "illegal",
     requirements: {
-      level: 15,
+      level: 20, // Unlocked at Crime Boss
       reputation: 100,
       money: 750000,
     },

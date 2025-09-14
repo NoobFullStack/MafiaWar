@@ -1,14 +1,17 @@
-# 💰 MafiaWar Economics System
+# 💰 MafiaWar Economics & Progression System
 
-Real gameplay-based economy analysis and balance system.
+Real gameplay-based economy analysis and balance system with MMO-style XP progression.
 
 ## 🎯 Quick Commands
 
 ```bash
-# Analyze complete economy
+# Analyze complete economy with XP progression
 yarn economy:analyze
 
-# Validate item balance
+# Demonstrate level gating system
+yarn level:demo
+
+# Validate item balance and pricing
 yarn economy:validate
 
 # Check specific items
@@ -16,6 +19,22 @@ yarn economy:validate --item lockpick_basic
 ```
 
 ## 📊 System Overview
+
+### 🔮 MMO-Style XP Progression
+
+- **50 Levels**: Formula-based progression using `XP_TO_LEVEL = ((LEVEL * SCALE) ^ 1.5) * XP_BASE`
+- **Realistic Timing**: Level 5 (3.8 days), Level 15 (52 days), Level 30 (285 days)
+- **Milestone Rewards**: Special unlocks at levels 1,3,5,8,12,15,20,25,30,35,40,50
+- **Economic Integration**: XP valued at $5-20 per point based on player level
+
+### 🏛️ Content Gating System
+
+- **Items**: Basic tools (Level 1) → Advanced gear (Level 12) → Rare collectibles (Level 25)
+- **Crimes**: Pickpocketing (Level 1) → Hacking (Level 12) → Bank Robbery (Level 15)
+- **Assets**: Safe House (Level 5) → Nightclub (Level 10) → Casino (Level 20)
+- **Progressive Unlocks**: Ensures meaningful progression and engagement
+
+### 📈 Economic Principles
 
 The MafiaWar economics system ensures **realistic pricing** based on **actual gameplay value** rather than arbitrary formulas.
 
@@ -37,6 +56,7 @@ Hourly Income = (Average Reward × Success Rate × Crimes per Hour)
 ```
 
 **Example**: Pickpocketing
+
 - Reward: $50-200 (avg $125)
 - Success: 75%
 - Cooldown: 5 minutes (12 crimes/hour)
@@ -51,6 +71,7 @@ Payback Time = Item Cost ÷ Extra Income per Hour
 ```
 
 **Example**: Basic Lockpick
+
 - Cost: $150
 - Bonus: +5% success on theft crimes
 - Extra income: ~$250/hour from bonus
@@ -60,15 +81,16 @@ Payback Time = Item Cost ÷ Extra Income per Hour
 
 ### Current Crime Progression
 
-| Tier | Difficulty | Income/Hour | Examples |
-|------|------------|-------------|----------|
-| **Beginner** | 1-2 | $1,028/hr | Pickpocketing, Shoplifting |
-| **Amateur** | 3-4 | $1,653/hr | Bike Theft, Car Theft |
-| **Professional** | 5-6 | $1,814/hr | Burglary, Store Robbery |
-| **Expert** | 7-8 | $1,500/hr | Cyber Hacking |
-| **Master** | 9-10 | $1,750/hr | Bank Robbery |
+| Tier             | Difficulty | Income/Hour | Examples                   |
+| ---------------- | ---------- | ----------- | -------------------------- |
+| **Beginner**     | 1-2        | $1,028/hr   | Pickpocketing, Shoplifting |
+| **Amateur**      | 3-4        | $1,653/hr   | Bike Theft, Car Theft      |
+| **Professional** | 5-6        | $1,814/hr   | Burglary, Store Robbery    |
+| **Expert**       | 7-8        | $1,500/hr   | Cyber Hacking              |
+| **Master**       | 9-10       | $1,750/hr   | Bank Robbery               |
 
 ### Ideal Targets
+
 - Each tier should provide **50%+ more income** than previous
 - Clear progression incentive for players
 - Risk/reward balance with jail time
@@ -77,12 +99,12 @@ Payback Time = Item Cost ÷ Extra Income per Hour
 
 ### Payback Time Targets
 
-| Category | Target Payback | Reasoning |
-|----------|----------------|-----------|
-| **Basic Tools** | 30-60 minutes | Quick return for early game |
-| **Advanced Tools** | 1-3 hours | Significant investment |
-| **Weapons** | 2-5 hours | Higher risk/reward |
-| **Consumables** | Immediate | Temporary bonuses |
+| Category           | Target Payback | Reasoning                   |
+| ------------------ | -------------- | --------------------------- |
+| **Basic Tools**    | 30-60 minutes  | Quick return for early game |
+| **Advanced Tools** | 1-3 hours      | Significant investment      |
+| **Weapons**        | 2-5 hours      | Higher risk/reward          |
+| **Consumables**    | Immediate      | Temporary bonuses           |
 
 ### Balance Status
 
@@ -91,14 +113,16 @@ yarn economy:analyze
 ```
 
 **Current Item Analysis**:
+
 - ✅ **Basic Lockpick**: 36min payback (good)
-- ✅ **Advanced Lockpick**: 60min payback (good)  
+- ✅ **Advanced Lockpick**: 60min payback (good)
 - ✅ **Hacking Laptop**: 2hr payback (good)
 - ⚠️ **Crowbar**: 16min payback (maybe too cheap)
 
 ## 🎮 Item Types & Bonuses
 
 ### Tools
+
 Provide **permanent crime bonuses**:
 
 ```typescript
@@ -111,6 +135,7 @@ metadata: {
 ```
 
 ### Consumables
+
 Provide **temporary bonuses**:
 
 ```typescript
@@ -123,6 +148,7 @@ metadata: {
 ```
 
 ### Trade Goods & Collectibles
+
 - **No crime bonuses** (pure profit/prestige items)
 - Priced for trading/selling mechanics
 - Should have clear profit margins
@@ -132,27 +158,41 @@ metadata: {
 ### Core Files
 
 ```
-src/config/economy.ts           # Economic constants and formulas
-src/utils/EconomyAnalyzer.ts    # Analysis and validation tools
-src/scripts/economy.ts          # CLI commands
+src/config/economy.ts           # Economic constants, XP progression, and formulas
+src/utils/EconomyAnalyzer.ts    # Analysis and validation tools with XP integration
+src/utils/LevelGateValidator.ts # Level-based content access validation
+src/scripts/economy.ts          # CLI economy analysis commands
+src/scripts/levelGatingDemo.ts  # Level progression demonstration
+src/data/crimes.ts              # Level-gated criminal activities
+src/data/items.ts               # Level-required items and tools
+src/data/assets.ts              # Level-locked business assets
 ```
 
 ### Key Functions
 
 ```typescript
 // Analyze complete economy
-GameplayEconomyAnalyzer.analyzeRealEconomics(items, crimes)
+GameplayEconomyAnalyzer.analyzeRealEconomics(items, crimes);
+
+// Calculate XP progression
+LevelCalculator.getXPRequiredForLevel(level);
+LevelCalculator.getLevelFromXP(totalXP);
+
+// Validate content access
+LevelGateValidator.validateItemAccess(player, itemId);
+LevelGateValidator.validateCrimeAccess(player, crimeId);
 
 // Validate single item
-GameplayEconomyAnalyzer.validateItem(item, crimes)
+GameplayEconomyAnalyzer.validateItem(item, crimes);
 
 // Get crime income data
-analyzeCrimeIncome(crimes)
+analyzeCrimeIncome(crimes);
 ```
 
 ## 📊 Economy Analysis Output
 
 ### Sample Analysis
+
 ```
 💰 CRIME INCOME ANALYSIS:
 Crime                    | Diff | Reward  | Success | Income/Hour
@@ -194,6 +234,7 @@ The system provides **specific pricing recommendations**:
 ## 🚨 Common Balance Issues
 
 ### "Item Never Pays for Itself"
+
 **Problem**: Item provides no crime bonuses
 **Solution**: Add meaningful `crimeBonus` metadata
 
@@ -214,6 +255,7 @@ metadata: {
 ```
 
 ### "Item Pays Back Too Fast"
+
 **Problem**: Item too cheap for bonus provided
 **Solution**: Increase price or reduce bonus
 
@@ -221,11 +263,12 @@ metadata: {
 // Too cheap: 15min payback
 value: 50,
 
-// Balanced: 60min payback  
+// Balanced: 60min payback
 value: 200,
 ```
 
 ### "Crime Progression Broken"
+
 **Problem**: Higher difficulty crimes earn less
 **Solution**: Increase rewards for higher tiers
 
@@ -267,7 +310,7 @@ yarn seed --items
 // Players can view item economics
 /economy analyze lockpick
 
-// Check crime profitability  
+// Check crime profitability
 /economy crimes burglary
 ```
 

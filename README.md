@@ -7,14 +7,17 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 ### **Currently Implemented**
 
 - 👤 **Character System** - Automatic user registration with stats (strength, stealth, intelligence)
-- 💰 **Real Economy System** - Gameplay-based pricing and balance analysis
-- 🛠️ **Item Management** - Tools, consumables, and trade goods with actual gameplay value
-- 🔫 **Crime System** - Various criminal activities with risk/reward mechanics
-- 📊 **Profile Management** - View character stats, level, and reputation
+- 💰 **Real Economy System** - Gameplay-based pricing and balance analysis with XP valuation
+- 🎯 **XP & Level System** - MMO-style progression with 50 levels and milestone rewards
+- � **Level Gating** - Content unlocks based on player level and progression
+- �🛠️ **Item Management** - Tools, consumables, and trade goods with level requirements
+- 🔫 **Crime System** - 9 criminal activities with balanced difficulty progression
+- 🏢 **Asset System** - 6 business types from convenience stores to underground casinos
+- 📊 **Profile Management** - View character stats, level, XP progress, and reputation
 - 🌱 **Advanced Seeding** - Safe, extensible data management system
-- 📈 **Economic Analysis** - Real-time balance validation and recommendations
+- 📈 **Economic Analysis** - Real-time balance validation and XP progression analysis
 - 🛡️ **Cooldown System** - Built-in spam protection
-- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM
+- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM and XP tracking
 
 ### **Planned Features**
 
@@ -26,14 +29,28 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 
 ## 🎯 Unique Systems
 
-### **🧮 Gameplay Economy**
+### **🧮 Gameplay Economy with XP Progression**
+
 Unlike other bots with arbitrary pricing, MafiaWar uses **real gameplay analysis**:
-- Items priced based on actual crime earnings
+
+- Items priced based on actual crime earnings and XP value
+- MMO-style progression with 50 levels and milestone rewards
 - 1-5 hour payback periods for meaningful progression
-- Dynamic balance recommendations and validation
+- Dynamic balance recommendations including XP economic valuation
+
+### **🔒 Level Gating System**
+
+Content unlocks naturally with player progression:
+
+- Items, crimes, and assets locked behind level requirements
+- Clear progression path from Street Thug to Underworld King
+- Realistic timing: Level 15 takes ~52 days, Level 30 takes ~285 days
+- Multiple requirement checks: level, stats, money, reputation
 
 ### **🌱 Smart Seeding**
+
 Extensible data management that grows with your game:
+
 - Safe upserts prevent data loss
 - Incremental updates for new content
 - Automatic validation and integrity checks
@@ -101,12 +118,23 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/profile`        | View your criminal character profile | 10s      |
 | `/balance [user]` | Check money and financial status     | 5s       |
 
+### **🔧 Development Commands**
+
+| Command                 | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| `yarn economy:analyze`  | Complete economy and XP progression analysis |
+| `yarn level:demo`       | Demonstrate level gating system              |
+| `yarn economy:validate` | Validate item balance and pricing            |
+
 ## 🏗️ Architecture
 
 ```
 src/
 ├── commands/          # Slash command implementations
-├── utils/            # Core utilities (database, logging, responses)
+├── config/           # Economy config and XP progression system
+├── data/             # Game data (items, crimes, assets) with level requirements
+├── utils/            # Core utilities (database, logging, level validation)
+├── scripts/          # Analysis and demonstration scripts
 ├── types/            # TypeScript type definitions
 └── bot.ts           # Main bot entry point
 
@@ -116,6 +144,7 @@ prisma/
 
 docs/
 ├── setup/             # Installation and configuration guides
+├── economy/           # Economic analysis and balance documentation
 ├── development/       # Development documentation and planning
 └── README.md         # Documentation index
 ```
@@ -188,11 +217,11 @@ yarn lint       # Run TypeScript checks
 The bot uses PostgreSQL with the following main entities:
 
 - **Users** - Discord user accounts linked to game profiles
-- **Characters** - Player stats, money, level, reputation
-- **Assets** - Ownable properties (shops, nightclubs, warehouses)
+- **Characters** - Player stats, money, level, experience points, reputation
+- **Assets** - Ownable properties with level requirements (shops, nightclubs, warehouses)
 - **Gangs** - Player organizations with shared resources
-- **Items** - Tools, weapons, consumables
-- **Crimes/Missions** - Available activities and objectives
+- **Items** - Tools, weapons, consumables with level gates and crime bonuses
+- **Crimes/Missions** - Available activities with level requirements and XP rewards
 - **Action Logs** - Complete audit trail of player actions
 
 ## 🤝 Contributing

@@ -1,12 +1,76 @@
 /**
  * MAFIA WAR ECONOMY CONFIGURATION
- * 
+ *
  * This economy is designed around ACTUAL GAMEPLAY VALUE:
  * - Item costs based on earnings they enable
  * - Progression gates that make sense for a criminal empire
  * - Risk/reward balance for different criminal activities
  * - Real progression that feels earned, not given away
+ * - MMO-style XP progression with meaningful level gates
  */
+
+// === MMO-STYLE XP & LEVEL PROGRESSION ===
+export const XP_PROGRESSION = {
+  // Formula: XP_TO_LEVEL = ((CURRENT_LEVEL * SCALE) ^ 1.5) * XP_BASE
+  XP_BASE: 100, // Base XP requirement
+  SCALE: 1.2, // Exponential scaling factor
+  MAX_LEVEL: 50, // Maximum achievable level
+
+  // Level milestone rewards and gates
+  LEVEL_GATES: {
+    // Early Game (Levels 1-10)
+    1: { title: "Street Thug", unlocks: ["pickpocket", "shoplifting"] },
+    3: {
+      title: "Petty Criminal",
+      unlocks: ["bike_theft", "credit_card_fraud"],
+    },
+    5: { title: "Amateur Thief", unlocks: ["car_theft", "lockpick_advanced"] },
+
+    // Mid Game (Levels 11-25)
+    8: {
+      title: "Professional Criminal",
+      unlocks: ["burglary", "store_robbery"],
+    },
+    12: { title: "Crime Specialist", unlocks: ["hacking", "cyber_crimes"] },
+    15: {
+      title: "Criminal Mastermind",
+      unlocks: ["bank_robbery", "gang_creation"],
+    },
+
+    // End Game (Levels 26-50)
+    20: {
+      title: "Crime Boss",
+      unlocks: ["territory_control", "illegal_businesses"],
+    },
+    25: {
+      title: "Mafia Lieutenant",
+      unlocks: ["money_laundering", "high_stakes_heists"],
+    },
+    30: {
+      title: "Underworld King",
+      unlocks: ["international_crimes", "cartel_operations"],
+    },
+    35: {
+      title: "Criminal Empire",
+      unlocks: ["government_corruption", "mega_heists"],
+    },
+    40: {
+      title: "Shadow Ruler",
+      unlocks: ["global_operations", "legendary_items"],
+    },
+    50: {
+      title: "Criminal Legend",
+      unlocks: ["prestige_system", "legacy_bonuses"],
+    },
+  },
+
+  // XP value in economic terms (how much is 1 XP worth in dollars?)
+  XP_ECONOMIC_VALUE: {
+    EARLY_GAME: 5, // 1 XP = $5 (levels 1-10)
+    MID_GAME: 10, // 1 XP = $10 (levels 11-25)
+    END_GAME: 20, // 1 XP = $20 (levels 26-50)
+  },
+};
 
 // === CORE GAMEPLAY ECONOMICS ===
 export const ECONOMY_CONFIG = {
@@ -15,16 +79,18 @@ export const ECONOMY_CONFIG = {
     STARTING_MONEY: 500, // Enough for basic tools only
     DAILY_PASSIVE_INCOME: 0, // No free money - earn through crimes
     LEVEL_MONEY_BONUS: 100, // Bonus money per level up
-    
+
     // How much money players should have at different levels
     EXPECTED_WEALTH_BY_LEVEL: {
-      1: 500,      // Starting cash
-      5: 5000,     // Basic criminal
-      10: 25000,   // Experienced thief  
-      15: 75000,   // Professional criminal
-      20: 200000,  // Crime boss
-      25: 500000,  // Mafia lieutenant
+      1: 500, // Starting cash
+      5: 5000, // Basic criminal
+      10: 25000, // Experienced thief
+      15: 75000, // Professional criminal
+      20: 200000, // Crime boss
+      25: 500000, // Mafia lieutenant
       30: 1000000, // Crime lord
+      40: 5000000, // Criminal empire
+      50: 25000000, // Criminal legend
     },
   },
 
@@ -37,7 +103,7 @@ export const ECONOMY_CONFIG = {
       examples: ["pickpocket", "shoplifting"],
     },
     AMATEUR_CRIMES: {
-      difficulty_range: [3, 4], 
+      difficulty_range: [3, 4],
       income_per_hour: 1800, // $30/minute with 15-30min cooldowns
       examples: ["car_theft", "credit_card_fraud"],
     },
@@ -62,16 +128,16 @@ export const ECONOMY_CONFIG = {
   ITEM_VALUE_CALCULATION: {
     // How many successful crimes an item should pay for itself
     PAYBACK_PERIOD_CRIMES: {
-      common: 15,    // Should pay for itself after 15 successful crimes
-      uncommon: 25,  // 25 crimes
-      rare: 40,      // 40 crimes  
-      epic: 60,      // 60 crimes
+      common: 15, // Should pay for itself after 15 successful crimes
+      uncommon: 25, // 25 crimes
+      rare: 40, // 40 crimes
+      epic: 60, // 60 crimes
       legendary: 100, // 100 crimes - true end-game investment
     },
-    
+
     // Bonus value multipliers for different effects
     SUCCESS_RATE_VALUE: 2000, // Each 1% success rate bonus = $2000 value
-    REWARD_BONUS_VALUE: 1000,  // Each 1% reward bonus = $1000 value
+    REWARD_BONUS_VALUE: 1000, // Each 1% reward bonus = $1000 value
     COOLDOWN_REDUCTION_VALUE: 500, // Each 1% cooldown reduction = $500 value
     REQUIRED_ITEM_MULTIPLIER: 3.0, // Items required for crimes cost 3x more
   },
@@ -79,23 +145,23 @@ export const ECONOMY_CONFIG = {
   // Market economics for different item types
   ITEM_TYPE_ECONOMICS: {
     tool: {
-      base_markup: 1.5,  // 50% shop markup (tools are investments)
+      base_markup: 1.5, // 50% shop markup (tools are investments)
       depreciation_rate: 0.02, // 2% value loss per use due to wear
       repair_cost_ratio: 0.15, // 15% of value to fully repair
       durability_factor: 1.0, // Standard durability
     },
     consumable: {
-      base_markup: 2.0,  // 100% markup (consumables are instant use)
-      stack_limit: 20,   // Maximum inventory
+      base_markup: 2.0, // 100% markup (consumables are instant use)
+      stack_limit: 20, // Maximum inventory
       market_volatility: 0.1, // ±10% price variation
     },
     trade_good: {
-      base_markup: 1.2,  // 20% markup (speculative investments)
+      base_markup: 1.2, // 20% markup (speculative investments)
       market_volatility: 0.3, // ±30% price swings
       seasonal_modifier: 1.0, // Event-based price changes
     },
     collectible: {
-      base_markup: 1.8,  // 80% markup (luxury items)
+      base_markup: 1.8, // 80% markup (luxury items)
       appreciation_rate: 0.01, // 1% weekly value increase
       set_bonus_multiplier: 2.0, // Complete sets worth 2x individual pieces
     },
@@ -103,31 +169,36 @@ export const ECONOMY_CONFIG = {
 
   // Progression gates - what players need to afford at each tier
   PROGRESSION_GATES: {
-    TIER_1: { // Levels 1-5: Street Criminal
+    TIER_1: {
+      // Levels 1-5: Street Criminal
       max_item_cost: 2500,
       typical_income: 600, // per hour
       focus: "Basic tools for petty crimes",
       required_wealth: 5000,
     },
-    TIER_2: { // Levels 6-10: Professional Thief  
+    TIER_2: {
+      // Levels 6-10: Professional Thief
       max_item_cost: 10000,
       typical_income: 1800,
       focus: "Specialized equipment for theft",
       required_wealth: 25000,
     },
-    TIER_3: { // Levels 11-15: Crime Professional
-      max_item_cost: 30000, 
+    TIER_3: {
+      // Levels 11-15: Crime Professional
+      max_item_cost: 30000,
       typical_income: 3600,
       focus: "Advanced tools for organized crime",
       required_wealth: 75000,
     },
-    TIER_4: { // Levels 16-20: Crime Boss
+    TIER_4: {
+      // Levels 16-20: Crime Boss
       max_item_cost: 75000,
       typical_income: 6000,
       focus: "Elite equipment and weapons",
       required_wealth: 200000,
     },
-    TIER_5: { // Levels 21+: Crime Lord
+    TIER_5: {
+      // Levels 21+: Crime Lord
       max_item_cost: 200000,
       typical_income: 12000,
       focus: "Legendary items and empire building",
@@ -149,21 +220,24 @@ export class GameplayEconomyCalculator {
     tierLevel: number = 1
   ): number {
     const config = ECONOMY_CONFIG.ITEM_VALUE_CALCULATION;
-    const paybackPeriod = config.PAYBACK_PERIOD_CRIMES[rarity as keyof typeof config.PAYBACK_PERIOD_CRIMES] || 20;
-    
+    const paybackPeriod =
+      config.PAYBACK_PERIOD_CRIMES[
+        rarity as keyof typeof config.PAYBACK_PERIOD_CRIMES
+      ] || 20;
+
     // Calculate the average crime income this item affects
     let affectedCrimeIncome = 0;
     let maxBonus = 0;
-    
+
     // Get maximum bonus percentage
     if (Object.keys(crimeBonus).length > 0) {
       maxBonus = Math.max(...Object.values(crimeBonus));
-      
+
       // Estimate income based on tier level
       const tierIncome = this.getTierIncomeRate(tierLevel);
       affectedCrimeIncome = tierIncome;
     }
-    
+
     // Base value calculation: How much extra income over payback period
     let baseValue = 0;
     if (maxBonus > 0) {
@@ -172,22 +246,23 @@ export class GameplayEconomyCalculator {
       // Value = extra income over reasonable payback period
       baseValue = extraIncomePerHour * (paybackPeriod / 10); // Assume 10 crimes per hour
     }
-    
+
     // Required items cost significantly more (scarcity premium)
     if (requiredForCrimes.length > 0) {
       baseValue *= config.REQUIRED_ITEM_MULTIPLIER;
     }
-    
+
     // Type-specific adjustments
     const typeMultipliers = {
-      tool: 1.0,       // Tools are investments
-      consumable: 0.3,  // Consumables are one-time use
-      trade_good: 0.8,  // Trade goods are speculative  
+      tool: 1.0, // Tools are investments
+      consumable: 0.3, // Consumables are one-time use
+      trade_good: 0.8, // Trade goods are speculative
       collectible: 1.5, // Collectibles are luxury/status
     };
-    
-    baseValue *= typeMultipliers[itemType as keyof typeof typeMultipliers] || 1.0;
-    
+
+    baseValue *=
+      typeMultipliers[itemType as keyof typeof typeMultipliers] || 1.0;
+
     // Minimum values based on tier
     const minimumValues = {
       common: tierLevel * 100,
@@ -196,41 +271,47 @@ export class GameplayEconomyCalculator {
       epic: tierLevel * 2000,
       legendary: tierLevel * 5000,
     };
-    
+
     const minValue = minimumValues[rarity as keyof typeof minimumValues] || 100;
-    
+
     return Math.max(Math.round(baseValue), minValue);
   }
-  
+
   /**
    * Get expected income rate for tier level
    */
   private static getTierIncomeRate(tierLevel: number): number {
     const incomeRates = ECONOMY_CONFIG.CRIME_INCOME_RATES;
-    
+
     if (tierLevel <= 2) return incomeRates.BEGINNER_CRIMES.income_per_hour;
     if (tierLevel <= 4) return incomeRates.AMATEUR_CRIMES.income_per_hour;
     if (tierLevel <= 6) return incomeRates.PROFESSIONAL_CRIMES.income_per_hour;
     if (tierLevel <= 8) return incomeRates.EXPERT_CRIMES.income_per_hour;
     return incomeRates.MASTER_CRIMES.income_per_hour;
   }
-  
+
   /**
    * Calculate shop price (what players pay)
    */
   static calculateShopPrice(baseValue: number, itemType: string): number {
-    const markup = ECONOMY_CONFIG.ITEM_TYPE_ECONOMICS[itemType as keyof typeof ECONOMY_CONFIG.ITEM_TYPE_ECONOMICS]?.base_markup || 1.5;
+    const markup =
+      ECONOMY_CONFIG.ITEM_TYPE_ECONOMICS[
+        itemType as keyof typeof ECONOMY_CONFIG.ITEM_TYPE_ECONOMICS
+      ]?.base_markup || 1.5;
     return Math.round(baseValue * markup);
   }
-  
+
   /**
    * Calculate sale price (what players receive)
    */
-  static calculateSalePrice(baseValue: number, condition: number = 1.0): number {
+  static calculateSalePrice(
+    baseValue: number,
+    condition: number = 1.0
+  ): number {
     // Players lose money on resale (realistic market)
     return Math.round(baseValue * 0.6 * condition);
   }
-  
+
   /**
    * Calculate success rate impact on earnings
    */
@@ -240,10 +321,11 @@ export class GameplayEconomyCalculator {
     bonusSuccessRate: number
   ): number {
     const oldExpectedIncome = baseCrimeIncome * baseSuccessRate;
-    const newExpectedIncome = baseCrimeIncome * Math.min(0.95, baseSuccessRate + bonusSuccessRate);
+    const newExpectedIncome =
+      baseCrimeIncome * Math.min(0.95, baseSuccessRate + bonusSuccessRate);
     return newExpectedIncome - oldExpectedIncome;
   }
-  
+
   /**
    * Validate if an item price makes sense for player progression
    */
@@ -256,37 +338,48 @@ export class GameplayEconomyCalculator {
     recommendation: string;
     tier: string;
   } {
-    const expectedWealth = ECONOMY_CONFIG.PLAYER_PROGRESSION.EXPECTED_WEALTH_BY_LEVEL;
-    const playerWealth = expectedWealth[playerLevel as keyof typeof expectedWealth] || expectedWealth[30];
-    
+    const expectedWealth =
+      ECONOMY_CONFIG.PLAYER_PROGRESSION.EXPECTED_WEALTH_BY_LEVEL;
+    const playerWealth =
+      expectedWealth[playerLevel as keyof typeof expectedWealth] ||
+      expectedWealth[30];
+
     // Item should cost 5-20% of player's expected wealth for their level
     const affordabilityRatios = {
-      common: 0.05,    // 5% of wealth
-      uncommon: 0.10,  // 10% of wealth
-      rare: 0.15,      // 15% of wealth  
-      epic: 0.25,      // 25% of wealth
-      legendary: 0.40, // 40% of wealth
+      common: 0.05, // 5% of wealth
+      uncommon: 0.1, // 10% of wealth
+      rare: 0.15, // 15% of wealth
+      epic: 0.25, // 25% of wealth
+      legendary: 0.4, // 40% of wealth
     };
-    
-    const expectedRatio = affordabilityRatios[rarity as keyof typeof affordabilityRatios] || 0.15;
+
+    const expectedRatio =
+      affordabilityRatios[rarity as keyof typeof affordabilityRatios] || 0.15;
     const actualRatio = itemValue / playerWealth;
-    
+
     // Find appropriate tier
     let tier = "TIER_1";
-    for (const [tierName, tierData] of Object.entries(ECONOMY_CONFIG.PROGRESSION_GATES)) {
+    for (const [tierName, tierData] of Object.entries(
+      ECONOMY_CONFIG.PROGRESSION_GATES
+    )) {
       if (itemValue <= tierData.max_item_cost) {
         tier = tierName;
         break;
       }
     }
-    
+
     return {
       affordable: actualRatio <= expectedRatio * 1.5, // 50% tolerance
-      recommendation: actualRatio > expectedRatio * 1.5 
-        ? `Too expensive for level ${playerLevel}. Should cost ~$${Math.round(playerWealth * expectedRatio)}`
-        : actualRatio < expectedRatio * 0.5
-        ? `Too cheap for ${rarity} rarity. Could cost ~$${Math.round(playerWealth * expectedRatio)}`
-        : "Well-balanced for progression",
+      recommendation:
+        actualRatio > expectedRatio * 1.5
+          ? `Too expensive for level ${playerLevel}. Should cost ~$${Math.round(
+              playerWealth * expectedRatio
+            )}`
+          : actualRatio < expectedRatio * 0.5
+          ? `Too cheap for ${rarity} rarity. Could cost ~$${Math.round(
+              playerWealth * expectedRatio
+            )}`
+          : "Well-balanced for progression",
       tier: tier,
     };
   }
@@ -297,11 +390,11 @@ export const BALANCE_RULES = {
   // Economic health checks
   MAX_INFLATION_RATE: 0.05, // 5% per week
   MIN_DEFLATION_RATE: -0.03, // -3% per week
-  
+
   // Item balance rules
   MAX_CRIME_BONUS_SINGLE_ITEM: 0.25, // 25% max bonus from one item
   MAX_COMBINED_BONUSES: 0.6, // 60% max total bonuses
-  
+
   // Progression validation
   MIN_DIFFICULTY_REWARD_INCREASE: 1.5, // Each level should give 50% more rewards
   MAX_POWER_CREEP_PER_LEVEL: 0.1, // 10% power increase per player level
@@ -316,7 +409,7 @@ export const ECONOMY_EVENTS = {
     affected_types: ["trade_good", "collectible"],
   },
   CRIME_WAVE: {
-    frequency: "weekly", 
+    frequency: "weekly",
     success_rate_bonus: 0.1,
     heat_generation_multiplier: 1.5,
     duration_hours: 24,
@@ -328,3 +421,105 @@ export const ECONOMY_EVENTS = {
     duration_hours: 48,
   },
 };
+
+// === XP & LEVEL CALCULATION UTILITIES ===
+export class LevelCalculator {
+  /**
+   * Calculate required XP for a specific level
+   * Formula: XP_TO_LEVEL = ((LEVEL * SCALE) ^ 1.5) * XP_BASE
+   */
+  static getXPRequiredForLevel(level: number): number {
+    if (level <= 1) return 0;
+    return Math.floor(
+      Math.pow(level * XP_PROGRESSION.SCALE, 1.5) * XP_PROGRESSION.XP_BASE
+    );
+  }
+
+  /**
+   * Calculate total XP needed to reach a level (cumulative)
+   */
+  static getTotalXPForLevel(level: number): number {
+    let totalXP = 0;
+    for (let i = 1; i <= level; i++) {
+      totalXP += this.getXPRequiredForLevel(i);
+    }
+    return totalXP;
+  }
+
+  /**
+   * Calculate current level from total XP
+   */
+  static getLevelFromXP(totalXP: number): number {
+    for (let level = 1; level <= XP_PROGRESSION.MAX_LEVEL; level++) {
+      if (totalXP < this.getTotalXPForLevel(level)) {
+        return level - 1;
+      }
+    }
+    return XP_PROGRESSION.MAX_LEVEL;
+  }
+
+  /**
+   * Calculate XP progress within current level
+   */
+  static getXPProgressInLevel(totalXP: number): {
+    current: number;
+    required: number;
+    percentage: number;
+  } {
+    const currentLevel = this.getLevelFromXP(totalXP);
+    const xpForCurrentLevel = this.getTotalXPForLevel(currentLevel);
+    const xpForNextLevel = this.getTotalXPForLevel(currentLevel + 1);
+
+    const currentXPInLevel = totalXP - xpForCurrentLevel;
+    const requiredXPForLevel = xpForNextLevel - xpForCurrentLevel;
+    const percentage = (currentXPInLevel / requiredXPForLevel) * 100;
+
+    return {
+      current: currentXPInLevel,
+      required: requiredXPForLevel,
+      percentage: Math.min(percentage, 100),
+    };
+  }
+
+  /**
+   * Get economic value of XP based on player level
+   */
+  static getXPEconomicValue(playerLevel: number): number {
+    if (playerLevel <= 10) return XP_PROGRESSION.XP_ECONOMIC_VALUE.EARLY_GAME;
+    if (playerLevel <= 25) return XP_PROGRESSION.XP_ECONOMIC_VALUE.MID_GAME;
+    return XP_PROGRESSION.XP_ECONOMIC_VALUE.END_GAME;
+  }
+
+  /**
+   * Check if player can access content based on level
+   */
+  static canAccessContent(playerLevel: number, requiredLevel: number): boolean {
+    return playerLevel >= requiredLevel;
+  }
+
+  /**
+   * Get level milestone info (title, unlocks)
+   */
+  static getLevelMilestone(level: number) {
+    return (
+      XP_PROGRESSION.LEVEL_GATES[
+        level as keyof typeof XP_PROGRESSION.LEVEL_GATES
+      ] || null
+    );
+  }
+
+  /**
+   * Calculate hours needed to reach target level from current XP
+   */
+  static getHoursToLevel(
+    currentXP: number,
+    targetLevel: number,
+    avgXPPerHour: number
+  ): number {
+    const currentLevel = this.getLevelFromXP(currentXP);
+    if (currentLevel >= targetLevel) return 0;
+
+    const requiredXP = this.getTotalXPForLevel(targetLevel) - currentXP;
+    return requiredXP / avgXPPerHour;
+  }
+}

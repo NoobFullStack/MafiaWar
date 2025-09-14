@@ -14,10 +14,12 @@ export const gameItems: GameItem[] = [
     id: "lockpick_basic",
     name: "Basic Lockpick",
     type: "tool",
-    value: 150,
-    description: "A simple lockpick for basic locks. +5% success rate on theft crimes.",
+    value: 450,
+    description:
+      "A simple lockpick for basic locks. +5% success rate on theft crimes.",
     rarity: "common",
     metadata: {
+      levelRequirement: 1,
       crimeBonus: {
         pickpocket: 0.05,
         burglary: 0.05,
@@ -28,14 +30,16 @@ export const gameItems: GameItem[] = [
     id: "lockpick_advanced",
     name: "Advanced Lockpick Set",
     type: "tool",
-    value: 750,
-    description: "Professional lockpick set. +15% success rate on theft crimes.",
+    value: 2250,
+    description:
+      "Professional lockpick set. +15% success rate on theft crimes.",
     rarity: "uncommon",
     metadata: {
+      levelRequirement: 5, // Unlocked at Amateur Thief
       crimeBonus: {
         pickpocket: 0.15,
         burglary: 0.15,
-        safe_crack: 0.10,
+        safe_crack: 0.1,
       },
     },
   },
@@ -43,12 +47,13 @@ export const gameItems: GameItem[] = [
     id: "crowbar",
     name: "Crowbar",
     type: "tool",
-    value: 75,
+    value: 675,
     description: "Heavy-duty crowbar. +10% success rate on robbery crimes.",
     rarity: "common",
     metadata: {
+      levelRequirement: 3, // Unlocked at Petty Criminal
       crimeBonus: {
-        robbery: 0.10,
+        robbery: 0.1,
         burglary: 0.08,
       },
     },
@@ -57,12 +62,13 @@ export const gameItems: GameItem[] = [
     id: "pistol_cheap",
     name: "Cheap Pistol",
     type: "tool",
-    value: 150,
+    value: 14,
     description: "Unreliable handgun. +10% success rate, +5% jail risk.",
     rarity: "uncommon",
     metadata: {
+      levelRequirement: 8, // Unlocked at Professional Criminal
       crimeBonus: {
-        robbery: 0.10,
+        robbery: 0.1,
         hit_job: 0.15,
       },
       risks: {
@@ -78,9 +84,10 @@ export const gameItems: GameItem[] = [
     description: "Modified laptop for cybercrime. Required for hacking crimes.",
     rarity: "rare",
     metadata: {
+      levelRequirement: 12, // Unlocked at Crime Specialist
       crimeBonus: {
         hacking: 0.25,
-        fraud: 0.20,
+        fraud: 0.2,
       },
       requirements: {
         intelligence: 25,
@@ -93,7 +100,7 @@ export const gameItems: GameItem[] = [
     id: "energy_drink",
     name: "Energy Drink",
     type: "consumable",
-    value: 10,
+    value: 1,
     description: "Restores 20 energy points. +3% crime success for 30 minutes.",
     rarity: "common",
     metadata: {
@@ -110,7 +117,7 @@ export const gameItems: GameItem[] = [
     id: "medkit_basic",
     name: "Basic Medkit",
     type: "consumable",
-    value: 25,
+    value: 2,
     description: "Restores 50 health points. +5% crime success for 15 minutes.",
     rarity: "common",
     metadata: {
@@ -127,8 +134,9 @@ export const gameItems: GameItem[] = [
     id: "steroid_shot",
     name: "Steroid Shot",
     type: "consumable",
-    value: 100,
-    description: "Temporarily increases strength by 5 for 1 hour. +10% crime success for 60 minutes.",
+    value: 30,
+    description:
+      "Temporarily increases strength by 5 for 1 hour. +10% crime success for 60 minutes.",
     rarity: "uncommon",
     metadata: {
       effects: {
@@ -136,7 +144,7 @@ export const gameItems: GameItem[] = [
         duration_hours: 1,
       },
       crimeBonus: {
-        all_crimes: 0.10,
+        all_crimes: 0.1,
         duration_minutes: 60,
       },
     },
@@ -147,11 +155,12 @@ export const gameItems: GameItem[] = [
     id: "cigarettes",
     name: "Cigarette Cartons",
     type: "trade_good",
-    value: 200,
+    value: 50,
     description: "Contraband cigarettes for smuggling operations.",
     rarity: "common",
     metadata: {
-      smuggling_value: 350,
+      levelRequirement: 3, // Unlocked at Petty Criminal
+      smuggling_value: 175,
       bulk: 2,
     },
   },
@@ -159,11 +168,12 @@ export const gameItems: GameItem[] = [
     id: "electronics",
     name: "Stolen Electronics",
     type: "trade_good",
-    value: 800,
+    value: 200,
     description: "High-value electronics for fencing operations.",
     rarity: "uncommon",
     metadata: {
-      fence_value: 1200,
+      levelRequirement: 8, // Unlocked at Professional Criminal
+      fence_value: 600,
       bulk: 5,
     },
   },
@@ -177,6 +187,7 @@ export const gameItems: GameItem[] = [
     description: "Luxury timepiece stolen from a wealthy target.",
     rarity: "rare",
     metadata: {
+      levelRequirement: 15, // Unlocked at Criminal Mastermind
       prestige_value: 10,
     },
   },
@@ -188,6 +199,7 @@ export const gameItems: GameItem[] = [
     description: "Ceremonial ring proving membership in an old crime family.",
     rarity: "legendary",
     metadata: {
+      levelRequirement: 25, // Unlocked at Mafia Lieutenant
       prestige_value: 100,
       reputation_bonus: 25,
     },
