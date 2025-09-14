@@ -25,7 +25,6 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const moneyService = MoneyService.getInstance();
     const character = user.character!; // Safe because getUserForAuth checks for character existence
@@ -121,7 +120,6 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     }
 
     // IMMEDIATELY defer the response to avoid 3-second timeout
-    await interaction.deferReply({ flags: 64 });
 
     const coinType = interaction.options.getString("coin", true);
     const cashAmount = interaction.options.getInteger("amount", true);
@@ -492,7 +490,6 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const coinType = interaction.options.getString("coin", true);
     const coinAmount = interaction.options.getNumber("amount", true);
@@ -783,7 +780,6 @@ async function handlePortfolio(
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const moneyService = MoneyService.getInstance();
     const balance = await moneyService.getUserBalance(userId);
