@@ -32,7 +32,7 @@ class MafiaWarBot {
   }
 
   private setupEventHandlers(): void {
-    this.client.once("ready", async () => {
+    this.client.once("clientReady", async () => {
       logger.info(`🤖 Logged in as ${this.client.user?.tag}!`);
 
       try {
