@@ -80,6 +80,11 @@ yarn db:migrate || {
     print_warning "Database migration failed or no new migrations"
 }
 
+print_status "Force registering Discord commands..."
+yarn commands:register || {
+    print_warning "Command registration failed - commands may not update immediately"
+}
+
 # Create logs directory if it doesn't exist
 if [ ! -d "logs" ]; then
     print_status "Creating logs directory..."
