@@ -357,6 +357,9 @@ export class MoneyService {
    * Get current price of a cryptocurrency
    */
   async getCoinPrice(coinType: string): Promise<number> {
+    // Always use "crypto" as the standard key for database operations
+    const standardCoinType = "crypto";
+
     // Check cache first
     const cached = this.cryptoPrices.get(coinType);
     if (cached && Date.now() - cached.lastUpdate.getTime() < 300000) {
@@ -365,27 +368,34 @@ export class MoneyService {
     }
 
     try {
-      // Try to get from database
+      // Try to get from database - always use "crypto" as the standard key
       const db = DatabaseManager.getClient();
       const dbPrice = await db.cryptoPrice.findUnique({
-        where: { coinType },
+        where: { coinType: standardCoinType },
       });
 
       if (dbPrice && Date.now() - dbPrice.updatedAt.getTime() < 3600000) {
-        // 1 hour cache
-        this.cryptoPrices.set(coinType, {
+        // 1 hour cache - set cache for both standard key and requested key
+        const cacheData = {
           price: dbPrice.price,
           change24h: dbPrice.change24h,
           lastUpdate: dbPrice.updatedAt,
-        });
+        };
+        this.cryptoPrices.set(standardCoinType, cacheData);
+        this.cryptoPrices.set(coinType, cacheData);
         return dbPrice.price;
       }
 
       // Generate new price (in real game, this would fetch from API)
       const coin = getCryptoCoin();
-      if (coinType !== coin.id) {
+      // Accept both coin ID and symbol for backward compatibility
+      if (
+        coinType !== coin.id &&
+        coinType !== coin.symbol &&
+        coinType !== "crypto"
+      ) {
         throw new Error(
-          `Unknown coin type: ${coinType}. Only ${coin.id} is supported.`
+          `Unknown coin type: ${coinType}. Only ${coin.symbol} (${coin.name}) is supported.`
         );
       }
 
@@ -395,9 +405,11 @@ export class MoneyService {
       const change = (Math.random() - 0.5) * 2 * volatility; // -volatility to +volatility
       const newPrice = Math.max(lastPrice * (1 + change), 0.01); // Minimum price of $0.01
 
+      // Always use "crypto" as the standard key for database storage
+
       // Update database
       await db.cryptoPrice.upsert({
-        where: { coinType },
+        where: { coinType: standardCoinType },
         update: {
           price: newPrice,
           change24h: change * 100, // Convert to percentage
@@ -405,7 +417,7 @@ export class MoneyService {
           updatedAt: new Date(),
         },
         create: {
-          coinType,
+          coinType: standardCoinType,
           price: newPrice,
           change24h: change * 100,
           change7d: Math.random() * 20 - 10,
@@ -414,12 +426,14 @@ export class MoneyService {
         },
       });
 
-      // Update cache
-      this.cryptoPrices.set(coinType, {
+      // Update cache with both standard key and requested key for compatibility
+      const cacheData = {
         price: newPrice,
         change24h: change * 100,
         lastUpdate: new Date(),
-      });
+      };
+      this.cryptoPrices.set(standardCoinType, cacheData);
+      this.cryptoPrices.set(coinType, cacheData);
 
       return newPrice;
     } catch (error) {
