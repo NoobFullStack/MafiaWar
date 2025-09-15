@@ -130,16 +130,5 @@ export const DeletionContent = {
 
       getFooter: (botName: string) => `Thank you for playing ${botName}!`,
     },
-
-    cancelled: {
-      title: "✅ Account Deletion Cancelled",
-      description: "Your account is safe! No data has been deleted.",
-      field: {
-        name: "💡 Your Account",
-        value:
-          "• All your data remains intact\n• Continue playing as normal\n• Use `/profile` to view your character",
-      },
-      footer: "Welcome back to the criminal underworld!",
-    },
   },
 };
