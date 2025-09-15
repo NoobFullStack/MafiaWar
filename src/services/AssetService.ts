@@ -504,6 +504,8 @@ export class AssetService {
       let totalCryptoDollars: { [coinType: string]: number } = {}; // Store dollar amounts first
       let totalIncome = 0;
       let assetsWithIncome = 0;
+      let assetsWithoutIncome: string[] = [];
+      let nextIncomeInfo: { name: string; timeRemaining: string }[] = [];
 
       // Calculate and collect income from each asset
       for (const asset of assets) {
@@ -534,14 +536,46 @@ export class AssetService {
             where: { id: asset.id },
             data: { lastIncomeTime: new Date() },
           });
+        } else {
+          // Calculate when this asset will next have income available
+          const hoursElapsed = Math.max(
+            0,
+            (Date.now() - new Date(asset.lastIncomeTime).getTime()) / (1000 * 60 * 60)
+          );
+          
+          const minutesUntilNextIncome = Math.max(0, (0.25 - hoursElapsed) * 60); // 15 minutes minimum
+          
+          if (minutesUntilNextIncome > 0) {
+            const timeRemaining = minutesUntilNextIncome < 1 
+              ? "< 1 minute" 
+              : `${Math.ceil(minutesUntilNextIncome)} minutes`;
+            
+            assetsWithoutIncome.push(asset.name);
+            nextIncomeInfo.push({
+              name: asset.name,
+              timeRemaining
+            });
+          }
         }
       }
 
+      // Provide feedback even if no income was collected
       if (totalIncome === 0) {
+        let message = "No income available to collect right now.";
+        
+        if (nextIncomeInfo.length > 0) {
+          message += "\n\n⏰ **Next Income Available:**\n";
+          nextIncomeInfo.forEach(info => {
+            message += `• ${info.name}: ${info.timeRemaining}\n`;
+          });
+          message += "\n💡 Assets generate income every 15 minutes - check back soon!";
+        } else {
+          message += " Assets generate income over time.";
+        }
+
         return {
           success: false,
-          message:
-            "No income available to collect. Assets generate income over time.",
+          message,
           error: "No pending income",
         };
       }
@@ -670,11 +704,23 @@ export class AssetService {
         },
       });
 
+      // Create success message with detailed feedback
+      let successMessage = `💰 Collected ${BotBranding.formatCurrency(
+        totalIncome
+      )} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? "s" : ""}!`;
+
+      // Add information about assets that couldn't be collected
+      if (assetsWithoutIncome.length > 0) {
+        successMessage += `\n\n⏰ **Assets Still Generating Income:**\n`;
+        nextIncomeInfo.forEach(info => {
+          successMessage += `• ${info.name}: Ready in ${info.timeRemaining}\n`;
+        });
+        successMessage += `\n💡 Come back soon to collect from these assets!`;
+      }
+
       return {
         success: true,
-        message: `💰 Collected ${BotBranding.formatCurrency(
-          totalIncome
-        )} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? "s" : ""}!`,
+        message: successMessage,
         totalIncome,
         incomeBreakdown: {
           cash: totalCash,
