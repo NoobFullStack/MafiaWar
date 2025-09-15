@@ -59,9 +59,9 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 40, // 40% cash for quick testing
+      cash: 70, // 70% cash for quick testing
       bank: 30, // 30% bank for testing bank mechanics
-      crypto: 30, // 30% crypto for testing crypto mechanics
+      crypto: 0, // No crypto for basic test business
       cryptoType: "crypto",
     },
     characteristics: {

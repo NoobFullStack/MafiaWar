@@ -21,25 +21,25 @@ class CrimeAutocompleteCache {
     const now = Date.now();
 
     // Return cached level if it's still fresh
-    if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+    if (cached && now - cached.timestamp < this.CACHE_TTL) {
       return cached.level;
     }
 
     // Try to fetch fresh data, but with a timeout
     try {
-      const user = await Promise.race([
+      const user = (await Promise.race([
         DatabaseManager.getUserForAuth(userId),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('DB timeout')), 1500)
-        )
-      ]) as any;
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("DB timeout")), 1500)
+        ),
+      ])) as any;
 
       const level = user?.character?.level || this.DEFAULT_LEVEL;
-      
+
       // Cache the result
       this.userLevels.set(userId, {
         level,
-        timestamp: now
+        timestamp: now,
       });
 
       return level;
@@ -57,7 +57,7 @@ class CrimeAutocompleteCache {
   static cleanup(): void {
     const now = Date.now();
     for (const [userId, cache] of this.userLevels.entries()) {
-      if ((now - cache.timestamp) > this.CACHE_TTL * 2) {
+      if (now - cache.timestamp > this.CACHE_TTL * 2) {
         this.userLevels.delete(userId);
       }
     }
@@ -145,10 +145,10 @@ const crimeCommand: Command = {
       }
 
       // Add compact crime info in description instead of separate fields
-      const crimeInfo = `**${crime.name}** • Difficulty: ${
-        crime.difficulty
-      }/10 • Cooldown: ${Math.floor(crime.cooldown / 60)}min`;
-      privateEmbed.setDescription(`${result.message}\n\n*${crimeInfo}*`);
+      // const crimeInfo = `**${crime.name}** • Difficulty: ${
+      //   crime.difficulty
+      // }/10 • Cooldown: ${Math.floor(crime.cooldown / 60)}min`;
+      // privateEmbed.setDescription(`${result.message}\n\n*${crimeInfo}*`);
 
       // Send private message first (with detailed stats)
       await ResponseUtil.smartReply(interaction, {
@@ -160,8 +160,10 @@ const crimeCommand: Command = {
       // (not for requirement failures or other pre-execution errors)
       try {
         const username = userTag.split("#")[0];
-        console.log(`DEBUG: Calling getCrimeAnnouncement with: crimeType=${crimeType}, success=${result.success}, username="${username}"`);
-        
+        console.log(
+          `DEBUG: Calling getCrimeAnnouncement with: crimeType=${crimeType}, success=${result.success}, username="${username}"`
+        );
+
         const publicMessage = getCrimeAnnouncement(
           crimeType,
           result.success,
@@ -180,7 +182,10 @@ const crimeCommand: Command = {
         }
       } catch (announcementError) {
         // Log but don't fail the command if public announcement fails
-        logger.warn(`Failed to send public crime announcement for ${crimeType}:`, announcementError);
+        logger.warn(
+          `Failed to send public crime announcement for ${crimeType}:`,
+          announcementError
+        );
       }
 
       // Log the crime attempt (after successful reply)
@@ -221,7 +226,10 @@ const crimeCommand: Command = {
           errorMessage =
             "You need to create a character first. Use `/create-account` to get started.";
           errorTitle = "No Character Found";
-        } else if (error.message.includes("jail") || error.message.includes("Jail")) {
+        } else if (
+          error.message.includes("jail") ||
+          error.message.includes("Jail")
+        ) {
           errorMessage = error.message;
           errorTitle = "Cannot Commit Crime";
         } else {
@@ -255,10 +263,11 @@ const crimeCommand: Command = {
         );
         // Last resort - try a basic follow-up with minimal content
         try {
-          const safeMessage = errorMessage.length > 2000 
-            ? errorMessage.substring(0, 1997) + "..." 
-            : errorMessage;
-          
+          const safeMessage =
+            errorMessage.length > 2000
+              ? errorMessage.substring(0, 1997) + "..."
+              : errorMessage;
+
           await interaction.followUp({
             content: `❌ ${errorTitle}: ${safeMessage}`,
             ephemeral: true,
@@ -270,7 +279,9 @@ const crimeCommand: Command = {
           );
           // Absolute last resort - log the issue
           logger.error(
-            `User ${userId} attempted crime ${interaction.options?.getString("type")} but received no response due to interaction errors`
+            `User ${userId} attempted crime ${interaction.options?.getString(
+              "type"
+            )} but received no response due to interaction errors`
           );
         }
       }
@@ -279,7 +290,9 @@ const crimeCommand: Command = {
     }
   },
 
-  async autocomplete(interaction: import("discord.js").AutocompleteInteraction) {
+  async autocomplete(
+    interaction: import("discord.js").AutocompleteInteraction
+  ) {
     try {
       const userId = interaction.user.id;
       const focusedValue = interaction.options.getFocused().toLowerCase();
@@ -292,35 +305,42 @@ const crimeCommand: Command = {
 
       // Filter and format crimes
       const filtered = availableCrimes
-        .filter(crime => 
-          crime.name.toLowerCase().includes(focusedValue) ||
-          crime.id.toLowerCase().includes(focusedValue)
+        .filter(
+          (crime) =>
+            crime.name.toLowerCase().includes(focusedValue) ||
+            crime.id.toLowerCase().includes(focusedValue)
         )
         .slice(0, 25) // Discord limits to 25 choices
-        .map(crime => ({
+        .map((crime) => ({
           name: crime.name,
-          value: crime.id
+          value: crime.id,
         }));
 
       // Always provide at least some options
       if (filtered.length === 0) {
         await interaction.respond([
           { name: "Pickpocketing", value: "pickpocketing" },
-          { name: "Shoplifting", value: "shoplifting" }
+          { name: "Shoplifting", value: "shoplifting" },
         ]);
       } else {
         await interaction.respond(filtered);
       }
     } catch (error) {
-      logger.error(`Autocomplete error for user ${interaction.user.id}:`, error);
+      logger.error(
+        `Autocomplete error for user ${interaction.user.id}:`,
+        error
+      );
       // Always provide fallback options
       try {
         await interaction.respond([
           { name: "Pickpocketing", value: "pickpocketing" },
-          { name: "Shoplifting", value: "shoplifting" }
+          { name: "Shoplifting", value: "shoplifting" },
         ]);
       } catch (respondError) {
-        logger.error(`Failed to send fallback autocomplete response:`, respondError);
+        logger.error(
+          `Failed to send fallback autocomplete response:`,
+          respondError
+        );
       }
     }
   },

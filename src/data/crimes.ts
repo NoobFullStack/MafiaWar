@@ -51,8 +51,8 @@ export const crimeData: CrimeData[] = [
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
     baseSuccessRate: 0.0,
-    jailTimeMin: 1,
-    jailTimeMax: 2,
+    jailTimeMin: 5,
+    jailTimeMax: 15,
     category: "petty",
     requirements: {
       level: 1,
@@ -288,7 +288,8 @@ export const crimeData: CrimeData[] = [
   {
     id: "extortion",
     name: "Extortion",
-    description: "Extract protection money from businesses through intimidation.",
+    description:
+      "Extract protection money from businesses through intimidation.",
     difficulty: 8,
     cooldown: 6000, // 100 minutes
     rewardMin: 4500,
