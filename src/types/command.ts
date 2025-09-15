@@ -1,4 +1,5 @@
 import {
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
@@ -24,6 +25,7 @@ export interface Command {
     | SlashCommandSubcommandsOnlyBuilder
     | SlashCommandOptionsOnlyBuilder;
   execute: (context: CommandContext) => Promise<CommandResult>;
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
   cooldown?: number; // in seconds
   category?: string;
   description?: string;

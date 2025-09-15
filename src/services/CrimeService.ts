@@ -79,7 +79,7 @@ export class CrimeService {
     if (crime.requirements?.level && player.level < crime.requirements.level) {
       return {
         canCommit: false,
-        reason: `Requires Level ${crime.requirements.level} (current: ${player.level})`,
+        reason: `🔒 **${crime.name}** requires Level ${crime.requirements.level}\n⏫ Your current level: ${player.level}\n💡 Keep committing crimes to gain experience!`,
         requirements: [`Level ${crime.requirements.level}`],
       };
     }
@@ -91,9 +91,7 @@ export class CrimeService {
     ) {
       return {
         canCommit: false,
-        reason: `Requires ${
-          crime.requirements.reputation
-        } reputation (current: ${player.reputation || 0})`,
+        reason: `🔒 **${crime.name}** requires ${crime.requirements.reputation} reputation\n⏫ Your current reputation: ${player.reputation || 0}\n💡 Complete successful crimes to build reputation!`,
         requirements: [`${crime.requirements.reputation} reputation`],
       };
     }
@@ -103,19 +101,19 @@ export class CrimeService {
       crime.requirements?.strength &&
       player.stats.strength < crime.requirements.strength
     ) {
-      requirements.push(`${crime.requirements.strength} Strength`);
+      requirements.push(`Strength ${crime.requirements.strength} (you have ${player.stats.strength})`);
     }
     if (
       crime.requirements?.stealth &&
       player.stats.stealth < crime.requirements.stealth
     ) {
-      requirements.push(`${crime.requirements.stealth} Stealth`);
+      requirements.push(`Stealth ${crime.requirements.stealth} (you have ${player.stats.stealth})`);
     }
     if (
       crime.requirements?.intelligence &&
       player.stats.intelligence < crime.requirements.intelligence
     ) {
-      requirements.push(`${crime.requirements.intelligence} Intelligence`);
+      requirements.push(`Intelligence ${crime.requirements.intelligence} (you have ${player.stats.intelligence})`);
     }
 
     // Check required items
@@ -127,7 +125,7 @@ export class CrimeService {
     if (requirements.length > 0) {
       return {
         canCommit: false,
-        reason: `Missing requirements: ${requirements.join(", ")}`,
+        reason: `🔒 **${crime.name}** requires:\n${requirements.map(req => `• ${req}`).join('\n')}\n\n💡 Train your stats or level up to unlock this crime!`,
         requirements,
       };
     }
@@ -176,6 +174,15 @@ export class CrimeService {
     crimeId: string,
     userId: string
   ): Promise<CrimeResult> {
+    // Input validation
+    if (!crimeId || typeof crimeId !== 'string') {
+      throw new Error("Invalid crime ID provided");
+    }
+    
+    if (!userId || typeof userId !== 'string') {
+      throw new Error("Invalid user ID provided");
+    }
+
     const crime = this.getCrimeById(crimeId);
     if (!crime) {
       throw new Error(`Crime with ID ${crimeId} not found`);
@@ -183,44 +190,51 @@ export class CrimeService {
 
     // Get player data from database - use faster query
     const db = DatabaseManager.getClient();
-    let user = await db.user.findUnique({
-      where: { discordId: userId },
-      include: {
-        character: {
-          select: {
-            id: true,
-            userId: true,
-            experience: true,
-            reputation: true,
-            cashOnHand: true,
-            stats: true,
+    let user;
+    
+    try {
+      user = await db.user.findUnique({
+        where: { discordId: userId },
+        include: {
+          character: {
+            select: {
+              id: true,
+              userId: true,
+              experience: true,
+              reputation: true,
+              cashOnHand: true,
+              stats: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (dbError) {
+      logger.error(`Database error when fetching user ${userId}:`, dbError);
+      throw new Error("Database connection failed. Please try again.");
+    }
 
     if (!user?.character) {
       throw new Error(
-        "User does not have a character - please create account first"
+        "You need to create a character first. Use `/create-account` to get started."
       );
     }
 
     const character = user.character;
     const currentLevel = LevelCalculator.getLevelFromXP(character.experience);
 
-    // Parse stats from JSON
+    // Parse stats from JSON with safety checks
     const stats = character.stats as any;
     const playerStats = {
-      strength: stats?.strength || 10,
-      stealth: stats?.stealth || 10,
-      intelligence: stats?.intelligence || 10,
+      strength: Number(stats?.strength) || 10,
+      stealth: Number(stats?.stealth) || 10,
+      intelligence: Number(stats?.intelligence) || 10,
     };
 
     const player = {
       level: currentLevel,
-      experience: character.experience,
-      reputation: character.reputation,
-      money: character.cashOnHand,
+      experience: character.experience || 0,
+      reputation: character.reputation || 0,
+      money: character.cashOnHand || 0,
       stats: playerStats,
     };
 
@@ -240,21 +254,26 @@ export class CrimeService {
 
     let result: CrimeResult;
 
-    if (isSuccess) {
-      result = await this.handleSuccessfulCrime(
-        crime,
-        character,
-        player.stats,
-        currentLevel
-      );
-    } else {
-      result = await this.handleFailedCrime(crime, character);
+    try {
+      if (isSuccess) {
+        result = await this.handleSuccessfulCrime(
+          crime,
+          character,
+          player.stats,
+          currentLevel
+        );
+      } else {
+        result = await this.handleFailedCrime(crime, character);
+      }
+
+      // Update database immediately with optimized single query
+      await this.updatePlayerAfterCrime(user, result, crime);
+
+      return result;
+    } catch (executionError) {
+      logger.error(`Crime execution error for user ${userId}, crime ${crimeId}:`, executionError);
+      throw new Error("Crime execution failed. Please try again.");
     }
-
-    // Update database immediately with optimized single query
-    await this.updatePlayerAfterCrime(user, result, crime);
-
-    return result;
   }
 
   /**
@@ -499,6 +518,8 @@ export class CrimeService {
         } catch (jailError) {
           logger.error(`Failed to send player ${user.discordId} to jail:`, jailError);
           // Don't throw here - crime already failed, we just couldn't jail them
+          // But we should notify the user somehow
+          logger.warn(`Player ${user.discordId} escaped jail due to system error after failed ${crime.name}`);
         }
       }
 
