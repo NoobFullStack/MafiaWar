@@ -1,9 +1,9 @@
-import { 
-  SlashCommandBuilder, 
-  EmbedBuilder, 
-  ActionRowBuilder, 
-  StringSelectMenuBuilder, 
-  ComponentType 
+import {
+  ActionRowBuilder,
+  ComponentType,
+  EmbedBuilder,
+  SlashCommandBuilder,
+  StringSelectMenuBuilder,
 } from "discord.js";
 import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
@@ -16,7 +16,7 @@ import { ResponseUtil, logger } from "../utils/ResponseUtil";
 function getCategoryIcon(category: string): string {
   const icons: Record<string, string> = {
     petty: "🎒",
-    theft: "🚗", 
+    theft: "🚗",
     robbery: "💰",
     violence: "⚔️",
     white_collar: "💼",
@@ -66,7 +66,7 @@ const helpCommand: Command = {
       }
 
       const embed = createHelpEmbed(category, character);
-      
+
       // Add interactive menu for different categories
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId("help_category")
@@ -75,52 +75,54 @@ const helpCommand: Command = {
           {
             label: "🎯 All Commands",
             description: "Complete command overview",
-            value: "all"
+            value: "all",
           },
           {
-            label: "🚀 Getting Started", 
+            label: "🚀 Getting Started",
             description: "New player guide",
-            value: "getting-started"
+            value: "getting-started",
           },
           {
             label: "👤 User Management",
             description: "Account creation & deletion",
-            value: "user"
+            value: "user",
           },
           {
             label: "💰 Economy & Money",
             description: "Banking, wallet, crypto trading",
-            value: "economy"
+            value: "economy",
           },
           {
-            label: "🔫 Crime & Activities", 
+            label: "🔫 Crime & Activities",
             description: "Committing crimes, jail system",
-            value: "crime"
+            value: "crime",
           },
           {
             label: "🏢 Business & Assets",
             description: "Buying businesses, managing assets",
-            value: "business"
+            value: "business",
           },
           {
             label: "📋 Available Crimes",
             description: "View all crimes & requirements",
-            value: "crimes"
+            value: "crimes",
           },
           {
             label: "⚙️ System & Info",
             description: "Bot status, ping, profile",
-            value: "system"
-          }
+            value: "system",
+          },
         ]);
 
-      const actionRow = new ActionRowBuilder<StringSelectMenuBuilder>()
-        .addComponents(selectMenu);
+      const actionRow =
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          selectMenu
+        );
 
       await ResponseUtil.smartReply(interaction, {
         embeds: [embed],
         components: [actionRow],
-        flags: 64
+        flags: 64,
       });
 
       // Handle menu interactions
@@ -134,14 +136,19 @@ const helpCommand: Command = {
         collector.on("collect", async (selectInteraction) => {
           try {
             const selectedCategory = selectInteraction.values[0];
-            
+
             if (selectedCategory === "crimes") {
-              await showCrimesHelp(selectInteraction, userId, userTag, character);
+              await showCrimesHelp(
+                selectInteraction,
+                userId,
+                userTag,
+                character
+              );
             } else {
               const newEmbed = createHelpEmbed(selectedCategory, character);
               await selectInteraction.update({
                 embeds: [newEmbed],
-                components: [actionRow]
+                components: [actionRow],
               });
             }
           } catch (error) {
@@ -187,37 +194,45 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
     case "getting-started":
       embed
         .setTitle("🚀 Getting Started Guide")
-        .setDescription(`Welcome to ${BotBranding.getName()}! Here's how to begin your criminal empire:`)
+        .setDescription(
+          `Welcome to ${BotBranding.getName()}! Here's how to begin your criminal empire:`
+        )
         .addFields(
           {
             name: "1️⃣ Create Your Character",
-            value: "`/user-create` - Join the underworld and create your criminal persona",
-            inline: false
+            value:
+              "`/user-create` - Join the underworld and create your criminal persona",
+            inline: false,
           },
           {
             name: "2️⃣ Check Your Status",
-            value: "`/profile` - View your character stats, money, and progress",
-            inline: false
+            value:
+              "`/profile` - View your character stats, money, and progress",
+            inline: false,
           },
           {
             name: "3️⃣ Start Earning Money",
-            value: "`/crime <type>` - Commit crimes to earn money and experience\n`/help crimes` - See all available crimes",
-            inline: false
+            value:
+              "`/crime <type>` - Commit crimes to earn money and experience\n`/help crimes` - See all available crimes",
+            inline: false,
           },
           {
             name: "4️⃣ Manage Your Money",
-            value: "`/wallet` - View all your money\n`/bank deposit <amount>` - Secure your earnings",
-            inline: false
+            value:
+              "`/wallet` - View all your money\n`/bank deposit <amount>` - Secure your earnings",
+            inline: false,
           },
           {
-            name: "5️⃣ Grow Your Empire", 
-            value: "`/assets` - Browse businesses to buy\n`/business buy <asset>` - Purchase income-generating assets",
-            inline: false
+            name: "5️⃣ Grow Your Empire",
+            value:
+              "`/assets` - Browse businesses to buy\n`/business buy <asset>` - Purchase income-generating assets",
+            inline: false,
           },
           {
             name: "💡 Pro Tips",
-            value: "• Bank your money to keep it safe from jail\n• Level up to unlock better crimes\n• Buy businesses for passive income\n• Use crypto trading for high-risk/high-reward",
-            inline: false
+            value:
+              "• Bank your money to keep it safe from jail\n• Level up to unlock better crimes\n• Buy businesses for passive income\n• Use crypto trading for high-risk/high-reward",
+            inline: false,
           }
         );
       break;
@@ -230,17 +245,17 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "`/user-create`",
             value: "🎭 Create your criminal character and join the game",
-            inline: false
+            inline: false,
           },
           {
-            name: "`/user-delete`", 
+            name: "`/user-delete`",
             value: "⚠️ Permanently delete your account and all data",
-            inline: false
+            inline: false,
           },
           {
             name: "`/profile`",
             value: "📊 View your character stats, level, and progress",
-            inline: false
+            inline: false,
           }
         );
       break;
@@ -253,17 +268,19 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "`/wallet`",
             value: "💼 View your complete money portfolio (cash, bank, crypto)",
-            inline: false
+            inline: false,
           },
           {
             name: "`/bank`",
-            value: "🏦 **deposit** `<amount>` - Deposit cash\n🏦 **withdraw** `<amount>` - Withdraw money\n🏦 **balance** - Check bank balance\n🏦 **upgrade** - Upgrade account tier",
-            inline: false
+            value:
+              "🏦 **deposit** `<amount>` - Deposit cash\n🏦 **withdraw** `<amount>` - Withdraw money\n🏦 **balance** - Check bank balance\n🏦 **upgrade** - Upgrade account tier",
+            inline: false,
           },
           {
             name: "`/crypto`",
-            value: "₿ **price** - View current market price\n₿ **buy** `<amount>` - Purchase cryptocurrency\n₿ **sell** `<amount>` - Sell cryptocurrency\n₿ **portfolio** - View crypto holdings",
-            inline: false
+            value:
+              "₿ **price** - View current market price\n₿ **buy** `<amount>` - Purchase cryptocurrency\n₿ **sell** `<amount>` - Sell cryptocurrency\n₿ **portfolio** - View crypto holdings",
+            inline: false,
           }
         );
       break;
@@ -276,17 +293,18 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "`/crime <type>`",
             value: "🎯 Commit a specific crime for money and XP",
-            inline: false
+            inline: false,
           },
           {
             name: "`/help crimes`",
             value: "📋 View all available crimes and requirements",
-            inline: false
+            inline: false,
           },
           {
             name: "`/jail`",
-            value: "⛓️ **status** - Check if you're in jail\n⛓️ **bribe** - Pay to get out of jail early",
-            inline: false
+            value:
+              "⛓️ **status** - Check if you're in jail\n⛓️ **bribe** - Pay to get out of jail early",
+            inline: false,
           }
         );
       break;
@@ -298,13 +316,15 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         .addFields(
           {
             name: "`/assets`",
-            value: "🏪 Browse available businesses and properties to purchase\nFilter by category or show only affordable options",
-            inline: false
+            value:
+              "🏪 Browse available businesses and properties to purchase\nFilter by category or show only affordable options",
+            inline: false,
           },
           {
             name: "`/business`",
-            value: "💼 **buy** `<asset>` - Purchase a business\n💼 **list** - View your owned businesses\n💼 **collect** - Collect profits from all businesses\n💼 **sell** `<asset>` - Sell a business",
-            inline: false
+            value:
+              "💼 **buy** `<asset>` - Purchase a business\n💼 **list** - View your owned businesses\n💼 **collect** - Collect profits from all businesses\n💼 **sell** `<asset>` - Sell a business",
+            inline: false,
           }
         );
       break;
@@ -317,12 +337,12 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "`/ping`",
             value: "🏓 Check if the bot is responsive",
-            inline: false
+            inline: false,
           },
           {
             name: "`/help`",
             value: "❓ View this help menu (you're here!)",
-            inline: false
+            inline: false,
           }
         );
       break;
@@ -330,22 +350,27 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
     default: // "all"
       embed
         .setTitle(`❓ ${BotBranding.getName()} - Command Help`)
-        .setDescription("Welcome to the ultimate Discord crime MMO! Use the menu below to explore different command categories.")
+        .setDescription(
+          "Welcome to the ultimate Discord crime MMO! Use the menu below to explore different command categories."
+        )
         .addFields(
           {
             name: "🚀 New Player?",
-            value: "Select **Getting Started** from the menu below for a step-by-step guide!",
-            inline: false
+            value:
+              "Select **Getting Started** from the menu below for a step-by-step guide!",
+            inline: false,
           },
           {
             name: "📋 Quick Reference",
-            value: "**Essential Commands:**\n`/user-create` - Create character\n`/profile` - View stats\n`/crime <type>` - Commit crimes\n`/wallet` - Check money\n`/assets` - Browse businesses",
-            inline: true
+            value:
+              "**Essential Commands:**\n`/user-create` - Create character\n`/profile` - View stats\n`/crime <type>` - Commit crimes\n`/wallet` - Check money\n`/assets` - Browse businesses",
+            inline: true,
           },
           {
             name: "💡 Game Features",
-            value: "• Multi-tier money system\n• Level-based progression\n• Business ownership\n• Cryptocurrency trading\n• Jail system with bribes",
-            inline: true
+            value:
+              "• Multi-tier money system\n• Level-based progression\n• Business ownership\n• Cryptocurrency trading\n• Jail system with bribes",
+            inline: true,
           }
         );
 
@@ -353,14 +378,14 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         embed.addFields({
           name: "🎭 Your Character",
           value: `**${character.name}** | Level ${character.level}\nUse \`/profile\` for detailed stats`,
-          inline: false
+          inline: false,
         });
       }
       break;
   }
 
   embed.setFooter({
-    text: `${BotBranding.getName()} • Use the menu below to explore different categories`
+    text: `${BotBranding.getName()} • Use the menu below to explore different categories`,
   });
 
   return embed;
@@ -368,7 +393,7 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
 
 async function showCrimesHelp(
   interaction: any,
-  userId: string, 
+  userId: string,
   userTag: string,
   character: any
 ): Promise<CommandResult> {
@@ -403,8 +428,7 @@ async function showCrimesHelp(
     // Add fields for each category
     for (const [category, crimes] of Object.entries(crimesByCategory)) {
       const categoryName =
-        category.charAt(0).toUpperCase() +
-        category.slice(1).replace("_", " ");
+        category.charAt(0).toUpperCase() + category.slice(1).replace("_", " ");
 
       const crimeList = crimes
         .map((crime) => {
