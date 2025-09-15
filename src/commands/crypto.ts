@@ -8,6 +8,7 @@ import {
 import { BotBranding } from "../config/bot";
 import { getCryptoCoin } from "../data/money";
 import MoneyService from "../services/MoneyService";
+import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";

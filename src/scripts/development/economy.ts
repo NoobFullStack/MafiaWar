@@ -14,10 +14,13 @@
 
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { ECONOMY_CONFIG, GameplayEconomyCalculator } from "../config/economy";
-import { crimeData } from "../data/crimes";
-import { gameItems } from "../data/items";
-import { GameplayEconomyAnalyzer } from "../utils/EconomyAnalyzer";
+import {
+  ECONOMY_CONFIG,
+  GameplayEconomyCalculator,
+} from "../../config/economy";
+import { crimeData } from "../../data/crimes";
+import { gameItems } from "../../data/items";
+import { GameplayEconomyAnalyzer } from "../../utils/EconomyAnalyzer";
 
 async function main() {
   const args = process.argv.slice(2);

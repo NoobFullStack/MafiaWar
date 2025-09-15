@@ -1,6 +1,7 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { assetTemplates } from "../data/assets";
 import { AssetService } from "../services/AssetService";
+import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil } from "../utils/ResponseUtil";
@@ -94,6 +95,14 @@ const businessCommand: Command = {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
         await interaction.editReply({ embeds: [noAccountEmbed] });
         return { success: false, error: "User not registered" };
+      }
+
+      // Check if player is in jail (blocks business activities)
+      const jailCheck = await JailService.checkJailBlocking(userId, "business");
+      if (jailCheck.blocked) {
+        const embed = ResponseUtil.error("🚔 Action Blocked", jailCheck.reason || "You're in jail!");
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+        return { success: false, error: "Player is in jail" };
       }
 
       const assetService = AssetService.getInstance();
