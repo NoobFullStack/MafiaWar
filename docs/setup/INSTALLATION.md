@@ -50,7 +50,7 @@ Your modular, maintainable Discord bot infrastructure is now ready! Here's what 
 - 📊 View bank tier benefits and fees
 - ⏱️ 10-second cooldown
 
-### **`/crime`** & **`/crimes`**
+### **`/crime`** & **`/help crimes`**
 
 - 🔫 Execute criminal activities for money and XP
 - 📋 View available crimes and requirements

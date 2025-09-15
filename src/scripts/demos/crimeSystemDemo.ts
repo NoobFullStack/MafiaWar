@@ -112,7 +112,7 @@ async function demonstrateCrimeSystem() {
     console.log("\n✅ Crime system demonstration complete!");
     console.log("\n🎮 Ready to use in Discord:");
     console.log("- /crime <type> - Commit a crime");
-    console.log("- /crimes - View available crimes");
+    console.log("- /help crimes - View available crimes");
   } catch (error) {
     console.error("❌ Error in crime system demo:", error);
   } finally {

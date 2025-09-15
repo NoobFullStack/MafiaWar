@@ -262,7 +262,7 @@ interface PrivacySettings {
 | `/crypto`              | Private         | **Stay Private**                    | -                       |
 | **Gaming**             |
 | `/crime`               | Private         | **Public success, Private failure** | HIGH ⭐                 |
-| `/crimes`              | Private         | **Could be Public**                 | LOW                     |
+| `/help`                | Private         | **Could be Public**                 | LOW                     |
 | **Business**           |
 | `/assets`              | Private         | **Could be Public**                 | LOW                     |
 | `/business buy`        | Private         | **Public for major purchases**      | MEDIUM                  |

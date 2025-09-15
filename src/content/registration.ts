@@ -116,7 +116,7 @@ export const RegistrationContent = {
       firstMoves: {
         name: "⚡ Your First Moves",
         value:
-          "• `/wallet` - Check your criminal finances\n• `/crimes` - Discover available operations\n• `/crime <type>` - Execute your first job\n• `/profile` - View your criminal profile",
+          "• `/wallet` - Check your criminal finances\n• `/help crimes` - Discover available operations\n• `/crime <type>` - Execute your first job\n• `/profile` - View your criminal profile",
       },
       pathToPower: {
         name: "🎯 Path to Power",
@@ -226,7 +226,7 @@ export const RegistrationContent = {
         commands: {
           name: "💡 Available Commands",
           value:
-            "• `/profile` - View your character\n• `/wallet` - Check your finances\n• `/crimes` - See available activities\n• `/delete-account` - Start over (permanent)",
+            "• `/profile` - View your character\n• `/wallet` - Check your finances\n• `/help crimes` - See available activities\n• `/user-delete` - Start over (permanent)",
         },
       },
     },

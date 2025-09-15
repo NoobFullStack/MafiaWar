@@ -204,7 +204,7 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/wallet`        | View your complete money portfolio     | 5s       |
 | `/bank <action>` | Manage bank deposits, withdrawals      | 10s      |
 | `/crime <type>`  | Commit crimes for money and XP         | 30s      |
-| `/crimes`        | View available crimes and requirements | 10s      |
+| `/help`          | View all commands and game information | 5s       |
 
 ### **🏢 Asset Management Commands** ✨ NEW
 
