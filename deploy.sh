@@ -38,10 +38,17 @@ if [ ! -f "package.json" ] || [ ! -f "src/bot.ts" ]; then
     exit 1
 fi
 
+# Check if yarn is installed
+if ! command -v yarn &> /dev/null; then
+    print_error "Yarn is not installed! Please install it first:"
+    echo "npm install -g yarn"
+    exit 1
+fi
+
 # Check if PM2 is installed
 if ! command -v pm2 &> /dev/null; then
     print_error "PM2 is not installed! Please install it first:"
-    echo "npm install -g pm2"
+    echo "yarn global add pm2"
     exit 1
 fi
 
@@ -51,25 +58,25 @@ git pull origin main || {
 }
 
 print_status "Installing/updating dependencies..."
-npm install || {
-    print_error "npm install failed!"
+yarn install || {
+    print_error "yarn install failed!"
     exit 1
 }
 
 print_status "Building TypeScript..."
-npm run build || {
+yarn build || {
     print_error "Build failed!"
     exit 1
 }
 
 print_status "Generating Prisma client..."
-npm run db:generate || {
+yarn db:generate || {
     print_error "Prisma generate failed!"
     exit 1
 }
 
 print_status "Running database migrations..."
-npm run db:migrate || {
+yarn db:migrate || {
     print_warning "Database migration failed or no new migrations"
 }
 
@@ -96,16 +103,17 @@ sleep 3
 print_status "Verifying deployment..."
 
 if pm2 describe mafia-war-bot > /dev/null 2>&1; then
-    STATUS=$(pm2 jlist | jq -r '.[] | select(.name=="mafia-war-bot") | .pm2_env.status')
+    # Get status without using jq (more reliable)
+    STATUS_OUTPUT=$(pm2 describe mafia-war-bot 2>/dev/null | grep -E "status.*online|status.*stopped|status.*errored" | head -1)
     
-    if [ "$STATUS" = "online" ]; then
+    if echo "$STATUS_OUTPUT" | grep -q "online"; then
         print_success "🎉 Deployment successful!"
         echo ""
         echo "Bot Status:"
-        pm2 status mafia-war-bot
+        pm2 status mafia-war-bot 2>/dev/null || print_warning "Could not get detailed status"
         echo ""
         echo "Recent logs:"
-        pm2 logs mafia-war-bot --lines 10 --nostream
+        pm2 logs mafia-war-bot --lines 10 --nostream 2>/dev/null || print_warning "Could not retrieve logs"
         echo ""
         print_success "✅ MafiaWar Discord Bot is running!"
         echo ""
@@ -116,10 +124,10 @@ if pm2 describe mafia-war-bot > /dev/null 2>&1; then
         echo "  Monitor:      pm2 monit"
     else
         print_error "❌ Bot is not running properly!"
-        echo "Current status: $STATUS"
+        echo "Status check output: $STATUS_OUTPUT"
         echo ""
         echo "Check logs for errors:"
-        pm2 logs mafia-war-bot --lines 20 --nostream
+        pm2 logs mafia-war-bot --lines 20 --nostream 2>/dev/null || print_warning "Could not retrieve error logs"
         exit 1
     fi
 else
