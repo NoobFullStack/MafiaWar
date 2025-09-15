@@ -40,7 +40,7 @@ export const assetTemplates: AssetTemplate[] = [
     name: "Lemonade Stand",
     description:
       "Simple test business for development - generates small income every few minutes.",
-    basePrice: 100, // Very affordable for testing
+    basePrice: 666, // Very affordable for testing
     baseIncomeRate: 60, // $1 per minute (60/hour) for quick testing
     baseSecurityLevel: 1,
     maxLevel: 3,

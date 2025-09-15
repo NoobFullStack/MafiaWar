@@ -46,13 +46,13 @@ export const crimeData: CrimeData[] = [
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 1, // 1 second - changed from 1 to avoid potential division issues
+    cooldown: 10, // 10 seconds - instant retry for beginners
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
-    baseSuccessRate: 0.0,
-    jailTimeMin: 5,
-    jailTimeMax: 15,
+    baseSuccessRate: 0.95, // Very high success rate for new players
+    jailTimeMin: 1,
+    jailTimeMax: 5,
     category: "petty",
     requirements: {
       level: 1,
@@ -66,16 +66,16 @@ export const crimeData: CrimeData[] = [
     name: "Shoplifting",
     description: "Steal merchandise from retail stores.",
     difficulty: 2,
-    cooldown: 600, // 10 minutes
+    cooldown: 30, // 30 seconds - much faster
     rewardMin: 150,
     rewardMax: 450,
     xpReward: 15, // Slightly more XP for difficulty 2
-    baseSuccessRate: 0.7,
-    jailTimeMin: 30,
-    jailTimeMax: 60,
+    baseSuccessRate: 0.9, // High success rate for beginners
+    jailTimeMin: 3,
+    jailTimeMax: 7,
     category: "petty",
     requirements: {
-      level: 1,
+      level: 1, // Available from level 1
     },
     statBonuses: {
       stealth: 1,
@@ -86,16 +86,16 @@ export const crimeData: CrimeData[] = [
     name: "Bike Theft",
     description: "Steal bicycles from bike racks and parking areas.",
     difficulty: 2,
-    cooldown: 900, // 15 minutes
+    cooldown: 60, // 1 minute - much faster
     rewardMin: 200,
     rewardMax: 500,
     xpReward: 15, // Same as shoplifting (difficulty 2)
-    baseSuccessRate: 0.8,
-    jailTimeMin: 20,
-    jailTimeMax: 45,
+    baseSuccessRate: 0.88, // High success rate
+    jailTimeMin: 5,
+    jailTimeMax: 10,
     category: "theft",
     requirements: {
-      level: 3, // Unlocked at Petty Criminal
+      level: 1, // Available from level 1
     },
     statBonuses: {
       stealth: 1,

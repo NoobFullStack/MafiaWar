@@ -47,7 +47,7 @@ export const businessPurchaseAnnouncements: BusinessPurchaseAnnouncement = {
   smallPurchaseMessages: [
     "💡 **SMALL BUSINESS STARTER** 💡\n{username} made a modest investment in a {businessName}. Every criminal empire starts somewhere...",
     "🌱 **GROWING INVESTMENT** 🌱\n{username} dipped their toes in the business world with a {businessName}. Small money still attracts big problems.",
-    "💼 **FIRST STEP** 💼\n{username} bought their first {businessName}. Even small businesses make you a target in this economy.",
+    "💼 **BIG STEP** 💼\n{username} bought a {businessName}. Even small businesses make you a target in this economy.",
     "📈 **STARTER BUSINESS** 📈\n{username} invested in a {businessName}. Smart to start small, but criminals don't discriminate by business size.",
   ],
 
