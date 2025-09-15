@@ -122,7 +122,7 @@ class MafiaWarBot {
     try {
       // Defer reply immediately for commands that might take time (except ping)
       if (interaction.commandName !== 'ping') {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: 64 }); // 64 = ephemeral flag
       }
 
       // Create command context

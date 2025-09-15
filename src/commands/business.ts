@@ -1,11 +1,11 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { BotBranding } from "../config/bot";
 import { assetTemplates } from "../data/assets";
 import { AssetService } from "../services/AssetService";
 import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil } from "../utils/ResponseUtil";
-import { BotBranding } from "../config/bot";
 
 const businessCommand: Command = {
   data: new SlashCommandBuilder()
@@ -22,7 +22,9 @@ const businessCommand: Command = {
             .setRequired(true)
             .addChoices(
               ...assetTemplates.map((asset) => ({
-                name: `${asset.name} - ${BotBranding.formatCurrency(asset.basePrice)}`,
+                name: `${asset.name} - ${BotBranding.formatCurrency(
+                  asset.basePrice
+                )}`,
                 value: asset.id,
               }))
             )
@@ -100,8 +102,14 @@ const businessCommand: Command = {
       // Check if player is in jail (blocks business activities)
       const jailCheck = await JailService.checkJailBlocking(userId, "business");
       if (jailCheck.blocked) {
-        const embed = ResponseUtil.error("🚔 Action Blocked", jailCheck.reason || "You're in jail!");
-        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+        const embed = ResponseUtil.error(
+          "🚔 Action Blocked",
+          jailCheck.reason || "You're in jail!"
+        );
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [embed],
+          flags: 64,
+        });
         return { success: false, error: "Player is in jail" };
       }
 
@@ -168,7 +176,9 @@ const businessCommand: Command = {
                   value:
                     `**Name:** ${result.asset.name}\n` +
                     `**Type:** ${result.asset.type}\n` +
-                    `**Income Rate:** ${BotBranding.formatCurrency(result.asset.incomeRate)}/hour\n` +
+                    `**Income Rate:** ${BotBranding.formatCurrency(
+                      result.asset.incomeRate
+                    )}/hour\n` +
                     `**Security Level:** ${result.asset.securityLevel}`,
                   inline: true,
                 },
@@ -217,7 +227,9 @@ const businessCommand: Command = {
                 "**Getting Started:**\n" +
                 "• Use `/assets` to browse available businesses\n" +
                 "• Use `/business buy <asset>` to purchase your first asset\n" +
-                `• Start with a Convenience Store for ${BotBranding.formatCurrency(15000)}`
+                `• Start with a Convenience Store for ${BotBranding.formatCurrency(
+                  15000
+                )}`
             );
             await interaction.editReply({ embeds: [embed] });
             return { success: true };
@@ -246,8 +258,12 @@ const businessCommand: Command = {
 
             let assetInfo = `**ID:** \`${asset.id.substring(0, 8)}\`\n`;
             assetInfo += `**Level:** ${asset.level}/${asset.template.maxLevel} • **Security:** ${asset.securityLevel}\n`;
-            assetInfo += `**Income Rate:** ${BotBranding.formatCurrency(asset.incomeRate)}/hour\n`;
-            assetInfo += `**Pending Income:** ${BotBranding.formatCurrency(asset.pendingIncome)}\n`;
+            assetInfo += `**Income Rate:** ${BotBranding.formatCurrency(
+              asset.incomeRate
+            )}/hour\n`;
+            assetInfo += `**Pending Income:** ${BotBranding.formatCurrency(
+              asset.pendingIncome
+            )}\n`;
             assetInfo += `**Last Collection:** ${hoursElapsed.toFixed(
               1
             )} hours ago\n`;
@@ -256,15 +272,21 @@ const businessCommand: Command = {
             if (asset.pendingIncomeBreakdown && asset.pendingIncome > 0) {
               let breakdown = "**Pending Breakdown:**\n";
               if (asset.pendingIncomeBreakdown.cash > 0) {
-                breakdown += `💵 ${BotBranding.formatCurrency(asset.pendingIncomeBreakdown.cash)}\n`;
+                breakdown += `💵 ${BotBranding.formatCurrency(
+                  asset.pendingIncomeBreakdown.cash
+                )}\n`;
               }
               if (asset.pendingIncomeBreakdown.bank > 0) {
-                breakdown += `🏦 ${BotBranding.formatCurrency(asset.pendingIncomeBreakdown.bank)}\n`;
+                breakdown += `🏦 ${BotBranding.formatCurrency(
+                  asset.pendingIncomeBreakdown.bank
+                )}\n`;
               }
               Object.entries(asset.pendingIncomeBreakdown.crypto).forEach(
                 ([coin, amount]) => {
                   if (amount > 0) {
-                    breakdown += `₿ ${BotBranding.formatCurrency(amount)} (${coin})\n`;
+                    breakdown += `₿ ${BotBranding.formatCurrency(
+                      amount
+                    )} (${coin})\n`;
                   }
                 }
               );
@@ -282,8 +304,12 @@ const businessCommand: Command = {
           embed.addFields({
             name: "📊 Portfolio Summary",
             value:
-              `**Total Hourly Income:** ${BotBranding.formatCurrency(totalHourlyIncome)}/hour\n` +
-              `**Total Pending Income:** ${BotBranding.formatCurrency(totalPendingIncome)}\n` +
+              `**Total Hourly Income:** ${BotBranding.formatCurrency(
+                totalHourlyIncome
+              )}/hour\n` +
+              `**Total Pending Income:** ${BotBranding.formatCurrency(
+                totalPendingIncome
+              )}\n` +
               `**Assets Owned:** ${assets.length}`,
             inline: false,
           });
@@ -299,7 +325,7 @@ const businessCommand: Command = {
         case "collect": {
           try {
             const result = await assetService.collectAllIncome(userId);
-            
+
             let embed;
             if (result.success) {
               embed = ResponseUtil.success(
@@ -309,16 +335,20 @@ const businessCommand: Command = {
 
               if (result.incomeBreakdown && result.totalIncome) {
                 let breakdown = "**Income Distribution:**\n";
-                if (result.incomeBreakdown.cash > 0) {
-                  breakdown += `💵 Cash: ${BotBranding.formatCurrency(result.incomeBreakdown.cash)}\n`;
-                }
-                if (result.incomeBreakdown.bank > 0) {
-                  breakdown += `🏦 Bank: ${BotBranding.formatCurrency(result.incomeBreakdown.bank)}\n`;
-                }
+
+                // Always show cash and bank, even if 0
+                breakdown += `💵 Cash: ${BotBranding.formatCurrency(
+                  result.incomeBreakdown.cash
+                )}\n`;
+                breakdown += `🏦 Bank: ${BotBranding.formatCurrency(
+                  result.incomeBreakdown.bank
+                )}\n`;
+
+                // Show crypto if any was earned
                 Object.entries(result.incomeBreakdown.crypto).forEach(
                   ([coin, amount]) => {
                     if (amount > 0) {
-                      breakdown += `₿ ${coin}: ${BotBranding.formatCurrency(amount)}\n`;
+                      breakdown += `₿ ${coin}: ${amount.toFixed(6)} coins\n`;
                     }
                   }
                 );
@@ -341,21 +371,30 @@ const businessCommand: Command = {
             return { success: result.success };
           } catch (error: any) {
             console.error("Error collecting income:", error);
-            
+
             let errorMessage = "An error occurred while collecting income.";
-            
+
             // Handle specific database timeout errors
-            if (error.message && error.message.includes("transaction timeout")) {
-              errorMessage = "Income collection is taking longer than expected. Please try again in a moment.";
-            } else if (error.message && error.message.includes("Transaction already closed")) {
-              errorMessage = "Transaction timeout - your assets may be generating too much income to process quickly. Please try again.";
+            if (
+              error.message &&
+              error.message.includes("transaction timeout")
+            ) {
+              errorMessage =
+                "Income collection is taking longer than expected. Please try again in a moment.";
+            } else if (
+              error.message &&
+              error.message.includes("Transaction already closed")
+            ) {
+              errorMessage =
+                "Transaction timeout - your assets may be generating too much income to process quickly. Please try again.";
             }
-            
+
             const embed = ResponseUtil.error("Collection Error", errorMessage);
             await interaction.editReply({ embeds: [embed] });
             return { success: false, error: "Collection failed" };
           }
-        }        case "upgrade": {
+        }
+        case "upgrade": {
           const assetId = interaction.options.getString("asset_id", true);
           const upgradeType = interaction.options.getString("type", true) as
             | "income"
@@ -380,7 +419,9 @@ const businessCommand: Command = {
             if (result.cost) {
               embed.addFields({
                 name: "💰 Upgrade Cost",
-                value: `${BotBranding.formatCurrency(result.cost)} (${paymentMethod})`,
+                value: `${BotBranding.formatCurrency(
+                  result.cost
+                )} (${paymentMethod})`,
                 inline: true,
               });
             }

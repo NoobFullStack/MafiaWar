@@ -38,7 +38,8 @@ export const assetTemplates: AssetTemplate[] = [
     id: "test_lemonade_stand",
     type: "shop",
     name: "Lemonade Stand",
-    description: "Simple test business for development - generates small income every few minutes.",
+    description:
+      "Simple test business for development - generates small income every few minutes.",
     basePrice: 100, // Very affordable for testing
     baseIncomeRate: 60, // $1 per minute (60/hour) for quick testing
     baseSecurityLevel: 1,
@@ -61,7 +62,7 @@ export const assetTemplates: AssetTemplate[] = [
       cash: 40, // 40% cash for quick testing
       bank: 30, // 30% bank for testing bank mechanics
       crypto: 30, // 30% crypto for testing crypto mechanics
-      cryptoType: "bitcoin",
+      cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 1.0,
@@ -180,7 +181,7 @@ export const assetTemplates: AssetTemplate[] = [
       cash: 80, // Cash business, "no questions asked"
       bank: 15, // Some legitimate banking
       crypto: 5, // Small anonymous transactions
-      cryptoType: "bitcoin", // Game-specific currency for sketchy deals
+      cryptoType: "crypto", // Game-specific currency for sketchy deals
     },
     characteristics: {
       seasonality: 0.9,
@@ -220,7 +221,7 @@ export const assetTemplates: AssetTemplate[] = [
       cash: 50, // Door fees, drinks, private room payments
       bank: 35, // Card payments, DJ fees, legitimate business
       crypto: 15, // VIP services, underground activities
-      cryptoType: "bitcoin", // Popular for club scenes
+      cryptoType: "crypto", // Popular for club scenes
     },
     characteristics: {
       seasonality: 1.2,
@@ -262,7 +263,7 @@ export const assetTemplates: AssetTemplate[] = [
       cash: 25, // Direct contraband sales
       bank: 25, // Laundered through shell companies
       crypto: 50, // Anonymous transactions for illegal goods
-      cryptoType: "bitcoin", // Underground currency for illegal activities
+      cryptoType: "crypto", // Underground currency for illegal activities
     },
     characteristics: {
       seasonality: 1.0,
@@ -303,7 +304,7 @@ export const assetTemplates: AssetTemplate[] = [
       cash: 20, // Small bets, tips
       bank: 30, // Laundered winnings through front businesses
       crypto: 50, // High-stakes anonymous gambling
-      cryptoType: "bitcoin", // Preferred for big money laundering
+      cryptoType: "crypto", // Preferred for big money laundering
     },
     characteristics: {
       seasonality: 1.1,

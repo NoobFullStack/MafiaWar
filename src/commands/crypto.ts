@@ -29,10 +29,7 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
       return { success: false, error: "User not registered" };
     }
 
-    // Defer for heavy operations (database queries, calculations)
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferReply();
-    }
+    // No need to defer - the bot already defers all interactions except ping
 
     const moneyService = MoneyService.getInstance();
     const character = user.character!; // Safe because getUserForAuth checks for character existence
@@ -74,7 +71,26 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto prices:", error);
-    throw error;
+    
+    // Try to provide a graceful fallback response
+    try {
+      const embed = ResponseUtil.error(
+        "Market Data Unavailable", 
+        "Unable to fetch current cryptocurrency prices. Please try again in a moment."
+      );
+      
+      embed.addFields({
+        name: "💡 What you can do:",
+        value: "• Try the command again in a few seconds\n• Check `/crypto portfolio` to see your holdings\n• Contact support if the problem persists",
+        inline: false,
+      });
+      
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
+    } catch (replyError) {
+      logger.error("Failed to send error response for crypto prices:", replyError);
+    }
+    
+    return { success: false, error: "Market data error" };
   }
 }
 
@@ -93,10 +109,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
       return { success: false, error: "User not registered" };
     }
 
-    // Defer for heavy operations (database queries, calculations)
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferReply();
-    }
+    // No need to defer - the bot already defers all interactions except ping
 
     const cashAmount = interaction.options.getInteger("amount", true);
     const paymentMethod =
@@ -452,7 +465,26 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto buy:", error);
-    throw error;
+    
+    // Try to provide a graceful fallback response
+    try {
+      const embed = ResponseUtil.error(
+        "Purchase Failed", 
+        "Unable to complete your cryptocurrency purchase. Please try again."
+      );
+      
+      embed.addFields({
+        name: "💡 What you can do:",
+        value: "• Verify you have sufficient funds with `/wallet`\n• Try a smaller purchase amount\n• Wait a moment and try again\n• Contact support if the problem persists",
+        inline: false,
+      });
+      
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
+    } catch (replyError) {
+      logger.error("Failed to send error response for crypto buy:", replyError);
+    }
+    
+    return { success: false, error: "Purchase failed" };
   }
 }
 
@@ -471,10 +503,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
       return { success: false, error: "User not registered" };
     }
 
-    // Defer for heavy operations (database queries, calculations)
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferReply();
-    }
+    // No need to defer - the bot already defers all interactions except ping
 
     const coinAmount = interaction.options.getNumber("amount", true);
     const coin = getCryptoCoin();
@@ -747,7 +776,26 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto sell:", error);
-    throw error;
+    
+    // Try to provide a graceful fallback response
+    try {
+      const embed = ResponseUtil.error(
+        "Sale Failed", 
+        "Unable to complete your cryptocurrency sale. Please try again."
+      );
+      
+      embed.addFields({
+        name: "💡 What you can do:",
+        value: "• Check your holdings with `/crypto portfolio`\n• Verify the amount you're trying to sell\n• Wait a moment and try again\n• Contact support if the problem persists",
+        inline: false,
+      });
+      
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
+    } catch (replyError) {
+      logger.error("Failed to send error response for crypto sell:", replyError);
+    }
+    
+    return { success: false, error: "Sale failed" };
   }
 }
 
@@ -768,10 +816,7 @@ async function handlePortfolio(
       return { success: false, error: "User not registered" };
     }
 
-    // Defer for heavy operations (database queries, calculations)
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferReply();
-    }
+    // No need to defer - the bot already defers all interactions except ping
 
     const moneyService = MoneyService.getInstance();
     const balance = await moneyService.getUserBalance(userId);
@@ -887,7 +932,26 @@ async function handlePortfolio(
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto portfolio:", error);
-    throw error;
+    
+    // Try to provide a graceful fallback response
+    try {
+      const embed = ResponseUtil.error(
+        "Portfolio Unavailable", 
+        "Unable to load your cryptocurrency portfolio. Please try again."
+      );
+      
+      embed.addFields({
+        name: "💡 What you can do:",
+        value: "• Wait a moment and try again\n• Check your general wallet with `/wallet`\n• Try `/crypto prices` to see market data\n• Contact support if the problem persists",
+        inline: false,
+      });
+      
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
+    } catch (replyError) {
+      logger.error("Failed to send error response for crypto portfolio:", replyError);
+    }
+    
+    return { success: false, error: "Portfolio error" };
   }
 }
 
