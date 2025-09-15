@@ -471,7 +471,7 @@ export class MoneyService {
 
       // Validate coin and level requirements
       const coin = getCryptoCoin();
-      if (coinType !== coin.id) {
+      if (coinType !== coin.id && coinType !== coin.symbol) {
         return {
           success: false,
           message: `Invalid cryptocurrency. Only ${coin.name} is supported.`,
