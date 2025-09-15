@@ -43,12 +43,12 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     );
 
     // Get price for the single coin
-    const price = await moneyService.getCoinPrice(coin.id);
+    const price = await moneyService.getCoinPrice(coin.symbol);
 
     // Get price change from database
     const db = DatabaseManager.getClient();
     const priceData = await db.cryptoPrice.findUnique({
-      where: { coinType: coin.id },
+      where: { coinType: coin.symbol },
     });
 
     const change24h = priceData?.change24h || 0;
@@ -121,7 +121,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
     if (sourceBalance < cashAmount) {
       // Get current price for calculations
-      const currentPrice = await moneyService.getCoinPrice(coin.id);
+      const currentPrice = await moneyService.getCoinPrice(coin.symbol);
       const maxAmounts = moneyService.calculateMaxAmounts(
         balances,
         currentPrice
@@ -206,7 +206,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
             const result = await moneyService.buyCrypto(
               userId,
-              coin.id,
+              coin.symbol,
               maxBuyAmount,
               paymentMethod
             );
@@ -282,7 +282,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
               // Execute purchase with new method
               const result = await moneyService.buyCrypto(
                 userId,
-                coin.id,
+                coin.symbol,
                 cashAmount,
                 newMethod
               );
@@ -397,7 +397,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     // Proceed with normal purchase using optimized money service
     const result = await moneyService.buyCrypto(
       userId,
-      coin.id,
+      coin.symbol, // Use symbol for consistency with existing data
       cashAmount,
       paymentMethod
     );
@@ -415,7 +415,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
     const fee = Math.floor(cashAmount * 0.03);
     const netAmount = cashAmount - fee;
-    const currentPrice = await moneyService.getCoinPrice(coin.id);
+    const currentPrice = await moneyService.getCoinPrice(coin.symbol);
 
     embed.addFields(
       {
@@ -480,8 +480,24 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
 
     // Get current holdings using fast service
     const balance = await MoneyService.getInstance().getUserBalance(userId);
-    // Check if user has any of this coin
-    const currentHolding = balance?.cryptoWallet[coin.id] || 0;
+    
+    // Check if user has any of this coin - check both ID and symbol for compatibility
+    let currentHolding = 0;
+    let cryptoKey = "";
+    
+    if (balance?.cryptoWallet[coin.id]) {
+      currentHolding = balance.cryptoWallet[coin.id];
+      cryptoKey = coin.id;
+    } else if (balance?.cryptoWallet[coin.symbol]) {
+      currentHolding = balance.cryptoWallet[coin.symbol];
+      cryptoKey = coin.symbol;
+    } else {
+      // Check if there's any crypto at all (fallback)
+      const walletEntries = Object.entries(balance?.cryptoWallet || {});
+      if (walletEntries.length > 0) {
+        [cryptoKey, currentHolding] = walletEntries[0];
+      }
+    }
 
     if (currentHolding === 0) {
       const embed = ResponseUtil.error(
@@ -506,7 +522,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     if (coinAmount > currentHolding) {
       // Calculate what user would get if they sold their maximum holdings
       const maxCoinAmount = currentHolding;
-      const maxPrice = await MoneyService.getInstance().getCoinPrice(coin.id);
+      const maxPrice = await MoneyService.getInstance().getCoinPrice(cryptoKey);
       const maxGrossAmount = maxCoinAmount * maxPrice;
       const maxFee = Math.floor(maxGrossAmount * 0.04); // 4% selling fee
       const maxNetCash = maxGrossAmount - maxFee;
@@ -568,7 +584,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
           const moneyService = MoneyService.getInstance();
           const maxResult = await moneyService.sellCrypto(
             userId,
-            coin.id,
+            cryptoKey,
             maxCoinAmount
           );
 
@@ -671,14 +687,14 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     }
 
     // Get current price for display
-    const currentPrice = await MoneyService.getInstance().getCoinPrice(coin.id);
+    const currentPrice = await MoneyService.getInstance().getCoinPrice(cryptoKey);
     const grossAmount = coinAmount * currentPrice;
     const fee = Math.floor(grossAmount * 0.04); // 4% selling fee
     const netCash = grossAmount - fee;
 
-    // Execute the sale
+    // Execute the sale using the correct crypto key
     const moneyService = MoneyService.getInstance();
-    const result = await moneyService.sellCrypto(userId, coin.id, coinAmount);
+    const result = await moneyService.sellCrypto(userId, cryptoKey, coinAmount);
 
     if (!result.success) {
       const embed = ResponseUtil.error(
@@ -776,7 +792,28 @@ async function handlePortfolio(
         text: `💰 ${coin.name} (${coin.symbol}) is your gateway to the crypto economy`,
       });
     } else {
-      const cryptoAmount = balance.cryptoWallet[coin.id] || 0;
+      // Check if user has crypto by looking through all wallet entries
+      // since crypto might be stored under symbol or ID depending on version
+      let cryptoAmount = 0;
+      let cryptoKey = "";
+      
+      // First try the coin ID
+      if (balance.cryptoWallet[coin.id]) {
+        cryptoAmount = balance.cryptoWallet[coin.id];
+        cryptoKey = coin.id;
+      }
+      // Then try the coin symbol (for legacy/existing data)
+      else if (balance.cryptoWallet[coin.symbol]) {
+        cryptoAmount = balance.cryptoWallet[coin.symbol];
+        cryptoKey = coin.symbol;
+      }
+      // Finally, check if there's any crypto at all (fallback)
+      else {
+        const walletEntries = Object.entries(balance.cryptoWallet);
+        if (walletEntries.length > 0) {
+          [cryptoKey, cryptoAmount] = walletEntries[0];
+        }
+      }
 
       if (cryptoAmount === 0) {
         embed.addFields({
@@ -786,13 +823,13 @@ async function handlePortfolio(
         });
       } else {
         // Get current price and calculate value
-        const price = await moneyService.getCoinPrice(coin.id);
+        const price = await moneyService.getCoinPrice(cryptoKey);
         const totalValue = cryptoAmount * price;
 
         // Get price change data
         const db = DatabaseManager.getClient();
         const priceData = await db.cryptoPrice.findUnique({
-          where: { coinType: coin.id },
+          where: { coinType: cryptoKey },
         });
 
         const change24h = priceData?.change24h || 0;
