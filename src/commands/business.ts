@@ -1,6 +1,10 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { BotBranding } from "../config/bot";
 import {
+  getBusinessPurchaseAnnouncement,
+  shouldAnnouncePurchase,
+} from "../content/buyBusinessAnnouncements";
+import {
   getCollectionAnnouncement,
   shouldAnnounceCollection,
 } from "../content/collectionAnnouncements";
@@ -213,11 +217,42 @@ const businessCommand: Command = {
             embed.setFooter({
               text: "💡 Use /business list to view all assets • /business collect to gather income",
             });
+
+            // First, send the private detailed response
+            await interaction.editReply({ embeds: [embed] });
+
+            // Then, send public announcement if purchase should be announced
+            if (
+              result.cost &&
+              shouldAnnouncePurchase(result.cost, assetTemplate.category)
+            ) {
+              try {
+                const announcement = getBusinessPurchaseAnnouncement(
+                  interaction.user.username,
+                  assetTemplate.name,
+                  assetTemplate.category,
+                  result.cost
+                );
+
+                // Send public message to the channel (not ephemeral)
+                if (interaction.channel && "send" in interaction.channel) {
+                  await interaction.channel.send({
+                    content: announcement,
+                  });
+                }
+              } catch (announcementError) {
+                console.error(
+                  "Error sending purchase announcement:",
+                  announcementError
+                );
+                // Don't fail the entire command if announcement fails
+              }
+            }
           } else {
             embed = ResponseUtil.error("Purchase Failed", result.message);
+            await interaction.editReply({ embeds: [embed] });
           }
 
-          await interaction.editReply({ embeds: [embed] });
           return { success: result.success };
         }
 
