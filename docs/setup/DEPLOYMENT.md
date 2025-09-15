@@ -5,12 +5,14 @@ Complete guide for deploying MafiaWar Discord Bot on your VPS using PM2 (similar
 ## 📋 Prerequisites
 
 ### **On Your VPS**
+
 - ✅ Node.js (v18+ recommended)
 - ✅ PM2 already installed (since you're using it for Next.js)
 - ✅ Git for repository cloning
 - ✅ PostgreSQL database (local or hosted like Supabase)
 
 ### **Discord Setup Required**
+
 - ✅ Discord Application created at [Discord Developer Portal](https://discord.com/developers/applications)
 - ✅ Bot token generated
 - ✅ Bot invited to your server with proper permissions
@@ -29,6 +31,49 @@ npm install
 # Build the TypeScript
 npm run build
 ```
+
+## ⚙️ Step 2: Configure Environment
+
+### **Basic Configuration**
+
+```bash
+# Copy environment template
+cp .env.example .env
+nano .env  # Edit with your preferred editor
+```
+
+### **Essential Settings**
+
+```env
+# Discord Bot Configuration
+DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_CLIENT_ID=your_client_id_here
+
+# Bot Customization - CUSTOMIZE FOR YOUR SERVER!
+BOT_NAME=The Nexus Wars              # Change this to your server's name
+BOT_THEME_COLOR=0x1a5c96             # Optional: Custom color theme
+BOT_CURRENCY_SYMBOL=₦                # Optional: Custom currency symbol
+BOT_CURRENCY_NAME=credits            # Optional: Custom currency name
+
+# Database URLs (from Supabase or your database)
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+
+# VPS Information
+VPS_HOST=your_vps_ip_address
+```
+
+### **Bot Name Examples by Server Theme**
+
+| Server Theme | Suggested Bot Name | Theme Color | Currency |
+| ------------ | ------------------ | ----------- | -------- |
+| Sci-Fi       | `The Nexus Wars`   | `0x1a5c96`  | credits  |
+| Fantasy      | `Realm Conquest`   | `0x8b4513`  | gold     |
+| Modern Crime | `Street Empire`    | `0x800080`  | dollars  |
+| Cyberpunk    | `Neo Syndicate`    | `0x00ff00`  | tokens   |
+| Military     | `Operation Chaos`  | `0x4b5320`  | credits  |
+
+> **Important:** The `BOT_NAME` setting changes all user-facing text, embeds, and command descriptions. Choose something that matches your server's theme!
 
 ## 🔑 Step 2: Environment Configuration
 
@@ -62,7 +107,7 @@ BOT_CWD=/home/debian/projects/discord/mafiawar
 NODE_ENV=production
 ```
 
-## 🗃️ Step 3: Database Setup
+## �️ Step 3: Database Setup
 
 ```bash
 # Generate Prisma client for production
@@ -90,42 +135,42 @@ Add this configuration to `ecosystem.config.js`:
 module.exports = {
   apps: [
     {
-      name: 'mafia-war-bot',
-      script: 'dist/bot.js',
-      cwd: process.env.BOT_CWD || '/home/debian/projects/discord/mafiawar',  // From .env
-      instances: 1,  // Discord bots should run single instance
-      exec_mode: 'fork',  // Not cluster mode for Discord bots
-      
+      name: "mafia-war-bot",
+      script: "dist/bot.js",
+      cwd: process.env.BOT_CWD || "/home/debian/projects/discord/mafiawar", // From .env
+      instances: 1, // Discord bots should run single instance
+      exec_mode: "fork", // Not cluster mode for Discord bots
+
       // Environment
       env: {
-        NODE_ENV: 'development'
+        NODE_ENV: "development",
       },
       env_production: {
-        NODE_ENV: 'production'
+        NODE_ENV: "production",
       },
-      
+
       // Auto-restart configuration
-      watch: false,  // Don't watch files in production
+      watch: false, // Don't watch files in production
       max_restarts: 10,
       restart_delay: 5000,
-      
+
       // Logging
-      log_file: './logs/bot.log',
-      out_file: './logs/bot-out.log',
-      error_file: './logs/bot-error.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      
+      log_file: "./logs/bot.log",
+      out_file: "./logs/bot-out.log",
+      error_file: "./logs/bot-error.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+
       // Memory management
-      max_memory_restart: '300M',
-      
+      max_memory_restart: "300M",
+
       // Process management
       kill_timeout: 5000,
       listen_timeout: 3000,
-      
+
       // Auto-restart on file changes (disabled in production)
-      ignore_watch: ['node_modules', 'logs', '.git']
-    }
-  ]
+      ignore_watch: ["node_modules", "logs", ".git"],
+    },
+  ],
 };
 ```
 
@@ -174,6 +219,7 @@ pm2 monit
 ```
 
 ### **View All Your Applications**
+
 ```bash
 # See all PM2 processes (Next.js sites + Discord bot)
 pm2 list
@@ -218,32 +264,38 @@ pm2 status mafia-war-bot
 ## 🛡️ Security Best Practices
 
 ### **1. Environment Variables for VPS Configuration**
+
 - All VPS-specific settings are now in `.env` file (not committed to Git)
 - `VPS_HOST`: Your server IP address
 - `VPS_USER`: Your server username (typically `debian`)
 - `BOT_CWD`: Full path to your bot directory on the VPS
 
 ### **2. Single Instance Only**
+
 - Discord bots should **NOT** use PM2 cluster mode
 - Use `instances: 1` and `exec_mode: 'fork'`
 - Multiple instances would cause conflicts with Discord's Gateway
 
 ### **2. Memory Management**
+
 - Set `max_memory_restart` to prevent memory leaks
 - Monitor memory usage with `pm2 monit`
 - Discord.js typically uses 50-200MB for most bots
 
 ### **3. Error Handling**
+
 - Configure `max_restarts` to prevent infinite restart loops
 - Set `restart_delay` to avoid rapid restarts
 - Monitor error logs regularly
 
 ### **4. Database Connections**
+
 - Ensure your DATABASE_URL is accessible from the VPS
 - Test database connectivity before deployment
 - Consider connection pooling for production
 
 ### **5. Security**
+
 - Keep `.env` file secure with proper permissions
 - Never commit tokens to git
 - Use environment variables for all secrets
@@ -253,6 +305,7 @@ pm2 status mafia-war-bot
 ### **Common Issues**
 
 #### **Bot Won't Start**
+
 ```bash
 # Check logs
 pm2 logs mafia-war-bot
@@ -264,6 +317,7 @@ pm2 logs mafia-war-bot
 ```
 
 #### **Bot Disconnects Frequently**
+
 ```bash
 # Check for memory issues
 pm2 monit
@@ -273,6 +327,7 @@ pm2 restart mafia-war-bot --max-memory-restart 500M
 ```
 
 #### **Database Connection Issues**
+
 ```bash
 # Test database connection
 npm run db:generate
@@ -294,6 +349,7 @@ health_check_grace_period: 10000,
 ## 📈 Monitoring Dashboard
 
 ### **PM2 Plus (Optional)**
+
 For advanced monitoring, you can connect to PM2 Plus:
 
 ```bash
@@ -311,7 +367,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:

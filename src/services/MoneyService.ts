@@ -6,6 +6,7 @@ import {
 } from "../data/money";
 import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
+import { BotBranding } from "../config/bot";
 
 export interface MoneyBalance {
   cashOnHand: number;
@@ -244,7 +245,7 @@ export class MoneyService {
           );
           return {
             success: false,
-            message: `Insufficient bank funds. Need $${totalWithdrawal} (including $${fee} fee).\n💡 **Max you can withdraw:** $${maxWithdrawable}`,
+            message: `Insufficient bank funds. Need ${BotBranding.formatCurrency(totalWithdrawal)} (including ${BotBranding.formatCurrency(fee)} fee).\n💡 **Max you can withdraw:** ${BotBranding.formatCurrency(maxWithdrawable)}`,
             error: "Insufficient funds",
           };
         }
@@ -257,7 +258,7 @@ export class MoneyService {
         if (amount > bankTier.benefits.withdrawalLimit) {
           return {
             success: false,
-            message: `Daily withdrawal limit exceeded. Limit: $${bankTier.benefits.withdrawalLimit}`,
+            message: `Daily withdrawal limit exceeded. Limit: ${BotBranding.formatCurrency(bankTier.benefits.withdrawalLimit)}`,
             error: "Withdrawal limit exceeded",
           };
         }
@@ -271,11 +272,11 @@ export class MoneyService {
           );
           return {
             success: false,
-            message: `Insufficient cash. You have $${
+            message: `Insufficient cash. You have ${BotBranding.formatCurrency(
               character.cashOnHand
-            }.\n💡 **Deposit $${character.cashOnHand} → Get:** $${Math.floor(
+            )}.\n💡 **Deposit ${BotBranding.formatCurrency(character.cashOnHand)} → Get:** ${BotBranding.formatCurrency(Math.floor(
               character.cashOnHand * (1 - bankTier.benefits.depositFee)
-            )} in bank`,
+            ))} in bank`,
             error: "Insufficient funds",
           };
         }
@@ -322,7 +323,7 @@ export class MoneyService {
         success: true,
         message: `Successfully ${
           from === "cash" ? "deposited" : "withdrew"
-        } $${amount}${fee > 0 ? ` (fee: $${fee})` : ""}`,
+        } ${BotBranding.formatCurrency(amount)}${fee > 0 ? ` (fee: ${BotBranding.formatCurrency(fee)})` : ""}`,
         newBalance: newBalance || undefined,
         fees: fee,
       };
@@ -484,7 +485,7 @@ export class MoneyService {
       if (sourceBalance < amount) {
         return {
           success: false,
-          message: `Insufficient ${paymentMethod}. Need $${amount.toLocaleString()}, have $${sourceBalance.toLocaleString()}`,
+          message: `Insufficient ${paymentMethod}. Need ${BotBranding.formatCurrency(amount)}, have ${BotBranding.formatCurrency(sourceBalance)}`,
           error: "Insufficient funds",
         };
       }
@@ -543,7 +544,7 @@ export class MoneyService {
         success: true,
         message: `Bought ${coinAmount.toFixed(6)} ${
           coin.symbol
-        } for $${amount.toLocaleString()}`,
+        } for ${BotBranding.formatCurrency(amount)}`,
         fees: fee,
         data: {
           amountProcessed: amount,
@@ -683,7 +684,7 @@ export class MoneyService {
         success: true,
         message: `Sold ${coinAmount.toFixed(
           6
-        )} ${coinType} for $${netCash.toLocaleString()}`,
+        )} ${coinType} for ${BotBranding.formatCurrency(netCash)}`,
         fees: fee,
         data: {
           amountProcessed: Math.floor(grossAmount),

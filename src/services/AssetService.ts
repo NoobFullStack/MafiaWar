@@ -14,6 +14,7 @@ import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
 import { MoneyService } from "./MoneyService";
 import { LevelGateValidator, PlayerProgress } from "../utils/LevelGateValidator";
+import { BotBranding } from "../config/bot";
 
 export interface AssetPurchaseResult {
   success: boolean;
@@ -558,7 +559,7 @@ export class AssetService {
 
       return {
         success: true,
-        message: `💰 Collected $${totalIncome.toLocaleString()} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? 's' : ''}!`,
+        message: `💰 Collected ${BotBranding.formatCurrency(totalIncome)} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? 's' : ''}!`,
         totalIncome,
         incomeBreakdown: {
           cash: totalCash,

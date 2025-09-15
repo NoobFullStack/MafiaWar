@@ -4,6 +4,7 @@ import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
 import DatabaseManager from "../utils/DatabaseManager";
+import { BotBranding } from "../config/bot";
 
 const walletCommand: Command = {
   data: new SlashCommandBuilder()
@@ -46,7 +47,7 @@ const walletCommand: Command = {
           cryptoLines.push(
             `${coin?.symbol || coinType.toUpperCase()}: ${(
               amount as number
-            ).toFixed(6)} ($${value.toFixed(2)})`
+            ).toFixed(6)} (${BotBranding.formatCurrency(value)})`
           );
         }
         cryptoDisplay = cryptoLines.join("\n");
@@ -54,18 +55,18 @@ const walletCommand: Command = {
 
       const embed = ResponseUtil.info(
         "💰 Your Wallet",
-        `**Total Net Worth: $${(balance.totalValue || 0).toLocaleString()}**`
+        `**Total Net Worth: ${BotBranding.formatCurrency(balance.totalValue || 0)}**`
       );
 
       embed.addFields(
         {
           name: "💵 Cash on Hand",
-          value: `$${balance.cashOnHand.toLocaleString()}\n*Vulnerable to theft*`,
+          value: `${BotBranding.formatCurrency(balance.cashOnHand)}\n*Vulnerable to theft*`,
           inline: true,
         },
         {
           name: "🏦 Bank Account",
-          value: `$${balance.bankBalance.toLocaleString()}\n*Protected from players*`,
+          value: `${BotBranding.formatCurrency(balance.bankBalance)}\n*Protected from players*`,
           inline: true,
         },
         {

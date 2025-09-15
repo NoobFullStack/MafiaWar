@@ -24,7 +24,7 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 
 - **6 Business Types** - From convenience stores to underground casinos
 - **Strategic Income Distribution** - Businesses generate cash, bank, and crypto income
-- **Upgrade System** - Improve income rates and security levels  
+- **Upgrade System** - Improve income rates and security levels
 - **Risk Management** - Each business has raid vulnerability and market sensitivity
 - **Level-Gated Content** - Assets unlock as players progress
 - **Atomic Transactions** - Race condition prevention for reliable purchases
@@ -38,6 +38,45 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 - ⚔️ **PvP Mechanics** - Asset robberies and player vs player combat
 - 📈 **Leaderboards** - Rankings for money, reputation, and achievements
 
+## 🛠️ Installation & Setup
+
+### **Environment Configuration**
+
+1. **Copy the environment template:**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure your bot settings:**
+
+   ```env
+   # Discord Configuration
+   DISCORD_BOT_TOKEN=your_bot_token_here
+   DISCORD_CLIENT_ID=your_client_id_here
+
+   # Bot Customization
+   BOT_NAME=YourBotName              # Customize your bot's name
+   BOT_THEME_COLOR=0x800080          # Primary embed color (hex)
+   BOT_CURRENCY_SYMBOL=$             # Currency symbol
+   BOT_CURRENCY_NAME=dollars         # Currency name
+
+   # Database
+   DATABASE_URL=your_database_url
+   DIRECT_URL=your_direct_database_url
+   ```
+
+3. **Bot Name Examples:**
+   - `BOT_NAME=Criminal Empire` - For crime/mafia themes
+   - `BOT_NAME=Street Lords` - For urban themes
+   - `BOT_NAME=Shadow Syndicate` - For dark/mystery themes
+
+> **Note:** The bot name appears in all embeds, commands, and user-facing text. Choose something that fits your server's theme!
+
+### **Database Setup**
+
+For detailed setup instructions, see [Installation Guide](docs/setup/INSTALLATION.md)
+
 ## 🎯 Unique Systems
 
 ### **💰 Multi-Layered Strategic Money Management**
@@ -49,6 +88,7 @@ MafiaWar features a sophisticated **three-tier money system** for strategic risk
 - **₿ Cryptocurrency** - Protected from all threats but subject to market volatility
 
 **Strategic Income Distribution**: Assets generate income across all three tiers based on business type:
+
 - **Legitimate businesses** - Mostly cash and bank income
 - **Semi-legal operations** - Balanced distribution with some crypto
 - **Illegal enterprises** - Heavy crypto focus for anonymity
@@ -58,11 +98,13 @@ Players must strategically balance liquidity, security, and growth potential acr
 ### **🏢 Asset Management System**
 
 **Business Categories:**
+
 - **🏪 Legitimate** - Convenience stores, restaurants (low risk, steady income)
-- **🎭 Semi-Legal** - Pawn shops, nightclubs (medium risk, good profits)  
+- **🎭 Semi-Legal** - Pawn shops, nightclubs (medium risk, good profits)
 - **🕴️ Illegal** - Warehouses, casinos (high risk, massive returns)
 
 **Advanced Features:**
+
 - **Income Distribution** - Each business generates income across cash/bank/crypto
 - **Upgrade Paths** - Improve income rates and security levels
 - **Risk Profiles** - Raid vulnerability, market sensitivity, seasonality
@@ -171,8 +213,8 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `/assets [category]`       | Browse available businesses to purchase        | 5s       |
 | `/business buy <asset>`    | Purchase a business asset with payment options | 3s       |
 | `/business list`           | View your owned business portfolio             | 3s       |
-| `/business collect`        | Collect income from all your assets           | 3s       |
-| `/business upgrade <type>` | Upgrade asset income or security levels       | 3s       |
+| `/business collect`        | Collect income from all your assets            | 3s       |
+| `/business upgrade <type>` | Upgrade asset income or security levels        | 3s       |
 
 ### **🚧 Commands In Development**
 
@@ -184,14 +226,14 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 
 ### **🔧 Development & Maintenance Commands**
 
-| Command                    | Description                                  |
-| -------------------------- | -------------------------------------------- |
-| `yarn economy:analyze`     | Complete economy and XP progression analysis |
-| `yarn level:demo`          | Demonstrate level gating system              |
-| `yarn crime:demo`          | Test crime system and success calculations   |
-| `yarn economy:validate`    | Validate item balance and pricing            |
-| `yarn cleanup:duplicates`  | Remove duplicate assets (with --execute)    |
-| `yarn assets:validate`     | Validate asset templates and requirements    |
+| Command                   | Description                                  |
+| ------------------------- | -------------------------------------------- |
+| `yarn economy:analyze`    | Complete economy and XP progression analysis |
+| `yarn level:demo`         | Demonstrate level gating system              |
+| `yarn crime:demo`         | Test crime system and success calculations   |
+| `yarn economy:validate`   | Validate item balance and pricing            |
+| `yarn cleanup:duplicates` | Remove duplicate assets (with --execute)     |
+| `yarn assets:validate`    | Validate asset templates and requirements    |
 
 ## 🏗️ Architecture
 
@@ -287,6 +329,7 @@ yarn lint       # Run TypeScript checks
 ## 🛠️ Recent Improvements
 
 ### **Asset System Implementation** ✨ (September 2025)
+
 - **Complete business management** with 6 asset types (convenience stores to casinos)
 - **Strategic income distribution** across cash, bank, and cryptocurrency
 - **Atomic transaction safety** preventing race conditions and duplicate purchases
@@ -295,6 +338,7 @@ yarn lint       # Run TypeScript checks
 - **Level-gated content** unlocking businesses as players progress
 
 ### **Performance & Reliability** 🚀 (September 2025)
+
 - **Deferred Discord interactions** preventing timeout errors
 - **Atomic database transactions** ensuring data consistency
 - **Race condition prevention** in asset purchases and income collection
@@ -302,6 +346,7 @@ yarn lint       # Run TypeScript checks
 - **Transaction timeout handling** with extended timeouts for complex operations
 
 ### **Developer Experience** 🔧 (September 2025)
+
 - **Test business** (Lemonade Stand) for easy development and testing
 - **Cleanup scripts** for removing duplicate assets and data maintenance
 - **Fixed display issues** with proper emoji rendering
@@ -355,6 +400,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Ready to build your criminal empire?** Start with `/create-account` to create your character, then use `/assets` to browse businesses and `/business buy` to start generating passive income! 🎭
 
 ### **🎯 Quick Start Guide**
+
 1. **Create Character** - `/create-account` to join the underworld
 2. **Check Finances** - `/wallet` to see your starting $1,000
 3. **Browse Businesses** - `/assets` to see available investments

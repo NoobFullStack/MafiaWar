@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { BotBranding } from "../config/bot";
 
 export enum LogLevel {
   INFO = "INFO",
@@ -154,7 +155,7 @@ export class ResponseUtil {
     fields?: { name: string; value: string; inline?: boolean }[]
   ): EmbedBuilder {
     const embed = new EmbedBuilder()
-      .setColor(0x0099ff)
+      .setColor(BotBranding.getThemeColor()) // Use theme color for info embeds
       .setTitle(title) // Remove emoji prefix
       .setDescription(description)
       .setTimestamp();
@@ -204,7 +205,7 @@ export class ResponseUtil {
 
   static gameProfile(character: any, user: any): EmbedBuilder {
     return new EmbedBuilder()
-      .setColor(0x800080) // Mafia purple
+      .setColor(BotBranding.getThemeColor()) // Use theme color for profiles
       .setTitle(`👤 ${character.name}'s Profile`)
       .setDescription(`Criminal Level ${character.level}`)
       .addFields(
@@ -244,16 +245,18 @@ export class ResponseUtil {
   static noAccount(userTag: string): EmbedBuilder {
     return ResponseUtil.info(
       "No Account Found",
-      `**${userTag}**, you don't have a MafiaWar account yet!`
+      `**${userTag}**, you don't have a ${BotBranding.getName()} account yet!`
     ).addFields(
       {
         name: "🎭 Get Started",
-        value: "Use `/create-account` to create your criminal character and join the underworld!",
+        value:
+          "Use `/create-account` to create your criminal character and join the underworld!",
         inline: false,
       },
       {
         name: "🎮 What You'll Get",
-        value: "• Your own criminal character\n• $1,000 starting money\n• Access to crimes and activities\n• Multi-tier money management\n• Level progression system",
+        value:
+          `• Your own criminal character\n• ${BotBranding.formatCurrency(1000)} starting money\n• Access to crimes and activities\n• Multi-tier money management\n• Level progression system`,
         inline: false,
       }
     );
@@ -263,7 +266,7 @@ export class ResponseUtil {
    * Smart reply that handles both regular and deferred interactions
    */
   static async smartReply(
-    interaction: ChatInputCommandInteraction, 
+    interaction: ChatInputCommandInteraction,
     options: any
   ): Promise<void> {
     try {

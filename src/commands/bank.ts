@@ -9,6 +9,7 @@ import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
 import DatabaseManager from "../utils/DatabaseManager";
+import { BotBranding } from "../config/bot";
 
 const bankCommand: Command = {
   data: new SlashCommandBuilder()
@@ -93,24 +94,24 @@ const bankCommand: Command = {
 
             const embed = ResponseUtil.error(
               "Insufficient Cash",
-              `You need $${amount.toLocaleString()} but only have $${availableCash.toLocaleString()} cash.`
+              `You need ${BotBranding.formatCurrency(amount)} but only have ${BotBranding.formatCurrency(availableCash)} cash.`
             );
 
             if (availableCash > 0) {
               embed.addFields({
                 name: "💡 Deposit All Cash Instead?",
-                value: `**Your Cash:** $${availableCash.toLocaleString()}\n**Deposit Fee:** $${fee.toLocaleString()} (${(
+                value: `**Your Cash:** ${BotBranding.formatCurrency(availableCash)}\n**Deposit Fee:** ${BotBranding.formatCurrency(fee)} (${(
                   bankTier.benefits.depositFee * 100
                 ).toFixed(
                   1
-                )}%)\n**You'd Get in Bank:** $${netDeposit.toLocaleString()}`,
+                )}%)\n**You'd Get in Bank:** ${BotBranding.formatCurrency(netDeposit)}`,
                 inline: false,
               });
 
               // Create buttons for user choice
               const confirmButton = new ButtonBuilder()
                 .setCustomId(`bank_deposit_max_${userId}`)
-                .setLabel(`✅ Deposit All ($${availableCash.toLocaleString()})`)
+                .setLabel(`✅ Deposit All (${BotBranding.formatCurrency(availableCash)})`)
                 .setStyle(ButtonStyle.Success);
 
               const cancelButton = new ButtonBuilder()
@@ -163,16 +164,16 @@ const bankCommand: Command = {
                       successEmbed.addFields(
                         {
                           name: "💰 Transaction Details",
-                          value: `**Deposited:** $${availableCash.toLocaleString()}\n**Fee:** $${fee.toLocaleString()} (${(
+                          value: `**Deposited:** ${BotBranding.formatCurrency(availableCash)}\n**Fee:** ${BotBranding.formatCurrency(fee)} (${(
                             bankTier.benefits.depositFee * 100
                           ).toFixed(
                             1
-                          )}%)\n**Added to Bank:** $${netDeposit.toLocaleString()}`,
+                          )}%)\n**Added to Bank:** ${BotBranding.formatCurrency(netDeposit)}`,
                           inline: false,
                         },
                         {
                           name: "Updated Balance",
-                          value: `💵 Cash: $${result.newBalance.cashOnHand.toLocaleString()}\n🏦 Bank: $${result.newBalance.bankBalance.toLocaleString()}`,
+                          value: `💵 Cash: ${BotBranding.formatCurrency(result.newBalance.cashOnHand)}\n🏦 Bank: ${BotBranding.formatCurrency(result.newBalance.bankBalance)}`,
                           inline: false,
                         }
                       );
@@ -271,7 +272,7 @@ const bankCommand: Command = {
             if (result.newBalance) {
               embed.addFields({
                 name: "Updated Balance",
-                value: `💵 Cash: $${result.newBalance.cashOnHand.toLocaleString()}\n🏦 Bank: $${result.newBalance.bankBalance.toLocaleString()}`,
+                value: `💵 Cash: ${BotBranding.formatCurrency(result.newBalance.cashOnHand)}\n🏦 Bank: ${BotBranding.formatCurrency(result.newBalance.bankBalance)}`,
                 inline: false,
               });
             }
@@ -309,8 +310,8 @@ const bankCommand: Command = {
             const embed = ResponseUtil.error(
               "Insufficient Bank Funds",
               amount > maxWithdrawable
-                ? `You need $${amount.toLocaleString()} but can only withdraw $${maxWithdrawable.toLocaleString()} (after fees).`
-                : `You need $${amount.toLocaleString()} but only have $${balance.bankBalance.toLocaleString()} in bank.`
+                ? `You need ${BotBranding.formatCurrency(amount)} but can only withdraw ${BotBranding.formatCurrency(maxWithdrawable)} (after fees).`
+                : `You need ${BotBranding.formatCurrency(amount)} but only have ${BotBranding.formatCurrency(balance.bankBalance)} in bank.`
             );
 
             if (maxWithdrawable > 0) {
@@ -321,11 +322,11 @@ const bankCommand: Command = {
 
               embed.addFields({
                 name: "💡 Withdraw Maximum Instead?",
-                value: `**Bank Balance:** $${balance.bankBalance.toLocaleString()}\n**Max Withdrawable:** $${maxWithdrawable.toLocaleString()}\n**Withdrawal Fee:** $${fee.toLocaleString()} (${(
+                value: `**Bank Balance:** ${BotBranding.formatCurrency(balance.bankBalance)}\n**Max Withdrawable:** ${BotBranding.formatCurrency(maxWithdrawable)}\n**Withdrawal Fee:** ${BotBranding.formatCurrency(fee)} (${(
                   bankTier.benefits.withdrawalFee * 100
                 ).toFixed(
                   1
-                )}%)\n**Total Cost:** $${totalCost.toLocaleString()}\n**You'd Receive:** $${maxWithdrawable.toLocaleString()}`,
+                )}%)\n**Total Cost:** ${BotBranding.formatCurrency(totalCost)}\n**You'd Receive:** ${BotBranding.formatCurrency(maxWithdrawable)}`,
                 inline: false,
               });
 
@@ -333,7 +334,7 @@ const bankCommand: Command = {
               const confirmButton = new ButtonBuilder()
                 .setCustomId(`bank_withdraw_max_${userId}`)
                 .setLabel(
-                  `✅ Withdraw Max ($${maxWithdrawable.toLocaleString()})`
+                  `✅ Withdraw Max (${BotBranding.formatCurrency(maxWithdrawable)})`
                 )
                 .setStyle(ButtonStyle.Success);
 
@@ -387,16 +388,16 @@ const bankCommand: Command = {
                       successEmbed.addFields(
                         {
                           name: "💰 Transaction Details",
-                          value: `**Withdrawn:** $${maxWithdrawable.toLocaleString()}\n**Fee:** $${fee.toLocaleString()} (${(
+                          value: `**Withdrawn:** ${BotBranding.formatCurrency(maxWithdrawable)}\n**Fee:** ${BotBranding.formatCurrency(fee)} (${(
                             bankTier.benefits.withdrawalFee * 100
                           ).toFixed(
                             1
-                          )}%)\n**Total Deducted:** $${totalCost.toLocaleString()}`,
+                          )}%)\n**Total Deducted:** ${BotBranding.formatCurrency(totalCost)}`,
                           inline: false,
                         },
                         {
                           name: "Updated Balance",
-                          value: `💵 Cash: $${result.newBalance.cashOnHand.toLocaleString()}\n🏦 Bank: $${result.newBalance.bankBalance.toLocaleString()}`,
+                          value: `💵 Cash: ${BotBranding.formatCurrency(result.newBalance.cashOnHand)}\n🏦 Bank: ${BotBranding.formatCurrency(result.newBalance.bankBalance)}`,
                           inline: false,
                         }
                       );
@@ -496,7 +497,7 @@ const bankCommand: Command = {
             if (result.newBalance) {
               embed.addFields({
                 name: "Updated Balance",
-                value: `💵 Cash: $${result.newBalance.cashOnHand.toLocaleString()}\n🏦 Bank: $${result.newBalance.bankBalance.toLocaleString()}`,
+                value: `💵 Cash: ${BotBranding.formatCurrency(result.newBalance.cashOnHand)}\n🏦 Bank: ${BotBranding.formatCurrency(result.newBalance.bankBalance)}`,
                 inline: false,
               });
             }
@@ -528,14 +529,14 @@ const bankCommand: Command = {
             "🏦 Bank Account Information",
             `**${bankTier.name}**\n${
               balance.bankBalance > 0
-                ? `Current Balance: $${balance.bankBalance.toLocaleString()}`
+                ? `Current Balance: ${BotBranding.formatCurrency(balance.bankBalance)}`
                 : "No current balance"
             }`
           );
 
           embed.addFields({
             name: "💰 Benefits",
-            value: `• Daily Withdrawal Limit: $${bankTier.benefits.withdrawalLimit.toLocaleString()}\n• Interest Rate: ${(
+            value: `• Daily Withdrawal Limit: ${BotBranding.formatCurrency(bankTier.benefits.withdrawalLimit)}\n• Interest Rate: ${(
               bankTier.benefits.interestRate * 100
             ).toFixed(2)}% daily\n• Deposit Fee: ${(
               bankTier.benefits.depositFee * 100
@@ -557,15 +558,15 @@ const bankCommand: Command = {
 
           embed.addFields({
             name: "💡 Quick Reference",
-            value: `**💸 Max Withdrawable:** $${maxWithdrawable.toLocaleString()} (after ${(
+            value: `**💸 Max Withdrawable:** ${BotBranding.formatCurrency(maxWithdrawable)} (after ${(
               bankTier.benefits.withdrawalFee * 100
             ).toFixed(
               1
-            )}% fee)\n**💵 Available Cash:** $${balance.cashOnHand.toLocaleString()}\n**📈 Deposit $100 → Get:** $${depositAfterFee(
+            )}% fee)\n**💵 Available Cash:** ${BotBranding.formatCurrency(balance.cashOnHand)}\n**📈 Deposit ${BotBranding.formatCurrency(100)} → Get:** ${BotBranding.formatCurrency(depositAfterFee(
               100
-            )} in bank\n**📉 Withdraw $100 → Pay:** $${Math.floor(
+            ))} in bank\n**📉 Withdraw ${BotBranding.formatCurrency(100)} → Pay:** ${BotBranding.formatCurrency(Math.floor(
               100 * bankTier.benefits.withdrawalFee
-            )} fee`,
+            ))} fee`,
             inline: false,
           });
 
@@ -576,7 +577,7 @@ const bankCommand: Command = {
               name: "⬆️ Available Upgrade",
               value: `**${
                 upgradeInfo.nextTier.name
-              }**\nCost: $${upgradeInfo.nextTier.upgradeCost.toLocaleString()}\nUse \`/bank upgrade\` to upgrade`,
+              }**\nCost: ${BotBranding.formatCurrency(upgradeInfo.nextTier.upgradeCost)}\nUse \`/bank upgrade\` to upgrade`,
               inline: false,
             });
           } else if (upgradeInfo.nextTier) {

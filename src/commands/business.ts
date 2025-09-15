@@ -4,6 +4,7 @@ import { AssetService } from "../services/AssetService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil } from "../utils/ResponseUtil";
+import { BotBranding } from "../config/bot";
 
 const businessCommand: Command = {
   data: new SlashCommandBuilder()
@@ -20,7 +21,7 @@ const businessCommand: Command = {
             .setRequired(true)
             .addChoices(
               ...assetTemplates.map((asset) => ({
-                name: `${asset.name} - $${asset.basePrice.toLocaleString()}`,
+                name: `${asset.name} - ${BotBranding.formatCurrency(asset.basePrice)}`,
                 value: asset.id,
               }))
             )
@@ -158,14 +159,14 @@ const businessCommand: Command = {
                   value:
                     `**Name:** ${result.asset.name}\n` +
                     `**Type:** ${result.asset.type}\n` +
-                    `**Income Rate:** $${result.asset.incomeRate}/hour\n` +
+                    `**Income Rate:** ${BotBranding.formatCurrency(result.asset.incomeRate)}/hour\n` +
                     `**Security Level:** ${result.asset.securityLevel}`,
                   inline: true,
                 },
                 {
                   name: "💰 Purchase Info",
                   value:
-                    `**Cost:** $${result.cost.toLocaleString()}\n` +
+                    `**Cost:** ${BotBranding.formatCurrency(result.cost)}\n` +
                     `**Payment Method:** ${paymentMethod}\n` +
                     `**Status:** ✅ Purchased`,
                   inline: true,
@@ -207,7 +208,7 @@ const businessCommand: Command = {
                 "**Getting Started:**\n" +
                 "• Use `/assets` to browse available businesses\n" +
                 "• Use `/business buy <asset>` to purchase your first asset\n" +
-                "• Start with a Convenience Store for $15,000"
+                `• Start with a Convenience Store for ${BotBranding.formatCurrency(15000)}`
             );
             await interaction.editReply({ embeds: [embed] });
             return { success: true };
@@ -236,8 +237,8 @@ const businessCommand: Command = {
 
             let assetInfo = `**ID:** \`${asset.id.substring(0, 8)}\`\n`;
             assetInfo += `**Level:** ${asset.level}/${asset.template.maxLevel} • **Security:** ${asset.securityLevel}\n`;
-            assetInfo += `**Income Rate:** $${asset.incomeRate}/hour\n`;
-            assetInfo += `**Pending Income:** $${asset.pendingIncome.toLocaleString()}\n`;
+            assetInfo += `**Income Rate:** ${BotBranding.formatCurrency(asset.incomeRate)}/hour\n`;
+            assetInfo += `**Pending Income:** ${BotBranding.formatCurrency(asset.pendingIncome)}\n`;
             assetInfo += `**Last Collection:** ${hoursElapsed.toFixed(
               1
             )} hours ago\n`;
@@ -246,15 +247,15 @@ const businessCommand: Command = {
             if (asset.pendingIncomeBreakdown && asset.pendingIncome > 0) {
               let breakdown = "**Pending Breakdown:**\n";
               if (asset.pendingIncomeBreakdown.cash > 0) {
-                breakdown += `💵 $${asset.pendingIncomeBreakdown.cash.toLocaleString()}\n`;
+                breakdown += `💵 ${BotBranding.formatCurrency(asset.pendingIncomeBreakdown.cash)}\n`;
               }
               if (asset.pendingIncomeBreakdown.bank > 0) {
-                breakdown += `🏦 $${asset.pendingIncomeBreakdown.bank.toLocaleString()}\n`;
+                breakdown += `🏦 ${BotBranding.formatCurrency(asset.pendingIncomeBreakdown.bank)}\n`;
               }
               Object.entries(asset.pendingIncomeBreakdown.crypto).forEach(
                 ([coin, amount]) => {
                   if (amount > 0) {
-                    breakdown += `₿ $${amount.toLocaleString()} (${coin})\n`;
+                    breakdown += `₿ ${BotBranding.formatCurrency(amount)} (${coin})\n`;
                   }
                 }
               );
@@ -272,8 +273,8 @@ const businessCommand: Command = {
           embed.addFields({
             name: "📊 Portfolio Summary",
             value:
-              `**Total Hourly Income:** $${totalHourlyIncome.toLocaleString()}/hour\n` +
-              `**Total Pending Income:** $${totalPendingIncome.toLocaleString()}\n` +
+              `**Total Hourly Income:** ${BotBranding.formatCurrency(totalHourlyIncome)}/hour\n` +
+              `**Total Pending Income:** ${BotBranding.formatCurrency(totalPendingIncome)}\n` +
               `**Assets Owned:** ${assets.length}`,
             inline: false,
           });
@@ -300,15 +301,15 @@ const businessCommand: Command = {
               if (result.incomeBreakdown && result.totalIncome) {
                 let breakdown = "**Income Distribution:**\n";
                 if (result.incomeBreakdown.cash > 0) {
-                  breakdown += `💵 Cash: $${result.incomeBreakdown.cash.toLocaleString()}\n`;
+                  breakdown += `💵 Cash: ${BotBranding.formatCurrency(result.incomeBreakdown.cash)}\n`;
                 }
                 if (result.incomeBreakdown.bank > 0) {
-                  breakdown += `🏦 Bank: $${result.incomeBreakdown.bank.toLocaleString()}\n`;
+                  breakdown += `🏦 Bank: ${BotBranding.formatCurrency(result.incomeBreakdown.bank)}\n`;
                 }
                 Object.entries(result.incomeBreakdown.crypto).forEach(
                   ([coin, amount]) => {
                     if (amount > 0) {
-                      breakdown += `₿ ${coin}: $${amount.toLocaleString()}\n`;
+                      breakdown += `₿ ${coin}: ${BotBranding.formatCurrency(amount)}\n`;
                     }
                   }
                 );
@@ -370,7 +371,7 @@ const businessCommand: Command = {
             if (result.cost) {
               embed.addFields({
                 name: "💰 Upgrade Cost",
-                value: `$${result.cost.toLocaleString()} (${paymentMethod})`,
+                value: `${BotBranding.formatCurrency(result.cost)} (${paymentMethod})`,
                 inline: true,
               });
             }
