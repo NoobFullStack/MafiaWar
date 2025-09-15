@@ -5,6 +5,68 @@ import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
 
+// Simple cache for user levels to avoid DB hits on every autocomplete
+interface UserLevelCache {
+  level: number;
+  timestamp: number;
+}
+
+class CrimeAutocompleteCache {
+  private static userLevels: Map<string, UserLevelCache> = new Map();
+  private static readonly CACHE_TTL = 300000; // 5 minutes
+  private static readonly DEFAULT_LEVEL = 1;
+
+  static async getUserLevel(userId: string): Promise<number> {
+    const cached = this.userLevels.get(userId);
+    const now = Date.now();
+
+    // Return cached level if it's still fresh
+    if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+      return cached.level;
+    }
+
+    // Try to fetch fresh data, but with a timeout
+    try {
+      const user = await Promise.race([
+        DatabaseManager.getUserForAuth(userId),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('DB timeout')), 1500)
+        )
+      ]) as any;
+
+      const level = user?.character?.level || this.DEFAULT_LEVEL;
+      
+      // Cache the result
+      this.userLevels.set(userId, {
+        level,
+        timestamp: now
+      });
+
+      return level;
+    } catch (error) {
+      // If DB fails, return cached level (even if expired) or default
+      return cached?.level || this.DEFAULT_LEVEL;
+    }
+  }
+
+  static invalidateUser(userId: string): void {
+    this.userLevels.delete(userId);
+  }
+
+  // Clean up old cache entries periodically
+  static cleanup(): void {
+    const now = Date.now();
+    for (const [userId, cache] of this.userLevels.entries()) {
+      if ((now - cache.timestamp) > this.CACHE_TTL * 2) {
+        this.userLevels.delete(userId);
+      }
+    }
+  }
+}
+
+// Set up periodic cache cleanup
+setInterval(() => CrimeAutocompleteCache.cleanup(), 600000); // Every 10 minutes
+
 const crimeCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("crime")
@@ -14,24 +76,7 @@ const crimeCommand: Command = {
         .setName("type")
         .setDescription("Type of crime to commit")
         .setRequired(true)
-        .addChoices(
-          // Add choices based on available crimes
-          { name: "Pickpocketing", value: "pickpocketing" },
-          { name: "Shoplifting", value: "shoplifting" },
-          { name: "Bike Theft", value: "bike_theft" },
-          { name: "Credit Card Fraud", value: "credit_card_fraud" },
-          { name: "Car Theft", value: "car_theft" },
-          { name: "Burglary", value: "burglary" },
-          { name: "Store Robbery", value: "store_robbery" },
-          { name: "Bank Robbery", value: "bank_robbery" },
-          { name: "Cyber Hacking", value: "hacking" },
-          { name: "Drug Dealing", value: "drug_dealing" },
-          { name: "Extortion", value: "extortion" },
-          { name: "Money Laundering", value: "money_laundering" },
-          { name: "Assassination", value: "assassination" },
-          { name: "Arms Trafficking", value: "arms_trafficking" },
-          { name: "Grand Heist", value: "heist" }
-        )
+        .setAutocomplete(true)
     ),
 
   async execute(context: CommandContext): Promise<CommandResult> {
@@ -114,11 +159,16 @@ const crimeCommand: Command = {
       // Send public announcement only if crime was actually attempted
       // (not for requirement failures or other pre-execution errors)
       try {
+        const username = userTag.split("#")[0];
+        console.log(`DEBUG: Calling getCrimeAnnouncement with: crimeType=${crimeType}, success=${result.success}, username="${username}"`);
+        
         const publicMessage = getCrimeAnnouncement(
           crimeType,
           result.success,
-          result.success ? undefined : userTag.split("#")[0] // Only show username if crime failed
+          username // Always pass username for witness reports
         );
+
+        console.log(`DEBUG: Got public message: "${publicMessage}"`);
 
         // Create public embed
         const publicEmbed = ResponseUtil.info("🚨 Crime Alert", publicMessage);
@@ -137,6 +187,11 @@ const crimeCommand: Command = {
       logger.info(
         `Crime ${crimeType} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}`
       );
+
+      // Only invalidate user level cache if they actually leveled up
+      if (result.leveledUp) {
+        CrimeAutocompleteCache.invalidateUser(userId);
+      }
 
       return { success: true };
     } catch (error) {
@@ -221,6 +276,52 @@ const crimeCommand: Command = {
       }
 
       return { success: false, error: errorMessage };
+    }
+  },
+
+  async autocomplete(interaction: import("discord.js").AutocompleteInteraction) {
+    try {
+      const userId = interaction.user.id;
+      const focusedValue = interaction.options.getFocused().toLowerCase();
+
+      // Get user level from cache (much faster than DB)
+      const userLevel = await CrimeAutocompleteCache.getUserLevel(userId);
+
+      // Get available crimes for this player's level
+      const availableCrimes = CrimeService.getAvailableCrimes(userLevel);
+
+      // Filter and format crimes
+      const filtered = availableCrimes
+        .filter(crime => 
+          crime.name.toLowerCase().includes(focusedValue) ||
+          crime.id.toLowerCase().includes(focusedValue)
+        )
+        .slice(0, 25) // Discord limits to 25 choices
+        .map(crime => ({
+          name: crime.name,
+          value: crime.id
+        }));
+
+      // Always provide at least some options
+      if (filtered.length === 0) {
+        await interaction.respond([
+          { name: "Pickpocketing", value: "pickpocketing" },
+          { name: "Shoplifting", value: "shoplifting" }
+        ]);
+      } else {
+        await interaction.respond(filtered);
+      }
+    } catch (error) {
+      logger.error(`Autocomplete error for user ${interaction.user.id}:`, error);
+      // Always provide fallback options
+      try {
+        await interaction.respond([
+          { name: "Pickpocketing", value: "pickpocketing" },
+          { name: "Shoplifting", value: "shoplifting" }
+        ]);
+      } catch (respondError) {
+        logger.error(`Failed to send fallback autocomplete response:`, respondError);
+      }
     }
   },
 

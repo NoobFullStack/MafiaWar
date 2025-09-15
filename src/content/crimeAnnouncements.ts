@@ -363,12 +363,18 @@ export function getCrimeAnnouncement(
     return message.replace("{username}", username || "A criminal");
   }
 
-  // Crime succeeded - 20% chance of witness message, 80% generic
-  const useWitness = Math.random() < 0.2 && username;
+  // Crime succeeded - 66.6% chance of witness message, 33.3% generic
+  const useWitness = Math.random() < 0.666 && username;
+  //   console.log(`DEBUG: Crime ${crimeId}, success: ${success}, username: "${username}", useWitness: ${useWitness}`);
+
   if (useWitness) {
     const message = getRandomMessage(announcement.witnessMessages);
-    return message.replace("{username}", username);
+    const finalMessage = message.replace("{username}", username);
+    console.log(`DEBUG: Using witness message: "${finalMessage}"`);
+    return finalMessage;
   } else {
-    return getRandomMessage(announcement.successMessages);
+    const finalMessage = getRandomMessage(announcement.successMessages);
+    console.log(`DEBUG: Using generic message: "${finalMessage}"`);
+    return finalMessage;
   }
 }

@@ -1,4 +1,5 @@
 import {
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
   Client,
   GatewayIntentBits,
@@ -52,9 +53,11 @@ class MafiaWarBot {
     });
 
     this.client.on("interactionCreate", async (interaction) => {
-      if (!interaction.isChatInputCommand()) return;
-
-      await this.handleSlashCommand(interaction);
+      if (interaction.isChatInputCommand()) {
+        await this.handleSlashCommand(interaction);
+      } else if (interaction.isAutocomplete()) {
+        await this.handleAutocomplete(interaction);
+      }
     });
 
     // Graceful shutdown
@@ -154,6 +157,32 @@ class MafiaWarBot {
         error instanceof Error ? error : new Error("Unknown error"),
         interaction.commandName
       );
+    }
+  }
+
+  private async handleAutocomplete(
+    interaction: AutocompleteInteraction
+  ): Promise<void> {
+    const command = CommandManager.getCommand(interaction.commandName);
+
+    if (!command || !command.autocomplete) {
+      logger.warn(`No autocomplete handler for command: ${interaction.commandName}`);
+      return;
+    }
+
+    try {
+      await command.autocomplete(interaction);
+    } catch (error) {
+      logger.error(
+        `Error in autocomplete for ${interaction.commandName}:`,
+        error
+      );
+      // Provide fallback response
+      try {
+        await interaction.respond([]);
+      } catch (respondError) {
+        logger.error("Failed to send fallback autocomplete response:", respondError);
+      }
     }
   }
 
