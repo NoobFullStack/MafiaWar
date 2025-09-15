@@ -1,5 +1,9 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { BotBranding } from "../config/bot";
+import {
+  getCollectionAnnouncement,
+  shouldAnnounceCollection,
+} from "../content/collectionAnnouncements";
 import { assetTemplates } from "../data/assets";
 import { AssetService } from "../services/AssetService";
 import JailService from "../services/JailService";
@@ -363,11 +367,40 @@ const businessCommand: Command = {
               embed.setFooter({
                 text: "💡 Assets generate income over time • Check back later for more!",
               });
+
+              // First, send the private detailed response
+              await interaction.editReply({ embeds: [embed] });
+
+              // Then, send public announcement if collection is significant enough
+              if (
+                result.totalIncome &&
+                shouldAnnounceCollection(result.totalIncome)
+              ) {
+                try {
+                  const announcement = getCollectionAnnouncement(
+                    interaction.user.username,
+                    result.totalIncome
+                  );
+
+                  // Send public message to the channel (not ephemeral)
+                  if (interaction.channel && "send" in interaction.channel) {
+                    await interaction.channel.send({
+                      content: announcement,
+                    });
+                  }
+                } catch (announcementError) {
+                  console.error(
+                    "Error sending collection announcement:",
+                    announcementError
+                  );
+                  // Don't fail the entire command if announcement fails
+                }
+              }
             } else {
               embed = ResponseUtil.error("Collection Failed", result.message);
+              await interaction.editReply({ embeds: [embed] });
             }
 
-            await interaction.editReply({ embeds: [embed] });
             return { success: result.success };
           } catch (error: any) {
             console.error("Error collecting income:", error);
