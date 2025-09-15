@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/bot.js",
+    "fresh": "rm -rf dist && yarn build && node dist/bot.js",
     "dev": "ts-node src/bot.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

@@ -46,7 +46,7 @@ export const crimeData: CrimeData[] = [
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 30, // 30 seconds - changed from 0 to avoid potential division issues
+    cooldown: 1, // 1 second - changed from 1 to avoid potential division issues
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
@@ -251,6 +251,193 @@ export const crimeData: CrimeData[] = [
     },
     statBonuses: {
       intelligence: 3,
+    },
+  },
+
+  // === ORGANIZED CRIME ===
+  {
+    id: "drug_dealing",
+    name: "Drug Dealing",
+    description: "Distribute illegal substances for high profits.",
+    difficulty: 8,
+    cooldown: 5400, // 90 minutes
+    rewardMin: 5000,
+    rewardMax: 12000,
+    xpReward: 58, // Difficulty 8 × 5 + (5400/300) = 58
+    baseSuccessRate: 0.4,
+    jailTimeMin: 240,
+    jailTimeMax: 600,
+    category: "organized",
+    paymentType: "cash", // Drug money is always cash
+    paymentReason: "Street-level cash transactions",
+    requirements: {
+      level: 18,
+      reputation: 100,
+      stealth: 25,
+    },
+    statBonuses: {
+      stealth: 2,
+      intelligence: 1,
+    },
+    riskFactors: {
+      injury_chance: 0.15,
+      heat_generation: 4,
+    },
+  },
+
+  {
+    id: "extortion",
+    name: "Extortion",
+    description: "Extract protection money from businesses through intimidation.",
+    difficulty: 8,
+    cooldown: 6000, // 100 minutes
+    rewardMin: 4500,
+    rewardMax: 11000,
+    xpReward: 60, // Difficulty 8 × 5 + (6000/300) = 60
+    baseSuccessRate: 0.45,
+    jailTimeMin: 220,
+    jailTimeMax: 540,
+    category: "organized",
+    paymentType: "mixed", // Business payments go to bank
+    paymentReason: "Protection payments processed through business accounts",
+    requirements: {
+      level: 16,
+      reputation: 80,
+      strength: 30,
+      intelligence: 20,
+    },
+    statBonuses: {
+      strength: 2,
+      intelligence: 2,
+    },
+    riskFactors: {
+      injury_chance: 0.2,
+      heat_generation: 3,
+    },
+  },
+
+  {
+    id: "money_laundering",
+    name: "Money Laundering",
+    description: "Clean dirty money through legitimate businesses.",
+    difficulty: 9,
+    cooldown: 7200, // 120 minutes
+    rewardMin: 7000,
+    rewardMax: 15000,
+    xpReward: 69, // Difficulty 9 × 5 + (7200/300) = 69
+    baseSuccessRate: 0.35,
+    jailTimeMin: 300,
+    jailTimeMax: 720,
+    category: "white_collar",
+    paymentType: "bank", // All cleaned money goes to bank
+    paymentReason: "Laundered funds transferred to legitimate accounts",
+    requirements: {
+      level: 20,
+      reputation: 150,
+      intelligence: 40,
+    },
+    statBonuses: {
+      intelligence: 4,
+    },
+    riskFactors: {
+      heat_generation: 5,
+    },
+  },
+
+  {
+    id: "assassination",
+    name: "Assassination",
+    description: "Elite contract killings for the highest bidders.",
+    difficulty: 10,
+    cooldown: 10800, // 180 minutes
+    rewardMin: 15000,
+    rewardMax: 35000,
+    xpReward: 86, // Difficulty 10 × 5 + (10800/300) = 86
+    baseSuccessRate: 0.25,
+    jailTimeMin: 480,
+    jailTimeMax: 1440,
+    category: "violence",
+    paymentType: "crypto", // Untraceable payments
+    paymentReason: "Contract payments in untraceable cryptocurrency",
+    requirements: {
+      level: 25,
+      reputation: 250,
+      strength: 40,
+      stealth: 40,
+      intelligence: 30,
+    },
+    statBonuses: {
+      strength: 3,
+      stealth: 3,
+      intelligence: 2,
+    },
+    riskFactors: {
+      injury_chance: 0.3,
+      heat_generation: 8,
+    },
+  },
+
+  {
+    id: "arms_trafficking",
+    name: "Arms Trafficking",
+    description: "Smuggle and distribute illegal weapons.",
+    difficulty: 9,
+    cooldown: 8400, // 140 minutes
+    rewardMin: 8000,
+    rewardMax: 20000,
+    xpReward: 73, // Difficulty 9 × 5 + (8400/300) = 73
+    baseSuccessRate: 0.3,
+    jailTimeMin: 360,
+    jailTimeMax: 900,
+    category: "organized",
+    paymentType: "mixed", // Cash + crypto for international deals
+    paymentReason: "Weapons sales through multiple payment channels",
+    requirements: {
+      level: 22,
+      reputation: 200,
+      strength: 35,
+      intelligence: 25,
+    },
+    statBonuses: {
+      strength: 2,
+      intelligence: 3,
+    },
+    riskFactors: {
+      injury_chance: 0.25,
+      heat_generation: 6,
+    },
+  },
+
+  {
+    id: "heist",
+    name: "Grand Heist",
+    description: "Orchestrate elaborate multi-target robberies.",
+    difficulty: 10,
+    cooldown: 14400, // 240 minutes (4 hours)
+    rewardMin: 20000,
+    rewardMax: 50000,
+    xpReward: 98, // Difficulty 10 × 5 + (14400/300) = 98
+    baseSuccessRate: 0.2,
+    jailTimeMin: 600,
+    jailTimeMax: 1800,
+    category: "organized",
+    paymentType: "mixed", // Complex heists have mixed payouts
+    paymentReason: "Multi-target heist proceeds distributed across accounts",
+    requirements: {
+      level: 30,
+      reputation: 400,
+      strength: 35,
+      stealth: 35,
+      intelligence: 35,
+    },
+    statBonuses: {
+      strength: 3,
+      stealth: 3,
+      intelligence: 4,
+    },
+    riskFactors: {
+      injury_chance: 0.35,
+      heat_generation: 10,
     },
   },
 ];

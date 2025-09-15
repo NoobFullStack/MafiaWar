@@ -1,10 +1,10 @@
 import { SlashCommandBuilder } from "discord.js";
+import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
 import { CrimeService } from "../services/CrimeService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
-import { BotBranding } from "../config/bot";
 
 // Helper function to get category icons
 function getCategoryIcon(category: string): string {
@@ -32,7 +32,10 @@ const crimesCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [noAccountEmbed],
+          flags: 64,
+        });
         return { success: false, error: "User not registered" };
       }
 
@@ -46,9 +49,9 @@ const crimesCommand: Command = {
       // Create embed
       const embed = ResponseUtil.info(
         "🔫 Available Crimes",
-        `**Level ${character.level}** | ${availableCrimes.length} crimes unlocked\n\nFormat: **Name** | **Level Required** | **Reward Range**`
+        `**Level ${character.level}** | ${availableCrimes.length} crimes unlocked\n\n`
       );
-      
+
       // Group crimes by category
       const crimesByCategory = allCrimes.reduce((acc, crime) => {
         if (!acc[crime.category]) {
@@ -71,7 +74,11 @@ const crimesCommand: Command = {
             const icon = isAvailable ? "✅" : "🔒";
 
             // More compact format: Name | Level | Reward
-            return `${icon} **${crime.name}** | Lv.${levelReq} | ${BotBranding.formatCurrency(crime.rewardMin)}-${BotBranding.formatCurrency(crime.rewardMax)}`;
+            return `${icon} **${
+              crime.name
+            }** | Lv.${levelReq} | ${BotBranding.formatCurrency(
+              crime.rewardMin
+            )}-${BotBranding.formatCurrency(crime.rewardMax)}`;
           })
           .join("\n");
 
@@ -87,7 +94,10 @@ const crimesCommand: Command = {
         text: "💡 Tip: Use /crime <type> to commit crimes • Level up to unlock more!\n✅ = Available • 🔒 = Level locked",
       });
 
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [embed],
+        flags: 64,
+      });
       return { success: true };
     } catch (error) {
       logger.error(`Crimes command error for user ${userId}:`, error);
@@ -97,7 +107,10 @@ const crimesCommand: Command = {
         "Failed to load crime information. Please try again."
       );
 
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [embed],
+        flags: 64,
+      });
       return { success: false, error: "Failed to load crimes" };
     }
   },
