@@ -250,13 +250,14 @@ export class ResponseUtil {
       {
         name: "🎭 Get Started",
         value:
-          "Use `/create-account` to create your criminal character and join the underworld!",
+          "Use `/user-create` to create your criminal character and join the underworld!",
         inline: false,
       },
       {
         name: "🎮 What You'll Get",
-        value:
-          `• Your own criminal character\n• ${BotBranding.formatCurrency(1000)} starting money\n• Access to crimes and activities\n• Multi-tier money management\n• Level progression system`,
+        value: `• Your own criminal character\n• ${BotBranding.formatCurrency(
+          1000
+        )} starting money\n• Access to crimes and activities\n• Multi-tier money management\n• Level progression system`,
         inline: false,
       }
     );

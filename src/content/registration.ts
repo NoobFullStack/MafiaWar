@@ -121,7 +121,7 @@ export const RegistrationContent = {
       pathToPower: {
         name: "🎯 Path to Power",
         value:
-          "• Strike fast, strike smart\n• Every crime builds your reputation\n• Invest wisely across cash, bank, and crypto\n• Level up to unlock deadlier opportunities\n• Remember: `/delete-account` if you want to restart your empire",
+          "• Strike fast, strike smart\n• Every crime builds your reputation\n• Invest wisely across cash, bank, and crypto\n• Level up to unlock deadlier opportunities\n• Remember: `/user-delete` if you want to restart your empire",
       },
     },
 
@@ -199,17 +199,17 @@ export const RegistrationContent = {
     cancelled: {
       title: "👋 Registration Cancelled",
       description:
-        "No problem! You can create your character anytime by using `/create-account` again.",
+        "No problem! You can create your character anytime by using `/user-create` again.",
       field: {
         name: "💡 When you're ready",
         value:
-          "Use `/create-account` to start your criminal journey and build your empire!",
+          "Use `/user-create` to start your criminal journey and build your empire!",
       },
     },
     infoClosed: {
       title: "📖 Information Closed",
       description:
-        "Ready to start your criminal empire? Use `/create-account` to begin your journey!",
+        "Ready to start your criminal empire? Use `/user-create` to begin your journey!",
     },
     alreadyExists: {
       title: "Account Already Exists",

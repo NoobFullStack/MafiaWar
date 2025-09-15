@@ -397,11 +397,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Ready to build your criminal empire?** Start with `/create-account` to create your character, then use `/assets` to browse businesses and `/business buy` to start generating passive income! 🎭
+**Ready to build your criminal empire?** Start with `/user-create` to create your character, then use `/assets` to browse businesses and `/business buy` to start generating passive income! 🎭
 
 ### **🎯 Quick Start Guide**
 
-1. **Create Character** - `/create-account` to join the underworld
+1. **Create Character** - `/user-create` to join the underworld
 2. **Check Finances** - `/wallet` to see your starting $1,000
 3. **Browse Businesses** - `/assets` to see available investments
 4. **Buy First Asset** - `/business buy test_lemonade_stand` (perfect for testing!)
