@@ -10,6 +10,7 @@ import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
+import { BotBranding } from "../config/bot";
 
 // Helper functions for each subcommand
 async function handlePrices(context: CommandContext): Promise<CommandResult> {
@@ -71,9 +72,9 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
 
       embed.addFields({
         name: `${changeEmoji} ${coin.name} (${coin.symbol})`,
-        value: `**$${price.toFixed(
+        value: `**${BotBranding.formatCurrency(parseFloat(price.toFixed(
           coin.id === "dogecoin" ? 4 : 2
-        )}**\n${changeColor}${change24h.toFixed(2)}% (24h)\n${description}`,
+        )))}**\n${changeColor}${change24h.toFixed(2)}% (24h)\n${description}`,
         inline: true,
       });
     }
@@ -177,7 +178,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
       const embed = ResponseUtil.error(
         "Insufficient Funds",
-        `You need $${cashAmount.toLocaleString()} but only have $${sourceBalance.toLocaleString()} in ${paymentMethod}.`
+        `You need ${BotBranding.formatCurrency(cashAmount)} but only have ${BotBranding.formatCurrency(sourceBalance)} in ${paymentMethod}.`
       );
 
       if (maxBuyAmount >= 10) {
@@ -189,11 +190,11 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
           name: "💡 Buy Maximum Instead?",
           value: `**Your ${
             paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)
-          }:** $${sourceBalance.toLocaleString()}\n**Current Price:** $${currentPrice.toFixed(
+          }:** ${BotBranding.formatCurrency(sourceBalance)}\n**Current Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
             coin.id === "dogecoin" ? 4 : 2
-          )} per ${
+          )))} per ${
             coin.symbol
-          }\n**Fee (3%):** $${maxFee.toLocaleString()}\n**Net Investment:** $${maxNetAmount.toLocaleString()}\n**You'd Get:** ${maxCoinAmount.toFixed(
+          }\n**Fee (3%):** ${BotBranding.formatCurrency(maxFee)}\n**Net Investment:** ${BotBranding.formatCurrency(maxNetAmount)}\n**You'd Get:** ${maxCoinAmount.toFixed(
             6
           )} ${coin.symbol}`,
           inline: false,
@@ -269,31 +270,31 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
             successEmbed.addFields(
               {
                 name: "💰 Transaction Details",
-                value: `**Spent:** $${maxBuyAmount.toLocaleString()}\n**Fee:** $${maxFee.toLocaleString()} (3%)\n**Net Amount:** $${maxNetAmount.toLocaleString()}`,
+                value: `**Spent:** ${BotBranding.formatCurrency(maxBuyAmount)}\n**Fee:** ${BotBranding.formatCurrency(maxFee)} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(maxNetAmount)}`,
                 inline: true,
               },
               {
                 name: `₿ ${coin.symbol} Acquired`,
                 value: `**Amount:** ${maxCoinAmount.toFixed(6)} ${
                   coin.symbol
-                }\n**Price:** $${currentPrice.toFixed(
+                }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
                   coin.id === "dogecoin" ? 4 : 2
-                )} per ${
+                )))} per ${
                   coin.symbol
-                }\n**Value:** $${maxNetAmount.toLocaleString()}`,
+                }\n**Value:** ${BotBranding.formatCurrency(maxNetAmount)}`,
                 inline: true,
               },
               {
                 name: "💵 Updated Balance",
-                value: `**Cash:** $${
+                value: `**Cash:** ${BotBranding.formatCurrency(
                   paymentMethod === "cash"
-                    ? result.data?.fromBalance.toLocaleString()
-                    : balances.cashOnHand.toLocaleString()
-                }\n**Bank:** $${
+                    ? result.data?.fromBalance || 0
+                    : balances.cashOnHand
+                )}\n**Bank:** ${BotBranding.formatCurrency(
                   paymentMethod === "bank"
-                    ? result.data?.fromBalance.toLocaleString()
-                    : balances.bankBalance.toLocaleString()
-                }`,
+                    ? result.data?.fromBalance || 0
+                    : balances.bankBalance
+                )}`,
                 inline: false,
               }
             );
@@ -343,18 +344,18 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
               successEmbed.addFields(
                 {
                   name: "💰 Transaction Details",
-                  value: `**Spent:** $${cashAmount.toLocaleString()}\n**Fee:** $${fee.toLocaleString()} (3%)\n**Net Amount:** $${netAmount.toLocaleString()}`,
+                  value: `**Spent:** ${BotBranding.formatCurrency(cashAmount)}\n**Fee:** ${BotBranding.formatCurrency(fee)} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(netAmount)}`,
                   inline: true,
                 },
                 {
                   name: `₿ ${coin.symbol} Acquired`,
                   value: `**Amount:** ${coinAmount.toFixed(6)} ${
                     coin.symbol
-                  }\n**Price:** $${currentPrice.toFixed(
+                  }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
                     coin.id === "dogecoin" ? 4 : 2
-                  )} per ${
+                  )))} per ${
                     coin.symbol
-                  }\n**Value:** $${netAmount.toLocaleString()}`,
+                  }\n**Value:** ${BotBranding.formatCurrency(netAmount)}`,
                   inline: true,
                 }
               );
@@ -367,7 +368,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
             } else {
               const switchEmbed = ResponseUtil.error(
                 "Insufficient Funds",
-                `Not enough ${newMethod} either. You have $${newBalance.toLocaleString()} in ${newMethod}.`
+                `Not enough ${newMethod} either. You have ${BotBranding.formatCurrency(newBalance)} in ${newMethod}.`
               );
               await buttonInteraction.editReply({
                 embeds: [switchEmbed],
@@ -406,7 +407,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
       } else {
         embed.addFields({
           name: "💡 Need More Money",
-          value: `• Use \`/crime\` to earn money\n• You need at least $10 to buy cryptocurrency\n• Check other payment methods if available`,
+          value: `• Use \`/crime\` to earn money\n• You need at least ${BotBranding.formatCurrency(10)} to buy cryptocurrency\n• Check other payment methods if available`,
           inline: false,
         });
 
@@ -829,7 +830,7 @@ async function handlePortfolio(
               coin?.symbol || coinType.toUpperCase()
             } × $${price.toFixed(
               coin?.id === "dogecoin" ? 4 : 2
-            )} = **$${value.toFixed(2)}**\n` +
+            )} = **${BotBranding.formatCurrency(parseFloat(value.toFixed(2)))}**\n` +
             `${changeColor}${change24h.toFixed(2)}% (24h)`
         );
       }

@@ -16,6 +16,7 @@ import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
 import MoneyService from "./MoneyService";
+import { BotBranding } from "../config/bot";
 
 export interface CrimeResult {
   success: boolean;
@@ -293,7 +294,7 @@ export class CrimeService {
 
     // Generate success message with payout details
     let message = `✅ **${crime.name} Successful!**\n`;
-    message += `💰 Earned: **$${moneyEarned.toLocaleString()}**`;
+    message += `💰 Earned: **${BotBranding.formatCurrency(moneyEarned)}**`;
 
     // Add payout method information
     if (crime.paymentType && crime.paymentType !== "cash") {

@@ -1,14 +1,15 @@
-import { 
-  SlashCommandBuilder, 
-  EmbedBuilder, 
-  ActionRowBuilder, 
-  ButtonBuilder, 
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  EmbedBuilder,
   ModalBuilder,
+  SlashCommandBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
 } from "discord.js";
+import { BotBranding } from "../config/bot";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
@@ -23,14 +24,19 @@ const deleteAccountCommand: Command = {
 
     try {
       // Check if user exists
-      const previewResult = await DatabaseManager.getUserDeletionPreview(userId);
-      
+      const previewResult = await DatabaseManager.getUserDeletionPreview(
+        userId
+      );
+
       if (!previewResult.found) {
         const notFoundEmbed = ResponseUtil.info(
           "No Account Found",
-          "You don't have a MafiaWar account to delete. Use `/profile` to create one!"
+          `You don't have a ${BotBranding.getName()} account to delete. Use \`/profile\` to create one!`
         );
-        await ResponseUtil.smartReply(interaction, { embeds: [notFoundEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [notFoundEmbed],
+          flags: 64,
+        });
         return { success: true };
       }
 
@@ -39,14 +45,21 @@ const deleteAccountCommand: Command = {
           "Error",
           "Failed to load your account information. Please try again later."
         );
-        await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [errorEmbed],
+          flags: 64,
+        });
         return { success: false, error: previewResult.error };
       }
 
       // Show deletion preview and warning
-      await showDeletionWarning(interaction, previewResult.preview!, userId, userTag);
+      await showDeletionWarning(
+        interaction,
+        previewResult.preview!,
+        userId,
+        userTag
+      );
       return { success: true };
-
     } catch (error) {
       logger.error("Error in delete-account command", error);
 
@@ -55,7 +68,10 @@ const deleteAccountCommand: Command = {
         "Failed to process account deletion request. Please try again later."
       );
 
-      await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [errorEmbed],
+        flags: 64,
+      });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -65,43 +81,73 @@ const deleteAccountCommand: Command = {
 
   cooldown: 30,
   category: "account",
-  description: "Permanently delete your MafiaWar account and all associated data",
+  description: `Permanently delete your ${BotBranding.getName()} account and all associated data`,
 };
 
-async function showDeletionWarning(interaction: any, preview: any, userId: string, userTag: string) {
+async function showDeletionWarning(
+  interaction: any,
+  preview: any,
+  userId: string,
+  userTag: string
+) {
   const warningEmbed = new EmbedBuilder()
     .setColor(0xff0000) // Red for danger
     .setTitle("⚠️ ACCOUNT DELETION WARNING")
     .setDescription(
-      `**${userTag}**, you are about to **PERMANENTLY DELETE** your MafiaWar account!\n\n` +
-      "🚨 **THIS ACTION CANNOT BE UNDONE** 🚨\n\n" +
-      "**What will be deleted:**"
+      `**${userTag}**, you are about to **PERMANENTLY DELETE** your ${BotBranding.getName()} account!\n\n` +
+        "🚨 **THIS ACTION CANNOT BE UNDONE** 🚨\n\n" +
+        "**What will be deleted:**"
     )
     .addFields(
       {
         name: "👤 Character Data",
-        value: preview.character 
-          ? `• **${preview.character.name}** (Level ${preview.character.level})\n• $${preview.character.cashOnHand.toLocaleString()} cash\n• $${preview.character.bankBalance.toLocaleString()} in bank\n• ${preview.character.reputation} reputation`
+        value: preview.character
+          ? `• **${preview.character.name}** (Level ${
+              preview.character.level
+            })\n• ${BotBranding.formatCurrency(preview.character.cashOnHand)} cash\n• ${BotBranding.formatCurrency(preview.character.bankBalance)} in bank\n• ${
+              preview.character.reputation
+            } reputation`
           : "• No character found",
         inline: false,
       },
       {
         name: "🏢 Assets & Property",
-        value: preview.assets.length > 0 
-          ? `• ${preview.assets.length} properties\n• Total upgrades: ${preview.assets.reduce((sum: number, asset: any) => sum + asset.upgrades, 0)}\n• Combined value: $${preview.assets.reduce((sum: number, asset: any) => sum + asset.value, 0).toLocaleString()}`
-          : "• No assets owned",
+        value:
+          preview.assets.length > 0
+            ? `• ${
+                preview.assets.length
+              } properties\n• Total upgrades: ${preview.assets.reduce(
+                (sum: number, asset: any) => sum + asset.upgrades,
+                0
+              )}\n• Combined value: ${BotBranding.formatCurrency(preview.assets
+                .reduce((sum: number, asset: any) => sum + asset.value, 0))}`
+            : "• No assets owned",
         inline: true,
       },
       {
         name: "👥 Gang Involvement",
-        value: `• Member of ${preview.gangs.memberships.length} gangs\n• Leader of ${preview.gangs.leadership.length} gangs\n${preview.gangs.leadership.length > 0 ? "• Leadership will be transferred" : ""}`,
+        value: `• Member of ${
+          preview.gangs.memberships.length
+        } gangs\n• Leader of ${preview.gangs.leadership.length} gangs\n${
+          preview.gangs.leadership.length > 0
+            ? "• Leadership will be transferred"
+            : ""
+        }`,
         inline: true,
       },
       {
         name: "🎒 Inventory & Items",
-        value: preview.inventory.length > 0
-          ? `• ${preview.inventory.length} different items\n• Total value: $${preview.inventory.reduce((sum: number, item: any) => sum + (item.value * item.quantity), 0).toLocaleString()}`
-          : "• No items in inventory",
+        value:
+          preview.inventory.length > 0
+            ? `• ${
+                preview.inventory.length
+              } different items\n• Total value: $${preview.inventory
+                .reduce(
+                  (sum: number, item: any) => sum + item.value * item.quantity,
+                  0
+                )
+                .toLocaleString()}`
+            : "• No items in inventory",
         inline: true,
       },
       {
@@ -111,19 +157,22 @@ async function showDeletionWarning(interaction: any, preview: any, userId: strin
       },
       {
         name: "🔄 Gang Leadership Impact",
-        value: preview.gangs.leadership.length > 0
-          ? preview.gangs.leadership.map((gang: any) => 
-              gang.willDelete 
-                ? `• **${gang.gangName}** will be DELETED (no other members)`
-                : `• **${gang.gangName}** leadership will transfer to another member`
-            ).join("\n")
-          : "• No gangs will be affected",
+        value:
+          preview.gangs.leadership.length > 0
+            ? preview.gangs.leadership
+                .map((gang: any) =>
+                  gang.willDelete
+                    ? `• **${gang.gangName}** will be DELETED (no other members)`
+                    : `• **${gang.gangName}** leadership will transfer to another member`
+                )
+                .join("\n")
+            : "• No gangs will be affected",
         inline: false,
       }
     )
     .addFields({
       name: "⚠️ FINAL WARNING",
-      value: 
+      value:
         "• **ALL** your game progress will be lost forever\n" +
         "• **ALL** your money, assets, and items will be deleted\n" +
         "• **ALL** your statistics and history will be erased\n" +
@@ -135,26 +184,25 @@ async function showDeletionWarning(interaction: any, preview: any, userId: strin
     .setFooter({ text: "This action is PERMANENT and IRREVERSIBLE!" })
     .setTimestamp();
 
-  const actionRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('confirm_deletion')
-        .setLabel('🗑️ YES, DELETE EVERYTHING')
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId('require_verification')
-        .setLabel('🔐 I Need to Verify First')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId('cancel_deletion')
-        .setLabel('❌ Cancel (Keep My Account)')
-        .setStyle(ButtonStyle.Primary)
-    );
+  const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId("confirm_deletion")
+      .setLabel("🗑️ YES, DELETE EVERYTHING")
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId("require_verification")
+      .setLabel("🔐 I Need to Verify First")
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId("cancel_deletion")
+      .setLabel("❌ Cancel (Keep My Account)")
+      .setStyle(ButtonStyle.Primary)
+  );
 
   await ResponseUtil.smartReply(interaction, {
     embeds: [warningEmbed],
     components: [actionRow],
-    flags: 64 // Ephemeral
+    flags: 64, // Ephemeral
   });
 
   // Handle button interactions
@@ -162,17 +210,17 @@ async function showDeletionWarning(interaction: any, preview: any, userId: strin
   const collector = interaction.channel?.createMessageComponentCollector({
     filter,
     componentType: ComponentType.Button,
-    time: 300000 // 5 minutes
+    time: 300000, // 5 minutes
   });
 
   if (collector) {
-    collector.on('collect', async (i: any) => {
+    collector.on("collect", async (i: any) => {
       try {
-        if (i.customId === 'confirm_deletion') {
+        if (i.customId === "confirm_deletion") {
           await executeAccountDeletion(i, userId, userTag, preview);
-        } else if (i.customId === 'require_verification') {
+        } else if (i.customId === "require_verification") {
           await showVerificationModal(i, userId, userTag, preview);
-        } else if (i.customId === 'cancel_deletion') {
+        } else if (i.customId === "cancel_deletion") {
           await cancelDeletion(i);
         }
       } catch (error) {
@@ -180,39 +228,51 @@ async function showDeletionWarning(interaction: any, preview: any, userId: strin
       }
     });
 
-    collector.on('end', () => {
+    collector.on("end", () => {
       // Disable buttons after timeout
-      actionRow.components.forEach(button => button.setDisabled(true));
+      actionRow.components.forEach((button) => button.setDisabled(true));
       interaction.editReply({ components: [actionRow] }).catch(() => {});
     });
   }
 }
 
-async function showVerificationModal(interaction: any, userId: string, userTag: string, preview: any) {
+async function showVerificationModal(
+  interaction: any,
+  userId: string,
+  userTag: string,
+  preview: any
+) {
   const modal = new ModalBuilder()
-    .setCustomId('deletion_verification')
-    .setTitle('🔐 Account Deletion Verification');
+    .setCustomId("deletion_verification")
+    .setTitle("🔐 Account Deletion Verification");
 
   const characterNameInput = new TextInputBuilder()
-    .setCustomId('character_name_verification')
-    .setLabel('Enter your character name to verify')
+    .setCustomId("character_name_verification")
+    .setLabel("Enter your character name to verify")
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder(preview.character ? `Type: ${preview.character.name}` : 'No character found')
+    .setPlaceholder(
+      preview.character
+        ? `Type: ${preview.character.name}`
+        : "No character found"
+    )
     .setRequired(true)
     .setMinLength(2)
     .setMaxLength(50);
 
   const confirmationInput = new TextInputBuilder()
-    .setCustomId('deletion_confirmation')
+    .setCustomId("deletion_confirmation")
     .setLabel('Type "DELETE MY ACCOUNT" to confirm')
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder('Type exactly: DELETE MY ACCOUNT')
+    .setPlaceholder("Type exactly: DELETE MY ACCOUNT")
     .setRequired(true)
     .setMinLength(17)
     .setMaxLength(17);
 
-  const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(characterNameInput);
-  const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(confirmationInput);
+  const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    characterNameInput
+  );
+  const secondActionRow =
+    new ActionRowBuilder<TextInputBuilder>().addComponents(confirmationInput);
 
   modal.addComponents(firstActionRow, secondActionRow);
 
@@ -225,43 +285,54 @@ async function showVerificationModal(interaction: any, userId: string, userTag: 
       filter: (i: any) => i.user.id === interaction.user.id,
     });
 
-    const enteredName = submitted.fields.getTextInputValue('character_name_verification');
-    const confirmationText = submitted.fields.getTextInputValue('deletion_confirmation');
+    const enteredName = submitted.fields.getTextInputValue(
+      "character_name_verification"
+    );
+    const confirmationText = submitted.fields.getTextInputValue(
+      "deletion_confirmation"
+    );
 
     // Verify inputs
-    const expectedName = preview.character?.name || '';
-    const isNameCorrect = enteredName.toLowerCase() === expectedName.toLowerCase();
-    const isConfirmationCorrect = confirmationText === 'DELETE MY ACCOUNT';
+    const expectedName = preview.character?.name || "";
+    const isNameCorrect =
+      enteredName.toLowerCase() === expectedName.toLowerCase();
+    const isConfirmationCorrect = confirmationText === "DELETE MY ACCOUNT";
 
     if (!isNameCorrect || !isConfirmationCorrect) {
       const errorEmbed = ResponseUtil.error(
         "Verification Failed",
-        !isNameCorrect 
+        !isNameCorrect
           ? `Character name doesn't match. Expected: "${expectedName}"`
           : "Confirmation text doesn't match. Must be exactly: 'DELETE MY ACCOUNT'"
       );
 
       await submitted.reply({
         embeds: [errorEmbed],
-        flags: 64
+        flags: 64,
       });
       return;
     }
 
     // Verification successful - proceed with deletion
     await executeAccountDeletion(submitted, userId, userTag, preview);
-
   } catch (error) {
     logger.error("Modal verification timeout or error", error);
   }
 }
 
-async function executeAccountDeletion(interaction: any, userId: string, userTag: string, preview: any) {
+async function executeAccountDeletion(
+  interaction: any,
+  userId: string,
+  userTag: string,
+  preview: any
+) {
   // Show loading message
   const loadingEmbed = new EmbedBuilder()
     .setColor(0xffaa00)
     .setTitle("🔄 Deleting Account...")
-    .setDescription("Please wait while we permanently delete your account and all data...")
+    .setDescription(
+      "Please wait while we permanently delete your account and all data..."
+    )
     .setTimestamp();
 
   await interaction.update({
@@ -273,7 +344,7 @@ async function executeAccountDeletion(interaction: any, userId: string, userTag:
     // Get user ID from database
     const user = await DatabaseManager.getClient().user.findUnique({
       where: { discordId: userId },
-      select: { id: true, username: true }
+      select: { id: true, username: true },
     });
 
     if (!user) {
@@ -292,14 +363,16 @@ async function executeAccountDeletion(interaction: any, userId: string, userTag:
       .setColor(0x00ff00)
       .setTitle("✅ Account Successfully Deleted")
       .setDescription(
-        `**${userTag}**, your MafiaWar account has been permanently deleted.\n\n` +
-        "**What was deleted:**"
+        `**${userTag}**, your ${BotBranding.getName()} account has been permanently deleted.\n\n` +
+          "**What was deleted:**"
       )
       .addFields(
         {
           name: "📊 Deletion Summary",
-          value: 
-            `• Character: ${deletionResult.deletedData.character ? '1 deleted' : 'None'}\n` +
+          value:
+            `• Character: ${
+              deletionResult.deletedData.character ? "1 deleted" : "None"
+            }\n` +
             `• Assets: ${deletionResult.deletedData.assets} deleted\n` +
             `• Gang memberships: ${deletionResult.deletedData.gangMemberships} removed\n` +
             `• Gang leadership: ${deletionResult.deletedData.ledGangs} transferred/deleted\n` +
@@ -311,30 +384,33 @@ async function executeAccountDeletion(interaction: any, userId: string, userTag:
         },
         {
           name: "🔄 If You Change Your Mind",
-          value: "• Use `/profile` to create a new character\n• You'll start completely fresh\n• All progress and data is permanently lost",
+          value:
+            "• Use `/profile` to create a new character\n• You'll start completely fresh\n• All progress and data is permanently lost",
           inline: false,
         }
       )
-      .setFooter({ text: "Thank you for playing MafiaWar!" })
+      .setFooter({ text: `Thank you for playing ${BotBranding.getName()}!` })
       .setTimestamp();
 
     await interaction.editReply({
-      embeds: [successEmbed]
+      embeds: [successEmbed],
     });
 
     // Log the successful deletion
-    logger.info(`🗑️ Successfully deleted account for ${userTag} (${userId})`, deletionResult.deletedData);
-
+    logger.info(
+      `🗑️ Successfully deleted account for ${userTag} (${userId})`,
+      deletionResult.deletedData
+    );
   } catch (error) {
     logger.error("Error executing account deletion", error);
-    
+
     const errorEmbed = ResponseUtil.error(
       "Deletion Failed",
       "Failed to delete your account. Please contact an administrator or try again later."
     );
 
     await interaction.editReply({
-      embeds: [errorEmbed]
+      embeds: [errorEmbed],
     });
   }
 }
@@ -346,7 +422,8 @@ async function cancelDeletion(interaction: any) {
     .setDescription("Your account is safe! No data has been deleted.")
     .addFields({
       name: "💡 Your Account",
-      value: "• All your data remains intact\n• Continue playing as normal\n• Use `/profile` to view your character",
+      value:
+        "• All your data remains intact\n• Continue playing as normal\n• Use `/profile` to view your character",
       inline: false,
     })
     .setFooter({ text: "Welcome back to the criminal underworld!" })
