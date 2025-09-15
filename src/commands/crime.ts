@@ -224,7 +224,7 @@ const crimeCommand: Command = {
           errorTitle = "Crime Error";
         } else if (error.message.includes("character")) {
           errorMessage =
-            "You need to create a character first. Use `/create-account` to get started.";
+            "You need to create a character first. Use `/user-create` to get started.";
           errorTitle = "No Character Found";
         } else if (
           error.message.includes("jail") ||

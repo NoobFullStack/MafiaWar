@@ -17,7 +17,7 @@ import { ResponseUtil, logger } from "../utils/ResponseUtil";
 
 const createAccountCommand: Command = {
   data: new SlashCommandBuilder()
-    .setName("create-account")
+    .setName("user-create")
     .setDescription(
       `🎭 Create your ${BotBranding.getName()} criminal character and start your empire`
     ),
@@ -69,7 +69,7 @@ const createAccountCommand: Command = {
       await showRegistrationFlow(interaction, userTag, userId);
       return { success: true };
     } catch (error) {
-      logger.error("Error in create-account command", error);
+      logger.error("Error in user-create command", error);
 
       const errorEmbed = ResponseUtil.error(
         "Account Creation Error",
@@ -646,8 +646,9 @@ async function finalizeCharacterCreation(
     // Send public announcement to the channel
     try {
       const announcements = RegistrationContent.publicAnnouncements;
-      const randomAnnouncement = announcements[Math.floor(Math.random() * announcements.length)];
-      
+      const randomAnnouncement =
+        announcements[Math.floor(Math.random() * announcements.length)];
+
       const publicEmbed = new EmbedBuilder()
         .setColor(BotBranding.getThemeColor())
         .setTitle(randomAnnouncement.title)
@@ -668,7 +669,7 @@ async function finalizeCharacterCreation(
     await DatabaseManager.logAction(user.id, "character_creation", "success", {
       characterName,
       background,
-      commandUsed: "create-account",
+      commandUsed: "user-create",
     });
 
     logger.info(

@@ -28,7 +28,7 @@ const profileCommand: Command = {
         },
       });
 
-      // If user doesn't exist, redirect to create-account
+      // If user doesn't exist, redirect to user-create
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
         await ResponseUtil.smartReply(interaction, {

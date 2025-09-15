@@ -17,7 +17,7 @@ import { ResponseUtil, logger } from "../utils/ResponseUtil";
 
 const deleteAccountCommand: Command = {
   data: new SlashCommandBuilder()
-    .setName("delete-account")
+    .setName("user-delete")
     .setDescription("⚠️ Permanently delete your account and all game data"),
 
   async execute(context: CommandContext): Promise<CommandResult> {
@@ -63,7 +63,7 @@ const deleteAccountCommand: Command = {
       );
       return { success: true };
     } catch (error) {
-      logger.error("Error in delete-account command", error);
+      logger.error("Error in user-delete command", error);
 
       const errorEmbed = ResponseUtil.error(
         "Deletion Error",

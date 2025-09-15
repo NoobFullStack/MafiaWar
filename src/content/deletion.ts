@@ -5,7 +5,7 @@ export const DeletionContent = {
   noAccount: {
     title: "No Account Found",
     getDescription: (botName: string) =>
-      `You don't have a ${botName} account to delete. Use \`/create-account\` to create one!`,
+      `You don't have a ${botName} account to delete. Use \`/user-create\` to create one!`,
   },
 
   // Error messages
@@ -124,7 +124,7 @@ export const DeletionContent = {
         comeback: {
           name: "🔄 If You Change Your Mind",
           value:
-            "• Use `/create-account` to create a new character\n• All progress and data is permanently lost\n• You'll start completely fresh",
+            "• Use `/user-create` to create a new character\n• All progress and data is permanently lost\n• You'll start completely fresh",
         },
       },
 
