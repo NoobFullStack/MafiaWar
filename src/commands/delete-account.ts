@@ -104,9 +104,11 @@ async function showDeletionWarning(
         value: preview.character
           ? `• **${preview.character.name}** (Level ${
               preview.character.level
-            })\n• ${BotBranding.formatCurrency(preview.character.cashOnHand)} cash\n• ${BotBranding.formatCurrency(preview.character.bankBalance)} in bank\n• ${
-              preview.character.reputation
-            } reputation`
+            })\n• ${BotBranding.formatCurrency(
+              preview.character.cashOnHand
+            )} cash\n• ${BotBranding.formatCurrency(
+              preview.character.bankBalance
+            )} in bank\n• ${preview.character.reputation} reputation`
           : "• No character found",
         inline: false,
       },
@@ -119,8 +121,12 @@ async function showDeletionWarning(
               } properties\n• Total upgrades: ${preview.assets.reduce(
                 (sum: number, asset: any) => sum + asset.upgrades,
                 0
-              )}\n• Combined value: ${BotBranding.formatCurrency(preview.assets
-                .reduce((sum: number, asset: any) => sum + asset.value, 0))}`
+              )}\n• Combined value: ${BotBranding.formatCurrency(
+                preview.assets.reduce(
+                  (sum: number, asset: any) => sum + asset.value,
+                  0
+                )
+              )}`
             : "• No assets owned",
         inline: true,
       },
@@ -385,7 +391,7 @@ async function executeAccountDeletion(
         {
           name: "🔄 If You Change Your Mind",
           value:
-            "• Use `/profile` to create a new character\n• You'll start completely fresh\n• All progress and data is permanently lost",
+            "• Use `/create-account` to create a new character\n• You'll start completely fresh\n• All progress and data is permanently lost",
           inline: false,
         }
       )
