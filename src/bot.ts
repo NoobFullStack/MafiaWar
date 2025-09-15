@@ -42,8 +42,19 @@ class MafiaWarBot {
         // Load commands
         await CommandManager.loadCommands();
 
-        // Register slash commands
-        await this.registerSlashCommands();
+        // Only register commands if not in production or if explicitly requested
+        const shouldRegisterCommands =
+          process.env.NODE_ENV !== "production" ||
+          process.env.FORCE_REGISTER_ON_STARTUP === "true";
+
+        if (shouldRegisterCommands) {
+          logger.info("🔄 Registering slash commands on startup...");
+          await this.registerSlashCommands();
+        } else {
+          logger.info(
+            "⏭️  Skipping command registration (handled by deployment script)"
+          );
+        }
 
         logger.info("🚀 Bot is fully initialized and ready!");
       } catch (error) {
@@ -121,7 +132,7 @@ class MafiaWarBot {
 
     try {
       // Defer reply immediately for commands that might take time (except ping)
-      if (interaction.commandName !== 'ping') {
+      if (interaction.commandName !== "ping") {
         await interaction.deferReply({ flags: 64 }); // 64 = ephemeral flag
       }
 
@@ -166,7 +177,9 @@ class MafiaWarBot {
     const command = CommandManager.getCommand(interaction.commandName);
 
     if (!command || !command.autocomplete) {
-      logger.warn(`No autocomplete handler for command: ${interaction.commandName}`);
+      logger.warn(
+        `No autocomplete handler for command: ${interaction.commandName}`
+      );
       return;
     }
 
@@ -181,7 +194,10 @@ class MafiaWarBot {
       try {
         await interaction.respond([]);
       } catch (respondError) {
-        logger.error("Failed to send fallback autocomplete response:", respondError);
+        logger.error(
+          "Failed to send fallback autocomplete response:",
+          respondError
+        );
       }
     }
   }
