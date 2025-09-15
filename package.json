@@ -13,6 +13,8 @@
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "seed": "ts-node src/scripts/database/seed.ts",
+    "commands:register": "ts-node src/scripts/commands/forceRegisterCommands.ts",
+    "commands:dev": "ts-node src/scripts/commands/registerDevCommands.ts",
     "assets:validate": "ts-node src/scripts/testing/assetValidation.ts",
     "economy:analyze": "ts-node src/scripts/development/economy.ts analyze",
     "economy:rebalance": "ts-node src/scripts/development/economy.ts rebalance",
