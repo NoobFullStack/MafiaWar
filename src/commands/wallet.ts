@@ -1,10 +1,10 @@
 import { SlashCommandBuilder } from "discord.js";
-import { cryptoCoins } from "../data/money";
+import { BotBranding } from "../config/bot";
+import { getCryptoCoin } from "../data/money";
 import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
-import { ResponseUtil, logger } from "../utils/ResponseUtil";
 import DatabaseManager from "../utils/DatabaseManager";
-import { BotBranding } from "../config/bot";
+import { ResponseUtil, logger } from "../utils/ResponseUtil";
 
 const walletCommand: Command = {
   data: new SlashCommandBuilder()
@@ -19,7 +19,10 @@ const walletCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [noAccountEmbed],
+          flags: 64,
+        });
         return { success: false, error: "User not registered" };
       }
 
@@ -31,7 +34,10 @@ const walletCommand: Command = {
           "Character Not Found",
           "There was an issue with your character. Please contact an administrator."
         );
-        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, {
+          embeds: [embed],
+          flags: 64,
+        });
         return { success: false, error: "No character" };
       }
 
@@ -40,14 +46,14 @@ const walletCommand: Command = {
       if (Object.keys(balance.cryptoWallet).length > 0) {
         const cryptoLines: string[] = [];
         for (const [coinType, amount] of Object.entries(balance.cryptoWallet)) {
-          const coin = cryptoCoins.find((c) => c.id === coinType);
+          const coin = getCryptoCoin();
           const price = await moneyService.getCoinPrice(coinType);
           const value = (amount as number) * price;
 
           cryptoLines.push(
-            `${coin?.symbol || coinType.toUpperCase()}: ${(
-              amount as number
-            ).toFixed(6)} (${BotBranding.formatCurrency(value)})`
+            `${coin.symbol}: ${(amount as number).toFixed(
+              6
+            )} (${BotBranding.formatCurrency(value)})`
           );
         }
         cryptoDisplay = cryptoLines.join("\n");
@@ -55,18 +61,24 @@ const walletCommand: Command = {
 
       const embed = ResponseUtil.info(
         "💰 Your Wallet",
-        `**Total Net Worth: ${BotBranding.formatCurrency(balance.totalValue || 0)}**`
+        `**Total Net Worth: ${BotBranding.formatCurrency(
+          balance.totalValue || 0
+        )}**`
       );
 
       embed.addFields(
         {
           name: "💵 Cash on Hand",
-          value: `${BotBranding.formatCurrency(balance.cashOnHand)}\n*Vulnerable to theft*`,
+          value: `${BotBranding.formatCurrency(
+            balance.cashOnHand
+          )}\n*Vulnerable to theft*`,
           inline: true,
         },
         {
           name: "🏦 Bank Account",
-          value: `${BotBranding.formatCurrency(balance.bankBalance)}\n*Protected from players*`,
+          value: `${BotBranding.formatCurrency(
+            balance.bankBalance
+          )}\n*Protected from players*`,
           inline: true,
         },
         {
@@ -80,7 +92,10 @@ const walletCommand: Command = {
         text: "💡 Use /bank or /crypto commands to manage your money",
       });
 
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [embed],
+        flags: 64,
+      });
       return { success: true };
     } catch (error) {
       logger.error(`Wallet command error for user ${userId}:`, error);
@@ -90,7 +105,10 @@ const walletCommand: Command = {
         "Failed to load your wallet information. Please try again."
       );
 
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [embed],
+        flags: 64,
+      });
       return { success: false, error: "Failed to load wallet" };
     }
   },

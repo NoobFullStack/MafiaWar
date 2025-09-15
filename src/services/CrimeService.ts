@@ -9,14 +9,14 @@
  * - Database updates for crime results
  */
 
+import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
 import { crimeData, CrimeData } from "../data/crimes";
-import { cryptoCoins } from "../data/money";
+import { getCryptoCoin } from "../data/money";
 import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
 import MoneyService from "./MoneyService";
-import { BotBranding } from "../config/bot";
 
 export interface CrimeResult {
   success: boolean;
@@ -184,22 +184,24 @@ export class CrimeService {
     const db = DatabaseManager.getClient();
     let user = await db.user.findUnique({
       where: { discordId: userId },
-      include: { 
-        character: { 
-          select: { 
+      include: {
+        character: {
+          select: {
             id: true,
-            userId: true, 
-            experience: true, 
-            reputation: true, 
-            cashOnHand: true, 
-            stats: true 
-          } 
-        } 
+            userId: true,
+            experience: true,
+            reputation: true,
+            cashOnHand: true,
+            stats: true,
+          },
+        },
       },
     });
 
     if (!user?.character) {
-      throw new Error("User does not have a character - please create account first");
+      throw new Error(
+        "User does not have a character - please create account first"
+      );
     }
 
     const character = user.character;
@@ -363,12 +365,9 @@ export class CrimeService {
       case "bank":
         return { bank: amount };
       case "crypto":
-        // For crypto payments, pick a random coin (prefer less volatile for crime payouts)
-        const stableCoins = cryptoCoins.filter((c) => c.category === "stable");
-        const selectedCoin =
-          stableCoins[Math.floor(Math.random() * stableCoins.length)] ||
-          cryptoCoins[0];
-        return { crypto: { coin: selectedCoin.id, amount: amount } };
+        // For crypto payments, use the single configured cryptocurrency
+        const coin = getCryptoCoin();
+        return { crypto: { coin: coin.id, amount: amount } };
       case "mixed":
         // 60% cash, 40% bank for mixed payments
         const cashAmount = Math.floor(amount * 0.6);
@@ -442,7 +441,7 @@ export class CrimeService {
         // Handle strategic payout in the same transaction
         if (result.paymentDetails?.breakdown) {
           const breakdown = result.paymentDetails.breakdown;
-          
+
           if (breakdown.cash) {
             updateData.cashOnHand = { increment: breakdown.cash };
           }
@@ -453,8 +452,10 @@ export class CrimeService {
 
           if (breakdown.crypto) {
             // For crypto, add as cash first (conversion happens async)
-            updateData.cashOnHand = { 
-              increment: (updateData.cashOnHand?.increment || 0) + breakdown.crypto.amount 
+            updateData.cashOnHand = {
+              increment:
+                (updateData.cashOnHand?.increment || 0) +
+                breakdown.crypto.amount,
             };
           }
         }
@@ -477,7 +478,10 @@ export class CrimeService {
                 cryptoInfo.amount
               );
             } catch (error) {
-              logger.error(`Async crypto conversion failed for ${user.discordId}:`, error);
+              logger.error(
+                `Async crypto conversion failed for ${user.discordId}:`,
+                error
+              );
             }
           });
         }

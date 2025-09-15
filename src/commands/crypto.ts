@@ -5,12 +5,12 @@ import {
   ComponentType,
   SlashCommandBuilder,
 } from "discord.js";
-import { cryptoCoins } from "../data/money";
+import { BotBranding } from "../config/bot";
+import { getCryptoCoin } from "../data/money";
 import MoneyService from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
-import { BotBranding } from "../config/bot";
 
 // Helper functions for each subcommand
 async function handlePrices(context: CommandContext): Promise<CommandResult> {
@@ -21,86 +21,55 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [noAccountEmbed],
+        flags: 64,
+      });
       return { success: false, error: "User not registered" };
     }
 
-    // Defer immediately to avoid timeout
+    // Defer for heavy operations (database queries, calculations)
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply();
+    }
 
     const moneyService = MoneyService.getInstance();
     const character = user.character!; // Safe because getUserForAuth checks for character existence
-    const availableCoins = moneyService.getAvailableCoins(character.level);
+    const coin = getCryptoCoin();
 
     const embed = ResponseUtil.info(
-      "📈 Cryptocurrency Market Prices",
-      `Current market rates for level ${character.level} players`
+      "📈 Cryptocurrency Market Price",
+      `Current market rate for ${coin.name}`
     );
 
-    // Get prices for all available coins
-    const pricePromises = availableCoins.map(async (coin) => {
-      const price = await moneyService.getCoinPrice(coin.id);
+    // Get price for the single coin
+    const price = await moneyService.getCoinPrice(coin.id);
 
-      // Get price change from database
-      const db = DatabaseManager.getClient();
-      const priceData = await db.cryptoPrice.findUnique({
-        where: { coinType: coin.id },
-      });
-
-      const change24h = priceData?.change24h || 0;
-      const changeEmoji = change24h >= 0 ? "📈" : "📉";
-      const changeColor = change24h >= 0 ? "+" : "";
-
-      return {
-        coin,
-        price,
-        change24h,
-        changeEmoji,
-        changeColor,
-      };
+    // Get price change from database
+    const db = DatabaseManager.getClient();
+    const priceData = await db.cryptoPrice.findUnique({
+      where: { coinType: coin.id },
     });
 
-    const priceData = await Promise.all(pricePromises);
+    const change24h = priceData?.change24h || 0;
+    const changeEmoji = change24h >= 0 ? "📈" : "📉";
+    const changeColor = change24h >= 0 ? "+" : "";
 
-    // Create price display
-    for (const data of priceData) {
-      const { coin, price, change24h, changeEmoji, changeColor } = data;
+    let description = coin.description;
 
-      let description = coin.description;
-      if (coin.launchLevel && coin.launchLevel > 1) {
-        description += `\n*Requires level ${coin.launchLevel}*`;
-      }
-
-      embed.addFields({
-        name: `${changeEmoji} ${coin.name} (${coin.symbol})`,
-        value: `**${BotBranding.formatCurrency(parseFloat(price.toFixed(
-          coin.id === "dogecoin" ? 4 : 2
-        )))}**\n${changeColor}${change24h.toFixed(2)}% (24h)\n${description}`,
-        inline: true,
-      });
-    }
-
-    // Show locked coins for higher levels
-    const lockedCoins = cryptoCoins.filter(
-      (coin) => coin.launchLevel && character.level < coin.launchLevel
-    );
-
-    if (lockedCoins.length > 0) {
-      const lockedText = lockedCoins
-        .map((coin) => `${coin.name} (Level ${coin.launchLevel})`)
-        .join("\n");
-
-      embed.addFields({
-        name: "🔒 Locked Currencies",
-        value: lockedText,
-        inline: false,
-      });
-    }
+    embed.addFields({
+      name: `${changeEmoji} ${coin.name} (${coin.symbol})`,
+      value: `**${BotBranding.formatCurrency(
+        parseFloat(price.toFixed(2))
+      )}**\n${changeColor}${change24h.toFixed(2)}% (24h)\n${description}`,
+      inline: false,
+    });
 
     embed.setFooter({
       text: "💡 Use /crypto buy or /crypto sell to trade • Prices update every hour",
     });
 
-    await interaction.editReply({ embeds: [embed] });
+    await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto prices:", error);
@@ -116,18 +85,24 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [noAccountEmbed],
+        flags: 64,
+      });
       return { success: false, error: "User not registered" };
     }
 
-    // IMMEDIATELY defer the response to avoid 3-second timeout
+    // Defer for heavy operations (database queries, calculations)
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply();
+    }
 
-    const coinType = interaction.options.getString("coin", true);
     const cashAmount = interaction.options.getInteger("amount", true);
     const paymentMethod =
       (interaction.options.getString("method") as "cash" | "bank") || "cash";
 
     const moneyService = MoneyService.getInstance();
+    const coin = getCryptoCoin();
 
     // Fast balance check
     const balances = await moneyService.getUserBalance(userId);
@@ -136,28 +111,8 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
         "Character Not Found",
         "There was an issue with your character. Please contact an administrator."
       );
-      await interaction.editReply({ embeds: [embed] });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
       return { success: false, error: "No character" };
-    }
-
-    const coin = cryptoCoins.find((c) => c.id === coinType);
-    if (!coin) {
-      const embed = ResponseUtil.error(
-        "Invalid Cryptocurrency",
-        "The specified cryptocurrency was not found."
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "Invalid coin" };
-    }
-
-    // Check level requirement
-    if (coin.launchLevel && balances.level < coin.launchLevel) {
-      const embed = ResponseUtil.error(
-        "Level Requirement Not Met",
-        `${coin.name} requires level ${coin.launchLevel}. You are level ${balances.level}.`
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "Level requirement" };
     }
 
     // Check payment method availability
@@ -166,7 +121,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
     if (sourceBalance < cashAmount) {
       // Get current price for calculations
-      const currentPrice = await moneyService.getCoinPrice(coinType);
+      const currentPrice = await moneyService.getCoinPrice(coin.id);
       const maxAmounts = moneyService.calculateMaxAmounts(
         balances,
         currentPrice
@@ -178,7 +133,11 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
       const embed = ResponseUtil.error(
         "Insufficient Funds",
-        `You need ${BotBranding.formatCurrency(cashAmount)} but only have ${BotBranding.formatCurrency(sourceBalance)} in ${paymentMethod}.`
+        `You need ${BotBranding.formatCurrency(
+          cashAmount
+        )} but only have ${BotBranding.formatCurrency(
+          sourceBalance
+        )} in ${paymentMethod}.`
       );
 
       if (maxBuyAmount >= 10) {
@@ -190,24 +149,26 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
           name: "💡 Buy Maximum Instead?",
           value: `**Your ${
             paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)
-          }:** ${BotBranding.formatCurrency(sourceBalance)}\n**Current Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
-            coin.id === "dogecoin" ? 4 : 2
-          )))} per ${
-            coin.symbol
-          }\n**Fee (3%):** ${BotBranding.formatCurrency(maxFee)}\n**Net Investment:** ${BotBranding.formatCurrency(maxNetAmount)}\n**You'd Get:** ${maxCoinAmount.toFixed(
-            6
-          )} ${coin.symbol}`,
+          }:** ${BotBranding.formatCurrency(
+            sourceBalance
+          )}\n**Current Price:** ${BotBranding.formatCurrency(
+            parseFloat(currentPrice.toFixed(2))
+          )} per ${coin.symbol}\n**Fee (3%):** ${BotBranding.formatCurrency(
+            maxFee
+          )}\n**Net Investment:** ${BotBranding.formatCurrency(
+            maxNetAmount
+          )}\n**You'd Get:** ${maxCoinAmount.toFixed(6)} ${coin.symbol}`,
           inline: false,
         });
 
         // Create buttons for user choice
         const confirmButton = new ButtonBuilder()
-          .setCustomId(`crypto_buy_max_${coinType}_${paymentMethod}_${userId}`)
+          .setCustomId(`crypto_buy_max_${coin.id}_${paymentMethod}_${userId}`)
           .setLabel(`✅ Buy Max ${coin.symbol}`)
           .setStyle(ButtonStyle.Success);
 
         const switchButton = new ButtonBuilder()
-          .setCustomId(`crypto_buy_switch_${coinType}_${userId}`)
+          .setCustomId(`crypto_buy_switch_${coin.id}_${userId}`)
           .setLabel(`🔄 Use ${paymentMethod === "cash" ? "Bank" : "Cash"}`)
           .setStyle(ButtonStyle.Primary);
 
@@ -238,14 +199,14 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
           const customId = buttonInteraction.customId;
 
           if (
-            customId === `crypto_buy_max_${coinType}_${paymentMethod}_${userId}`
+            customId === `crypto_buy_max_${coin.id}_${paymentMethod}_${userId}`
           ) {
             // Execute max purchase
             await buttonInteraction.deferUpdate();
 
             const result = await moneyService.buyCrypto(
               userId,
-              coinType,
+              coin.id,
               maxBuyAmount,
               paymentMethod
             );
@@ -270,18 +231,24 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
             successEmbed.addFields(
               {
                 name: "💰 Transaction Details",
-                value: `**Spent:** ${BotBranding.formatCurrency(maxBuyAmount)}\n**Fee:** ${BotBranding.formatCurrency(maxFee)} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(maxNetAmount)}`,
+                value: `**Spent:** ${BotBranding.formatCurrency(
+                  maxBuyAmount
+                )}\n**Fee:** ${BotBranding.formatCurrency(
+                  maxFee
+                )} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(
+                  maxNetAmount
+                )}`,
                 inline: true,
               },
               {
                 name: `₿ ${coin.symbol} Acquired`,
                 value: `**Amount:** ${maxCoinAmount.toFixed(6)} ${
                   coin.symbol
-                }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
-                  coin.id === "dogecoin" ? 4 : 2
-                )))} per ${
-                  coin.symbol
-                }\n**Value:** ${BotBranding.formatCurrency(maxNetAmount)}`,
+                }\n**Price:** ${BotBranding.formatCurrency(
+                  parseFloat(currentPrice.toFixed(2))
+                )} per ${coin.symbol}\n**Value:** ${BotBranding.formatCurrency(
+                  maxNetAmount
+                )}`,
                 inline: true,
               },
               {
@@ -304,7 +271,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
               components: [],
             });
             return { success: true };
-          } else if (customId === `crypto_buy_switch_${coinType}_${userId}`) {
+          } else if (customId === `crypto_buy_switch_${coin.id}_${userId}`) {
             // Switch payment method
             await buttonInteraction.deferUpdate();
             const newMethod = paymentMethod === "cash" ? "bank" : "cash";
@@ -315,7 +282,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
               // Execute purchase with new method
               const result = await moneyService.buyCrypto(
                 userId,
-                coinType,
+                coin.id,
                 cashAmount,
                 newMethod
               );
@@ -344,16 +311,22 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
               successEmbed.addFields(
                 {
                   name: "💰 Transaction Details",
-                  value: `**Spent:** ${BotBranding.formatCurrency(cashAmount)}\n**Fee:** ${BotBranding.formatCurrency(fee)} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(netAmount)}`,
+                  value: `**Spent:** ${BotBranding.formatCurrency(
+                    cashAmount
+                  )}\n**Fee:** ${BotBranding.formatCurrency(
+                    fee
+                  )} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(
+                    netAmount
+                  )}`,
                   inline: true,
                 },
                 {
                   name: `₿ ${coin.symbol} Acquired`,
                   value: `**Amount:** ${coinAmount.toFixed(6)} ${
                     coin.symbol
-                  }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(
-                    coin.id === "dogecoin" ? 4 : 2
-                  )))} per ${
+                  }\n**Price:** ${BotBranding.formatCurrency(
+                    parseFloat(currentPrice.toFixed(2))
+                  )} per ${
                     coin.symbol
                   }\n**Value:** ${BotBranding.formatCurrency(netAmount)}`,
                   inline: true,
@@ -368,7 +341,9 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
             } else {
               const switchEmbed = ResponseUtil.error(
                 "Insufficient Funds",
-                `Not enough ${newMethod} either. You have ${BotBranding.formatCurrency(newBalance)} in ${newMethod}.`
+                `Not enough ${newMethod} either. You have ${BotBranding.formatCurrency(
+                  newBalance
+                )} in ${newMethod}.`
               );
               await buttonInteraction.editReply({
                 embeds: [switchEmbed],
@@ -407,11 +382,13 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
       } else {
         embed.addFields({
           name: "💡 Need More Money",
-          value: `• Use \`/crime\` to earn money\n• You need at least ${BotBranding.formatCurrency(10)} to buy cryptocurrency\n• Check other payment methods if available`,
+          value: `• Use \`/crime\` to earn money\n• You need at least ${BotBranding.formatCurrency(
+            10
+          )} to buy cryptocurrency\n• Check other payment methods if available`,
           inline: false,
         });
 
-        await interaction.editReply({ embeds: [embed] });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed] });
       }
 
       return { success: false, error: "Insufficient funds" };
@@ -420,14 +397,14 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     // Proceed with normal purchase using optimized money service
     const result = await moneyService.buyCrypto(
       userId,
-      coinType,
+      coin.id,
       cashAmount,
       paymentMethod
     );
 
     if (!result.success) {
       const embed = ResponseUtil.error("Purchase Failed", result.message);
-      await interaction.editReply({ embeds: [embed] });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
       return { success: false, error: result.error };
     }
 
@@ -438,7 +415,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
 
     const fee = Math.floor(cashAmount * 0.03);
     const netAmount = cashAmount - fee;
-    const currentPrice = await moneyService.getCoinPrice(coinType);
+    const currentPrice = await moneyService.getCoinPrice(coin.id);
 
     embed.addFields(
       {
@@ -450,9 +427,9 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
         name: `₿ ${coin.symbol} Acquired`,
         value: `**Amount:** ${result.data?.coinAmount?.toFixed(6)} ${
           coin.symbol
-        }\n**Price:** $${currentPrice.toFixed(
-          coin.id === "dogecoin" ? 4 : 2
-        )} per ${coin.symbol}\n**Value:** $${netAmount.toLocaleString()}`,
+        }\n**Price:** $${currentPrice.toFixed(2)} per ${
+          coin.symbol
+        }\n**Value:** $${netAmount.toLocaleString()}`,
         inline: true,
       },
       {
@@ -470,7 +447,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
       }
     );
 
-    await interaction.editReply({ embeds: [embed] });
+    await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto buy:", error);
@@ -486,30 +463,25 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [noAccountEmbed],
+        flags: 64,
+      });
       return { success: false, error: "User not registered" };
     }
 
-    // Defer immediately to avoid timeout
-
-    const coinType = interaction.options.getString("coin", true);
-    const coinAmount = interaction.options.getNumber("amount", true);
-
-    const coin = cryptoCoins.find((c) => c.id === coinType);
-
-    if (!coin) {
-      const embed = ResponseUtil.error(
-        "Invalid Cryptocurrency",
-        "The specified cryptocurrency was not found."
-      );
-      await interaction.editReply({ embeds: [embed] });
-      return { success: false, error: "Invalid coin" };
+    // Defer for heavy operations (database queries, calculations)
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply();
     }
+
+    const coinAmount = interaction.options.getNumber("amount", true);
+    const coin = getCryptoCoin();
 
     // Get current holdings using fast service
     const balance = await MoneyService.getInstance().getUserBalance(userId);
     // Check if user has any of this coin
-    const currentHolding = balance?.cryptoWallet[coinType] || 0;
+    const currentHolding = balance?.cryptoWallet[coin.id] || 0;
 
     if (currentHolding === 0) {
       const embed = ResponseUtil.error(
@@ -519,7 +491,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
 
       embed.addFields({
         name: "💡 Get Started with Crypto Trading",
-        value: `• Use \`/crypto prices\` to see current market rates\n• Use \`/crypto buy ${coinType} <amount>\` to purchase ${coin.name}\n• Start with a small amount to test the system`,
+        value: `• Use \`/crypto prices\` to see current market rates\n• Use \`/crypto buy <amount>\` to purchase ${coin.name}\n• Start with a small amount to test the system`,
         inline: false,
       });
 
@@ -527,14 +499,14 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         text: `💰 ${coin.name} is available for purchase • Check your cash with /wallet`,
       });
 
-      await interaction.editReply({ embeds: [embed] });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
       return { success: false, error: "No holdings" };
     }
 
     if (coinAmount > currentHolding) {
       // Calculate what user would get if they sold their maximum holdings
       const maxCoinAmount = currentHolding;
-      const maxPrice = await MoneyService.getInstance().getCoinPrice(coinType);
+      const maxPrice = await MoneyService.getInstance().getCoinPrice(coin.id);
       const maxGrossAmount = maxCoinAmount * maxPrice;
       const maxFee = Math.floor(maxGrossAmount * 0.04); // 4% selling fee
       const maxNetCash = maxGrossAmount - maxFee;
@@ -551,7 +523,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         value: `**Your Holdings:** ${maxCoinAmount.toFixed(6)} ${
           coin.symbol
         }\n**Current Price:** $${maxPrice.toFixed(
-          coin.id === "dogecoin" ? 4 : 2
+          2
         )}\n**Gross Value:** $${Math.floor(
           maxGrossAmount
         ).toLocaleString()}\n**Fee (4%):** $${maxFee.toLocaleString()}\n**You'd Receive:** $${maxNetCash.toLocaleString()}`,
@@ -560,7 +532,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
 
       // Create buttons for user choice
       const confirmButton = new ButtonBuilder()
-        .setCustomId(`crypto_sell_max_${coinType}_${userId}`)
+        .setCustomId(`crypto_sell_max_${coin.id}_${userId}`)
         .setLabel(`✅ Sell All ${coin.symbol}`)
         .setStyle(ButtonStyle.Success);
 
@@ -588,7 +560,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         });
 
         if (
-          buttonInteraction.customId === `crypto_sell_max_${coinType}_${userId}`
+          buttonInteraction.customId === `crypto_sell_max_${coin.id}_${userId}`
         ) {
           // Execute max sale
           await buttonInteraction.deferUpdate();
@@ -596,7 +568,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
           const moneyService = MoneyService.getInstance();
           const maxResult = await moneyService.sellCrypto(
             userId,
-            coinType,
+            coin.id,
             maxCoinAmount
           );
 
@@ -622,9 +594,9 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
               name: `₿ ${coin.symbol} Sold`,
               value: `**Amount:** ${maxCoinAmount.toFixed(6)} ${
                 coin.symbol
-              }\n**Price:** $${maxPrice.toFixed(
-                coin.id === "dogecoin" ? 4 : 2
-              )} per ${coin.symbol}\n**Gross Value:** $${Math.floor(
+              }\n**Price:** $${maxPrice.toFixed(2)} per ${
+                coin.symbol
+              }\n**Gross Value:** $${Math.floor(
                 maxGrossAmount
               ).toLocaleString()}`,
               inline: true,
@@ -699,16 +671,14 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     }
 
     // Get current price for display
-    const currentPrice = await MoneyService.getInstance().getCoinPrice(
-      coinType
-    );
+    const currentPrice = await MoneyService.getInstance().getCoinPrice(coin.id);
     const grossAmount = coinAmount * currentPrice;
     const fee = Math.floor(grossAmount * 0.04); // 4% selling fee
     const netCash = grossAmount - fee;
 
     // Execute the sale
     const moneyService = MoneyService.getInstance();
-    const result = await moneyService.sellCrypto(userId, coinType, coinAmount);
+    const result = await moneyService.sellCrypto(userId, coin.id, coinAmount);
 
     if (!result.success) {
       const embed = ResponseUtil.error(
@@ -729,11 +699,9 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         name: `₿ ${coin.symbol} Sold`,
         value: `**Amount:** ${coinAmount.toFixed(6)} ${
           coin.symbol
-        }\n**Price:** $${currentPrice.toFixed(
-          coin.id === "dogecoin" ? 4 : 2
-        )} per ${coin.symbol}\n**Gross Value:** $${Math.floor(
-          grossAmount
-        ).toLocaleString()}`,
+        }\n**Price:** $${currentPrice.toFixed(2)} per ${
+          coin.symbol
+        }\n**Gross Value:** $${Math.floor(grossAmount).toLocaleString()}`,
         inline: true,
       },
       {
@@ -758,7 +726,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
       text: "💡 Use /crypto portfolio to view all holdings • Selling fees are higher than buying fees",
     });
 
-    await interaction.editReply({ embeds: [embed] });
+    await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto sell:", error);
@@ -776,119 +744,108 @@ async function handlePortfolio(
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [noAccountEmbed],
+        flags: 64,
+      });
       return { success: false, error: "User not registered" };
     }
 
-    // Defer immediately to avoid timeout
+    // Defer for heavy operations (database queries, calculations)
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply();
+    }
 
     const moneyService = MoneyService.getInstance();
     const balance = await moneyService.getUserBalance(userId);
+    const coin = getCryptoCoin();
 
     const embed = ResponseUtil.info(
       "₿ Your Cryptocurrency Portfolio",
-      `Complete overview of your digital assets`
+      `Your ${coin.name} holdings overview`
     );
 
     if (!balance || Object.keys(balance.cryptoWallet).length === 0) {
       embed.addFields({
         name: "📭 Empty Portfolio",
-        value:
-          "You don't own any cryptocurrency yet.\n\n💡 **Get Started:**\n• Use `/crypto prices` to see available coins\n• Use `/crypto buy` to make your first purchase\n• Build your portfolio with different coins for diversification",
+        value: `You don't own any ${coin.name} yet.\n\n💡 **Get Started:**\n• Use \`/crypto prices\` to see current market price\n• Use \`/crypto buy\` to make your first purchase\n• Start with a small amount to get familiar with the system`,
         inline: false,
       });
 
       embed.setFooter({
-        text: "💰 Start with Bitcoin or Ethereum for stable investments",
+        text: `💰 ${coin.name} (${coin.symbol}) is your gateway to the crypto economy`,
       });
     } else {
-      let totalCryptoValue = 0;
-      const holdings: string[] = [];
+      const cryptoAmount = balance.cryptoWallet[coin.id] || 0;
 
-      // Process each holding
-      for (const [coinType, amount] of Object.entries(balance.cryptoWallet)) {
-        const coin = cryptoCoins.find((c) => c.id === coinType);
-        const price = await moneyService.getCoinPrice(coinType);
-        const value = (amount as number) * price;
-        totalCryptoValue += value;
+      if (cryptoAmount === 0) {
+        embed.addFields({
+          name: "📭 No Cryptocurrency Holdings",
+          value: `You don't currently hold any ${coin.name}.\n\n💡 **Get Started:**\n• Use \`/crypto prices\` to see current market price\n• Use \`/crypto buy\` to purchase ${coin.name}\n• Start building your crypto portfolio today`,
+          inline: false,
+        });
+      } else {
+        // Get current price and calculate value
+        const price = await moneyService.getCoinPrice(coin.id);
+        const totalValue = cryptoAmount * price;
 
         // Get price change data
         const db = DatabaseManager.getClient();
         const priceData = await db.cryptoPrice.findUnique({
-          where: { coinType },
+          where: { coinType: coin.id },
         });
 
         const change24h = priceData?.change24h || 0;
         const changeEmoji = change24h >= 0 ? "📈" : "📉";
         const changeColor = change24h >= 0 ? "+" : "";
 
-        holdings.push(
-          `${changeEmoji} **${coin?.name || coinType}** (${
-            coin?.symbol || coinType.toUpperCase()
-          })\n` +
-            `${(amount as number).toFixed(6)} ${
-              coin?.symbol || coinType.toUpperCase()
-            } × $${price.toFixed(
-              coin?.id === "dogecoin" ? 4 : 2
-            )} = **${BotBranding.formatCurrency(parseFloat(value.toFixed(2)))}**\n` +
-            `${changeColor}${change24h.toFixed(2)}% (24h)`
-        );
-      }
-
-      // Portfolio overview
-      embed.addFields({
-        name: "📊 Portfolio Summary",
-        value: `**Total Crypto Value:** $${totalCryptoValue.toLocaleString()}\n**Number of Holdings:** ${
-          Object.keys(balance.cryptoWallet).length
-        }\n**Crypto % of Net Worth:** ${(
-          (totalCryptoValue / (balance.totalValue || 1)) *
-          100
-        ).toFixed(1)}%`,
-        inline: false,
-      });
-
-      // Individual holdings
-      const holdingsPerField = 3;
-      for (let i = 0; i < holdings.length; i += holdingsPerField) {
-        const fieldHoldings = holdings.slice(i, i + holdingsPerField);
+        // Portfolio overview
         embed.addFields({
-          name: i === 0 ? "💎 Your Holdings" : "‌", // Zero-width space for continuation
-          value: fieldHoldings.join("\n\n"),
+          name: "📊 Portfolio Summary",
+          value: `**Total ${coin.symbol} Holdings:** ${cryptoAmount.toFixed(
+            6
+          )}\n**Current Price:** ${BotBranding.formatCurrency(
+            parseFloat(price.toFixed(2))
+          )}\n**Total Value:** ${BotBranding.formatCurrency(
+            parseFloat(totalValue.toFixed(2))
+          )}`,
           inline: false,
         });
-      }
 
-      // Portfolio distribution
-      if (Object.keys(balance.cryptoWallet).length > 1) {
-        const distribution = Object.entries(balance.cryptoWallet).map(
-          ([coinType, amount]) => {
-            const coin = cryptoCoins.find((c) => c.id === coinType);
-            const price = moneyService.getCoinPrice(coinType);
-            return price.then((p) => {
-              const value = (amount as number) * p;
-              const percentage = (value / totalCryptoValue) * 100;
-              return `${
-                coin?.symbol || coinType.toUpperCase()
-              }: ${percentage.toFixed(1)}%`;
-            });
-          }
-        );
-
-        const distributionText = await Promise.all(distribution);
-
+        // Detailed holdings
         embed.addFields({
-          name: "📊 Portfolio Distribution",
-          value: distributionText.join(" • "),
+          name: `${changeEmoji} ${coin.name} (${coin.symbol})`,
+          value:
+            `**Holdings:** ${cryptoAmount.toFixed(6)} ${coin.symbol}\n` +
+            `**Price:** ${BotBranding.formatCurrency(
+              parseFloat(price.toFixed(2))
+            )}\n` +
+            `**Value:** ${BotBranding.formatCurrency(
+              parseFloat(totalValue.toFixed(2))
+            )}\n` +
+            `**24h Change:** ${changeColor}${change24h.toFixed(2)}%`,
+          inline: false,
+        });
+
+        // Performance insights
+        const cryptoPercentage = balance.totalValue
+          ? (totalValue / balance.totalValue) * 100
+          : 0;
+        embed.addFields({
+          name: "� Portfolio Insights",
+          value: `**Crypto % of Net Worth:** ${cryptoPercentage.toFixed(
+            1
+          )}%\n**Description:** ${coin.description}`,
           inline: false,
         });
       }
 
       embed.setFooter({
-        text: "💡 Diversify your portfolio • Use /crypto prices for market updates • Consider your risk tolerance",
+        text: "💡 Use /crypto buy or /crypto sell to manage your holdings • Check /crypto prices for market updates",
       });
     }
 
-    await interaction.editReply({ embeds: [embed] });
+    await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto portfolio:", error);
@@ -903,25 +860,12 @@ const cryptoCommand: Command = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName("prices")
-        .setDescription("View current cryptocurrency market prices")
+        .setDescription("View current cryptocurrency market price")
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName("buy")
         .setDescription("Purchase cryptocurrency with cash or bank funds")
-        .addStringOption((option) =>
-          option
-            .setName("coin")
-            .setDescription("Cryptocurrency to buy")
-            .setRequired(true)
-            .addChoices(
-              { name: "Bitcoin (BTC)", value: "bitcoin" },
-              { name: "Ethereum (ETH)", value: "ethereum" },
-              { name: "Dogecoin (DOGE)", value: "dogecoin" },
-              { name: "MafiaCoin (MAFIA)", value: "mafiacoin" },
-              { name: "CrimeChain (CRIME)", value: "crimechain" }
-            )
-        )
         .addIntegerOption((option) =>
           option
             .setName("amount")
@@ -945,19 +889,6 @@ const cryptoCommand: Command = {
       subcommand
         .setName("sell")
         .setDescription("Sell cryptocurrency for cash")
-        .addStringOption((option) =>
-          option
-            .setName("coin")
-            .setDescription("Cryptocurrency to sell")
-            .setRequired(true)
-            .addChoices(
-              { name: "Bitcoin (BTC)", value: "bitcoin" },
-              { name: "Ethereum (ETH)", value: "ethereum" },
-              { name: "Dogecoin (DOGE)", value: "dogecoin" },
-              { name: "MafiaCoin (MAFIA)", value: "mafiacoin" },
-              { name: "CrimeChain (CRIME)", value: "crimechain" }
-            )
-        )
         .addNumberOption((option) =>
           option
             .setName("amount")
@@ -1001,7 +932,10 @@ const cryptoCommand: Command = {
         "An error occurred while processing your crypto transaction. Please try again."
       );
 
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, {
+        embeds: [embed],
+        flags: 64,
+      });
       return { success: false, error: "Crypto command failed" };
     }
   },
