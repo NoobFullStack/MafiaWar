@@ -6,15 +6,15 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { GameSeeder } from "../utils/GameSeeder";
-import { logger } from "../utils/ResponseUtil";
+import { GameSeeder } from "../../utils/GameSeeder";
+import { logger } from "../../utils/ResponseUtil";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const args = process.argv.slice(2);
   const seeder = new GameSeeder(prisma);
-  
+
   try {
     if (args.includes("--help") || args.includes("-h")) {
       console.log(`
@@ -41,13 +41,19 @@ Examples:
 
     if (args.includes("--items")) {
       const result = await seeder.seedItems();
-      logger.info(`✅ Items seeding complete: ${result.created} created, ${result.updated} updated`);
+      logger.info(
+        `✅ Items seeding complete: ${result.created} created, ${result.updated} updated`
+      );
     } else if (args.includes("--crimes")) {
       const result = await seeder.seedCrimes();
-      logger.info(`✅ Crimes seeding complete: ${result.created} created, ${result.updated} updated`);
+      logger.info(
+        `✅ Crimes seeding complete: ${result.created} created, ${result.updated} updated`
+      );
     } else if (args.includes("--new")) {
       const result = await seeder.seedNewItems();
-      logger.info(`✅ New items seeding complete: ${result.created} created, ${result.skipped} skipped`);
+      logger.info(
+        `✅ New items seeding complete: ${result.created} created, ${result.skipped} skipped`
+      );
     } else if (args.includes("--validate")) {
       const validation = await seeder.validateSeeding();
       if (validation.valid) {
@@ -69,13 +75,14 @@ Examples:
    Crimes: ${result.crimes.created} created, ${result.crimes.updated} updated
    Total: ${result.total.created} created, ${result.total.updated} updated
 
-✅ Your game is ready with ${result.total.created + result.total.updated} data entries!
+✅ Your game is ready with ${
+        result.total.created + result.total.updated
+      } data entries!
       `);
 
       // Auto-validate after full seeding
       await seeder.validateSeeding();
     }
-
   } catch (error) {
     logger.error("❌ Seeding failed:", error);
     process.exit(1);
@@ -85,12 +92,12 @@ Examples:
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });

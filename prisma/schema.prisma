@@ -49,6 +49,13 @@ model Character {
   lastBankVisit   DateTime?
   bankInterestAccrued Float @default(0)
   
+  // Jail system
+  jailUntil       DateTime? // When the player gets out of jail (null = not in jail)
+  jailCrime       String?   // What crime landed them in jail
+  jailSeverity    Int       @default(0) // Severity of the crime (affects bribe cost)
+  jailBribeAmount Int?      // Fixed bribe amount set when jailed (null = not in jail)
+  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats)
+  
   // Legacy field for backward compatibility (will be migrated to cashOnHand)
   money           Int      @default(0)
   

@@ -219,6 +219,66 @@ _Last Updated: September 15, 2025_
 - 📋 **NEW**: Business performance tracking and optimization
 - 📋 **NEW**: Community engagement system architecture
 
+## 🧪 **Testing & Development**
+
+### Test Scripts
+
+All test scripts are now organized in subdirectories for better maintainability:
+
+- ✅ **Environment Configuration**: `DEBUG_DISCORD_ID` in `.env` for test user identification
+- ✅ **Privacy Protection**: No hardcoded Discord IDs in source code
+- ✅ **Organized Structure**: Scripts categorized by purpose in subdirectories
+- ✅ **Jail System Tests**: 
+  - `testing/testJail.ts` - Basic jail functionality
+  - `testing/testBribePayment.ts` - Bribe payment with multiple funding sources  
+  - `testing/testBribeConsistency.ts` - Ensures bribe amounts stay consistent
+  - `testing/assetValidation.ts` - Asset system integration tests
+- ✅ **Database Scripts**:
+  - `database/seed.ts` - Initialize game data
+  - `database/migrateMoney.ts` - Legacy system migration
+  - `database/cleanupDuplicateAssets.ts` - Remove duplicate assets
+- ✅ **Development Tools**:
+  - `development/validateEnvironment.ts` - Environment validation
+  - `development/economy.ts` - Economic analysis and rebalancing
+- ✅ **Demo Scripts**:
+  - `demos/crimeSystemDemo.ts` - Crime system demonstration
+  - `demos/levelGatingDemo.ts` - Level gating examples
+- ✅ **Security**: All sensitive data in `.env` (gitignored), with `.env.example` for setup
+
+### Running Tests (Updated Paths)
+
+```bash
+# Environment validation
+npm run env:validate
+
+# Jail system tests
+npm run test:jail
+npm run test:bribe
+npm run test:bribe-consistency
+
+# Asset system tests
+npm run assets:validate
+
+# Database operations
+npm run seed
+npm run cleanup:duplicates
+
+# Development tools
+npm run economy:analyze
+npm run economy:rebalance
+
+# Demo scripts
+npm run crime:demo
+npm run level:demo
+```
+
+### Security Best Practices
+
+- 🔒 Never commit Discord IDs, tokens, or database credentials
+- 🔒 Use `.env` variables for all sensitive configuration  
+- 🔒 Follow `.env.example` template for new environment setup
+- 🔒 Test scripts automatically validate environment configuration
+
 ## 📈 **Success Metrics**
 
 ### **Current Status**

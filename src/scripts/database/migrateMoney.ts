@@ -1,5 +1,5 @@
-import DatabaseManager from "../utils/DatabaseManager";
-import { logger } from "../utils/ResponseUtil";
+import DatabaseManager from "../../utils/DatabaseManager";
+import { logger } from "../../utils/ResponseUtil";
 
 /**
  * Migration script to move existing money to the new multi-layered money system

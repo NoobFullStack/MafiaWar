@@ -6,6 +6,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import MoneyService from "../services/MoneyService";
+import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
 import DatabaseManager from "../utils/DatabaseManager";
@@ -63,6 +64,14 @@ const bankCommand: Command = {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
         await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
+      }
+
+      // Check if player is in jail (blocks banking activities)
+      const jailCheck = await JailService.checkJailBlocking(userId, "banking");
+      if (jailCheck.blocked) {
+        const embed = ResponseUtil.error("🚔 Banking Blocked", jailCheck.reason || "You can't access banking services while in jail!");
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+        return { success: false, error: "Player is in jail" };
       }
 
       const moneyService = MoneyService.getInstance();

@@ -17,6 +17,7 @@ import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
 import MoneyService from "./MoneyService";
+import JailService from "./JailService";
 
 export interface CrimeResult {
   success: boolean;
@@ -485,15 +486,30 @@ export class CrimeService {
             }
           });
         }
+      } else if (!result.success && result.jailTime && result.jailTime > 0) {
+        // Handle failed crime - send to jail
+        try {
+          await JailService.sendToJail(
+            user.discordId,
+            result.jailTime,
+            crime.name,
+            crime.difficulty
+          );
+          logger.info(`Player ${user.discordId} sent to jail for ${result.jailTime} minutes (crime: ${crime.name})`);
+        } catch (jailError) {
+          logger.error(`Failed to send player ${user.discordId} to jail:`, jailError);
+          // Don't throw here - crime already failed, we just couldn't jail them
+        }
       }
-      // Note: Jail time functionality will be added when jailUntil field is added to schema
 
       logger.info(
         `Crime ${crime.id} executed by ${user.discordId}: Success=${
           result.success
         }, Money=${result.moneyEarned}, XP=${
           result.experienceGained
-        }, PaymentType=${result.paymentDetails?.type || "cash"}`
+        }, PaymentType=${result.paymentDetails?.type || "cash"}${
+          result.jailTime ? `, JailTime=${result.jailTime}min` : ""
+        }`
       );
     } catch (error) {
       logger.error(`Failed to update player after crime ${crime.id}:`, error);
@@ -520,9 +536,11 @@ export class CrimeService {
     userId: string
   ): Promise<{ inJail: boolean; timeLeft?: number }> {
     try {
-      // TODO: Implement jail system when jailUntil field is added to Character schema
-      // For now, no players are in jail
-      return { inJail: false };
+      const jailStatus = await JailService.isPlayerInJail(userId);
+      return {
+        inJail: jailStatus.inJail,
+        timeLeft: jailStatus.timeLeft
+      };
     } catch (error) {
       logger.error(`Failed to check jail status for ${userId}:`, error);
       return { inJail: false };

@@ -50,9 +50,9 @@ export const crimeData: CrimeData[] = [
     rewardMin: 50,
     rewardMax: 200,
     xpReward: 10, // Low XP for beginner crime
-    baseSuccessRate: 0.75,
-    jailTimeMin: 15,
-    jailTimeMax: 30,
+    baseSuccessRate: 0.0,
+    jailTimeMin: 1,
+    jailTimeMax: 2,
     category: "petty",
     requirements: {
       level: 1,

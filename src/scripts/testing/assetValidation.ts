@@ -6,9 +6,9 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { assetTemplates } from "../data/assets";
-import { AssetService } from "../services/AssetService";
-import { logger } from "../utils/ResponseUtil";
+import { assetTemplates } from "../../data/assets";
+import { AssetService } from "../../services/AssetService";
+import { logger } from "../../utils/ResponseUtil";
 
 const prisma = new PrismaClient();
 
@@ -18,23 +18,32 @@ async function main() {
 
     // Test 1: Validate asset templates
     logger.info("\n📋 Test 1: Asset Template Validation");
-    
+
     let templatesValid = true;
     for (const asset of assetTemplates) {
       const dist = asset.incomeDistribution;
       const total = dist.cash + dist.bank + dist.crypto;
-      
+
       if (Math.abs(total - 100) > 0.1) {
-        logger.error(`❌ ${asset.name}: Income distribution totals ${total}% (should be 100%)`);
+        logger.error(
+          `❌ ${asset.name}: Income distribution totals ${total}% (should be 100%)`
+        );
         templatesValid = false;
       } else {
-        logger.debug(`✅ ${asset.name}: Income distribution valid (${dist.cash}% cash, ${dist.bank}% bank, ${dist.crypto}% crypto)`);
+        logger.debug(
+          `✅ ${asset.name}: Income distribution valid (${dist.cash}% cash, ${dist.bank}% bank, ${dist.crypto}% crypto)`
+        );
       }
 
       // Validate characteristics
-      if (asset.characteristics?.raidVulnerability && 
-          (asset.characteristics.raidVulnerability < 0 || asset.characteristics.raidVulnerability > 1)) {
-        logger.error(`❌ ${asset.name}: Invalid raid vulnerability ${asset.characteristics.raidVulnerability} (should be 0-1)`);
+      if (
+        asset.characteristics?.raidVulnerability &&
+        (asset.characteristics.raidVulnerability < 0 ||
+          asset.characteristics.raidVulnerability > 1)
+      ) {
+        logger.error(
+          `❌ ${asset.name}: Invalid raid vulnerability ${asset.characteristics.raidVulnerability} (should be 0-1)`
+        );
         templatesValid = false;
       }
     }
@@ -48,7 +57,7 @@ async function main() {
 
     // Test 2: Asset categorization
     logger.info("\n📊 Test 2: Asset Categorization Analysis");
-    
+
     const byCategory = assetTemplates.reduce((acc, asset) => {
       acc[asset.category] = (acc[asset.category] || 0) + 1;
       return acc;
@@ -61,8 +70,8 @@ async function main() {
 
     // Test 3: Income distribution analysis
     logger.info("\n💰 Test 3: Income Distribution Analysis");
-    
-    const incomeAnalysis = assetTemplates.map(asset => {
+
+    const incomeAnalysis = assetTemplates.map((asset) => {
       const dist = asset.incomeDistribution;
       return {
         name: asset.name,
@@ -76,11 +85,21 @@ async function main() {
 
     // Group by category and show average distributions
     const categoryStats = Object.entries(byCategory).map(([category]) => {
-      const categoryAssets = incomeAnalysis.filter(a => a.category === category);
-      const avgCash = categoryAssets.reduce((sum, a) => sum + a.cashPercent, 0) / categoryAssets.length;
-      const avgBank = categoryAssets.reduce((sum, a) => sum + a.bankPercent, 0) / categoryAssets.length;
-      const avgCrypto = categoryAssets.reduce((sum, a) => sum + a.cryptoPercent, 0) / categoryAssets.length;
-      const avgIncome = categoryAssets.reduce((sum, a) => sum + a.hourlyIncome, 0) / categoryAssets.length;
+      const categoryAssets = incomeAnalysis.filter(
+        (a) => a.category === category
+      );
+      const avgCash =
+        categoryAssets.reduce((sum, a) => sum + a.cashPercent, 0) /
+        categoryAssets.length;
+      const avgBank =
+        categoryAssets.reduce((sum, a) => sum + a.bankPercent, 0) /
+        categoryAssets.length;
+      const avgCrypto =
+        categoryAssets.reduce((sum, a) => sum + a.cryptoPercent, 0) /
+        categoryAssets.length;
+      const avgIncome =
+        categoryAssets.reduce((sum, a) => sum + a.hourlyIncome, 0) /
+        categoryAssets.length;
 
       return {
         category,
@@ -93,42 +112,54 @@ async function main() {
     });
 
     logger.info("Average income distribution by category:");
-    categoryStats.forEach(stat => {
+    categoryStats.forEach((stat) => {
       logger.info(`  ${stat.category} (${stat.count} assets):`);
-      logger.info(`    Cash: ${stat.avgCash}% | Bank: ${stat.avgBank}% | Crypto: ${stat.avgCrypto}%`);
+      logger.info(
+        `    Cash: ${stat.avgCash}% | Bank: ${stat.avgBank}% | Crypto: ${stat.avgCrypto}%`
+      );
       logger.info(`    Avg Income: $${stat.avgIncome}/hour`);
     });
 
     // Test 4: Level progression validation
     logger.info("\n📈 Test 4: Level Progression Validation");
-    
+
     const sortedByLevel = assetTemplates
-      .filter(a => a.requirements?.level)
-      .sort((a, b) => (a.requirements?.level || 0) - (b.requirements?.level || 0));
+      .filter((a) => a.requirements?.level)
+      .sort(
+        (a, b) => (a.requirements?.level || 0) - (b.requirements?.level || 0)
+      );
 
     logger.info("Asset unlock progression:");
-    sortedByLevel.forEach(asset => {
+    sortedByLevel.forEach((asset) => {
       const level = asset.requirements?.level || 1;
       const price = asset.basePrice;
       const income = asset.baseIncomeRate;
       const paybackHours = Math.round(price / income);
-      
-      logger.info(`  Lv.${level}: ${asset.name} - $${price.toLocaleString()} (${paybackHours}h payback)`);
+
+      logger.info(
+        `  Lv.${level}: ${
+          asset.name
+        } - $${price.toLocaleString()} (${paybackHours}h payback)`
+      );
     });
 
     // Test 5: Economic balance check
     logger.info("\n⚖️  Test 5: Economic Balance Check");
-    
+
     const balanceIssues: string[] = [];
-    
+
     // Check for reasonable payback periods
-    assetTemplates.forEach(asset => {
+    assetTemplates.forEach((asset) => {
       const paybackHours = asset.basePrice / asset.baseIncomeRate;
-      
+
       if (paybackHours < 10) {
-        balanceIssues.push(`${asset.name}: Too quick payback (${paybackHours.toFixed(1)} hours)`);
+        balanceIssues.push(
+          `${asset.name}: Too quick payback (${paybackHours.toFixed(1)} hours)`
+        );
       } else if (paybackHours > 200) {
-        balanceIssues.push(`${asset.name}: Too slow payback (${paybackHours.toFixed(1)} hours)`);
+        balanceIssues.push(
+          `${asset.name}: Too slow payback (${paybackHours.toFixed(1)} hours)`
+        );
       }
     });
 
@@ -142,7 +173,9 @@ async function main() {
 
     Object.entries(levelGroups).forEach(([level, assets]) => {
       if (assets.length > 3) {
-        balanceIssues.push(`Level ${level}: Too many assets (${assets.length}) - may overwhelm players`);
+        balanceIssues.push(
+          `Level ${level}: Too many assets (${assets.length}) - may overwhelm players`
+        );
       }
     });
 
@@ -150,17 +183,17 @@ async function main() {
       logger.info("✅ Economic balance looks good");
     } else {
       logger.warn("⚠️  Economic balance issues found:");
-      balanceIssues.forEach(issue => logger.warn(`  ${issue}`));
+      balanceIssues.forEach((issue) => logger.warn(`  ${issue}`));
     }
 
     // Test 6: Service integration test
     logger.info("\n🔧 Test 6: Service Integration Test");
-    
+
     const assetService = AssetService.getInstance();
-    
+
     // Test getting available assets for different levels
     const testLevels = [1, 5, 10, 15, 20];
-    testLevels.forEach(level => {
+    testLevels.forEach((level) => {
       const available = assetService.getAvailableAssets(level, 50, 100000);
       logger.info(`  Level ${level}: ${available.length} assets available`);
     });
@@ -189,7 +222,6 @@ async function main() {
   2. Verify income collection with mixed money types
   3. Test asset upgrades and management features
     `);
-
   } catch (error) {
     logger.error("❌ Asset validation failed:", error);
     process.exit(1);
@@ -199,12 +231,12 @@ async function main() {
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });

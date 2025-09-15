@@ -63,7 +63,7 @@ Your modular, maintainable Discord bot infrastructure is now ready! Here's what 
 - 📈 Strategic recommendations and wealth distribution
 - 🏆 Displays wealth tier and security analysis
 - ⏱️ 5-second cooldown
-Your modular, maintainable Discord bot infrastructure is now ready! Here's what we've built:
+  Your modular, maintainable Discord bot infrastructure is now ready! Here's what we've built:
 
 ## 🏗️ **Architecture Overview**
 
@@ -84,27 +84,6 @@ Your modular, maintainable Discord bot infrastructure is now ready! Here's what 
 - 🚨 `src/utils/ResponseUtil.ts` - Centralized error handling
 - 📋 Consistent Discord embed responses (success, error, info, warning)
 - 🎨 Pre-built game profile templates
-
-## 🚀 **Working Commands**
-
-### **`/ping`**
-
-- ✅ Tests bot connectivity and latency
-- ⏱️ 5-second cooldown
-
-### **`/profile`**
-
-- 👤 Shows character stats, money, reputation, level
-- � Displays owned assets and gang memberships
-- �🆕 Auto-creates character for new users (starts with $1,000 and level 1)
-- ⏱️ 10-second cooldown
-
-### **`/balance`**
-
-- 💰 Shows current money and financial status
-- 👥 Can check other users' balances with optional user parameter
-- 🏆 Displays wealth tier (Struggling → Wealthy)
-- ⏱️ 5-second cooldown
 
 ## ⚙️ **Setup & Deployment**
 
