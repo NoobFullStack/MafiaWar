@@ -10,6 +10,7 @@ import {
   TextInputStyle,
 } from "discord.js";
 import { BotBranding } from "../config/bot";
+import { DeletionContent } from "../content/deletion";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
@@ -29,9 +30,10 @@ const deleteAccountCommand: Command = {
       );
 
       if (!previewResult.found) {
+        const content = DeletionContent.noAccount;
         const notFoundEmbed = ResponseUtil.info(
-          "No Account Found",
-          `You don't have a ${BotBranding.getName()} account to delete. Use \`/profile\` to create one!`
+          content.title,
+          content.getDescription(BotBranding.getName())
         );
         await ResponseUtil.smartReply(interaction, {
           embeds: [notFoundEmbed],
@@ -43,7 +45,7 @@ const deleteAccountCommand: Command = {
       if (previewResult.error) {
         const errorEmbed = ResponseUtil.error(
           "Error",
-          "Failed to load your account information. Please try again later."
+          DeletionContent.errors.loadFailed
         );
         await ResponseUtil.smartReply(interaction, {
           embeds: [errorEmbed],
@@ -65,7 +67,7 @@ const deleteAccountCommand: Command = {
 
       const errorEmbed = ResponseUtil.error(
         "Deletion Error",
-        "Failed to process account deletion request. Please try again later."
+        DeletionContent.errors.processingFailed
       );
 
       await ResponseUtil.smartReply(interaction, {
@@ -79,7 +81,7 @@ const deleteAccountCommand: Command = {
     }
   },
 
-  cooldown: 30,
+  cooldown: 10,
   category: "account",
   description: `Permanently delete your ${BotBranding.getName()} account and all associated data`,
 };
@@ -90,118 +92,46 @@ async function showDeletionWarning(
   userId: string,
   userTag: string
 ) {
+  const content = DeletionContent.warning;
+
   const warningEmbed = new EmbedBuilder()
     .setColor(0xff0000) // Red for danger
-    .setTitle("⚠️ ACCOUNT DELETION WARNING")
-    .setDescription(
-      `**${userTag}**, you are about to **PERMANENTLY DELETE** your ${BotBranding.getName()} account!\n\n` +
-        "🚨 **THIS ACTION CANNOT BE UNDONE** 🚨\n\n" +
-        "**What will be deleted:**"
-    )
+    .setTitle(content.title)
+    .setDescription(content.getDescription(userTag, BotBranding.getName()))
     .addFields(
       {
-        name: "👤 Character Data",
-        value: preview.character
-          ? `• **${preview.character.name}** (Level ${
-              preview.character.level
-            })\n• ${BotBranding.formatCurrency(
-              preview.character.cashOnHand
-            )} cash\n• ${BotBranding.formatCurrency(
-              preview.character.bankBalance
-            )} in bank\n• ${preview.character.reputation} reputation`
-          : "• No character found",
+        name: content.fields.character.name,
+        value: content.fields.character.getValue(preview.character),
         inline: false,
       },
       {
-        name: "🏢 Assets & Property",
-        value:
-          preview.assets.length > 0
-            ? `• ${
-                preview.assets.length
-              } properties\n• Total upgrades: ${preview.assets.reduce(
-                (sum: number, asset: any) => sum + asset.upgrades,
-                0
-              )}\n• Combined value: ${BotBranding.formatCurrency(
-                preview.assets.reduce(
-                  (sum: number, asset: any) => sum + asset.value,
-                  0
-                )
-              )}`
-            : "• No assets owned",
+        name: content.fields.assets.name,
+        value: content.fields.assets.getValue(preview.assets),
         inline: true,
       },
       {
-        name: "👥 Gang Involvement",
-        value: `• Member of ${
-          preview.gangs.memberships.length
-        } gangs\n• Leader of ${preview.gangs.leadership.length} gangs\n${
-          preview.gangs.leadership.length > 0
-            ? "• Leadership will be transferred"
-            : ""
-        }`,
+        name: content.fields.inventory.name,
+        value: content.fields.inventory.getValue(preview.inventory),
         inline: true,
       },
       {
-        name: "🎒 Inventory & Items",
-        value:
-          preview.inventory.length > 0
-            ? `• ${
-                preview.inventory.length
-              } different items\n• Total value: $${preview.inventory
-                .reduce(
-                  (sum: number, item: any) => sum + item.value * item.quantity,
-                  0
-                )
-                .toLocaleString()}`
-            : "• No items in inventory",
-        inline: true,
-      },
-      {
-        name: "📊 Game Statistics",
-        value: `• ${preview.statistics.totalActionLogs} action logs\n• ${preview.statistics.totalRobberies} robberies\n• ${preview.statistics.totalMissions} missions\n• ${preview.statistics.bankTransactions} bank transactions\n• ${preview.statistics.cryptoTransactions} crypto transactions`,
-        inline: true,
-      },
-      {
-        name: "🔄 Gang Leadership Impact",
-        value:
-          preview.gangs.leadership.length > 0
-            ? preview.gangs.leadership
-                .map((gang: any) =>
-                  gang.willDelete
-                    ? `• **${gang.gangName}** will be DELETED (no other members)`
-                    : `• **${gang.gangName}** leadership will transfer to another member`
-                )
-                .join("\n")
-            : "• No gangs will be affected",
+        name: content.fields.finalWarning.name,
+        value: content.fields.finalWarning.value,
         inline: false,
       }
     )
-    .addFields({
-      name: "⚠️ FINAL WARNING",
-      value:
-        "• **ALL** your game progress will be lost forever\n" +
-        "• **ALL** your money, assets, and items will be deleted\n" +
-        "• **ALL** your statistics and history will be erased\n" +
-        "• You will need to start completely over if you rejoin\n" +
-        "• Gang leadership will be transferred or gangs deleted\n\n" +
-        "**Are you absolutely sure you want to continue?**",
-      inline: false,
-    })
-    .setFooter({ text: "This action is PERMANENT and IRREVERSIBLE!" })
+    .setFooter({ text: content.footer })
     .setTimestamp();
 
+  const buttons = DeletionContent.buttons;
   const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId("confirm_deletion")
-      .setLabel("🗑️ YES, DELETE EVERYTHING")
+      .setLabel(buttons.confirmDeletion)
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
-      .setCustomId("require_verification")
-      .setLabel("🔐 I Need to Verify First")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
       .setCustomId("cancel_deletion")
-      .setLabel("❌ Cancel (Keep My Account)")
+      .setLabel(buttons.cancelDeletion)
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -224,10 +154,10 @@ async function showDeletionWarning(
       try {
         if (i.customId === "confirm_deletion") {
           await executeAccountDeletion(i, userId, userTag, preview);
-        } else if (i.customId === "require_verification") {
-          await showVerificationModal(i, userId, userTag, preview);
         } else if (i.customId === "cancel_deletion") {
-          await cancelDeletion(i);
+          // Simply dismiss the interaction without showing any message
+          collector.stop();
+          await i.deferUpdate();
         }
       } catch (error) {
         logger.error("Error handling deletion button interaction", error);
@@ -248,28 +178,26 @@ async function showVerificationModal(
   userTag: string,
   preview: any
 ) {
+  const content = DeletionContent.verification.modal;
+
   const modal = new ModalBuilder()
     .setCustomId("deletion_verification")
-    .setTitle("🔐 Account Deletion Verification");
+    .setTitle(content.title);
 
   const characterNameInput = new TextInputBuilder()
     .setCustomId("character_name_verification")
-    .setLabel("Enter your character name to verify")
+    .setLabel(content.nameLabel)
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder(
-      preview.character
-        ? `Type: ${preview.character.name}`
-        : "No character found"
-    )
+    .setPlaceholder(content.getNamePlaceholder(preview.character?.name || null))
     .setRequired(true)
     .setMinLength(2)
     .setMaxLength(50);
 
   const confirmationInput = new TextInputBuilder()
     .setCustomId("deletion_confirmation")
-    .setLabel('Type "DELETE MY ACCOUNT" to confirm')
+    .setLabel(content.confirmationLabel)
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder("Type exactly: DELETE MY ACCOUNT")
+    .setPlaceholder(content.confirmationPlaceholder)
     .setRequired(true)
     .setMinLength(17)
     .setMaxLength(17);
@@ -305,11 +233,12 @@ async function showVerificationModal(
     const isConfirmationCorrect = confirmationText === "DELETE MY ACCOUNT";
 
     if (!isNameCorrect || !isConfirmationCorrect) {
+      const errorContent = DeletionContent.errors.verificationFailed;
       const errorEmbed = ResponseUtil.error(
         "Verification Failed",
         !isNameCorrect
-          ? `Character name doesn't match. Expected: "${expectedName}"`
-          : "Confirmation text doesn't match. Must be exactly: 'DELETE MY ACCOUNT'"
+          ? errorContent.name(expectedName)
+          : errorContent.confirmation
       );
 
       await submitted.reply({
@@ -333,12 +262,11 @@ async function executeAccountDeletion(
   preview: any
 ) {
   // Show loading message
+  const loadingContent = DeletionContent.status.loading;
   const loadingEmbed = new EmbedBuilder()
     .setColor(0xffaa00)
-    .setTitle("🔄 Deleting Account...")
-    .setDescription(
-      "Please wait while we permanently delete your account and all data..."
-    )
+    .setTitle(loadingContent.title)
+    .setDescription(loadingContent.description)
     .setTimestamp();
 
   await interaction.update({
@@ -365,37 +293,19 @@ async function executeAccountDeletion(
     }
 
     // Success message
+    const successContent = DeletionContent.status.success;
     const successEmbed = new EmbedBuilder()
       .setColor(0x00ff00)
-      .setTitle("✅ Account Successfully Deleted")
+      .setTitle(successContent.title)
       .setDescription(
-        `**${userTag}**, your ${BotBranding.getName()} account has been permanently deleted.\n\n` +
-          "**What was deleted:**"
+        successContent.getDescription(userTag, BotBranding.getName())
       )
-      .addFields(
-        {
-          name: "📊 Deletion Summary",
-          value:
-            `• Character: ${
-              deletionResult.deletedData.character ? "1 deleted" : "None"
-            }\n` +
-            `• Assets: ${deletionResult.deletedData.assets} deleted\n` +
-            `• Gang memberships: ${deletionResult.deletedData.gangMemberships} removed\n` +
-            `• Gang leadership: ${deletionResult.deletedData.ledGangs} transferred/deleted\n` +
-            `• Inventory items: ${deletionResult.deletedData.inventory} deleted\n` +
-            `• Action logs: ${deletionResult.deletedData.actionLogs} deleted\n` +
-            `• Bank transactions: ${deletionResult.deletedData.bankTransactions} deleted\n` +
-            `• Crypto transactions: ${deletionResult.deletedData.cryptoTransactions} deleted`,
-          inline: false,
-        },
-        {
-          name: "🔄 If You Change Your Mind",
-          value:
-            "• Use `/create-account` to create a new character\n• You'll start completely fresh\n• All progress and data is permanently lost",
-          inline: false,
-        }
-      )
-      .setFooter({ text: `Thank you for playing ${BotBranding.getName()}!` })
+      .addFields({
+        name: successContent.fields.comeback.name,
+        value: successContent.fields.comeback.value,
+        inline: false,
+      })
+      .setFooter({ text: successContent.getFooter(BotBranding.getName()) })
       .setTimestamp();
 
     await interaction.editReply({
@@ -412,33 +322,13 @@ async function executeAccountDeletion(
 
     const errorEmbed = ResponseUtil.error(
       "Deletion Failed",
-      "Failed to delete your account. Please contact an administrator or try again later."
+      DeletionContent.errors.deletionFailed
     );
 
     await interaction.editReply({
       embeds: [errorEmbed],
     });
   }
-}
-
-async function cancelDeletion(interaction: any) {
-  const cancelEmbed = new EmbedBuilder()
-    .setColor(0x00ff00)
-    .setTitle("✅ Account Deletion Cancelled")
-    .setDescription("Your account is safe! No data has been deleted.")
-    .addFields({
-      name: "💡 Your Account",
-      value:
-        "• All your data remains intact\n• Continue playing as normal\n• Use `/profile` to view your character",
-      inline: false,
-    })
-    .setFooter({ text: "Welcome back to the criminal underworld!" })
-    .setTimestamp();
-
-  await interaction.update({
-    embeds: [cancelEmbed],
-    components: [],
-  });
 }
 
 export default deleteAccountCommand;
