@@ -9,12 +9,12 @@
  * - Asset security and raid mechanics
  */
 
-import { assetTemplates, AssetTemplate } from "../data/assets";
+import { BotBranding } from "../config/bot";
+import { AssetTemplate, assetTemplates } from "../data/assets";
 import DatabaseManager from "../utils/DatabaseManager";
+import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
 import { MoneyService } from "./MoneyService";
-import { LevelGateValidator, PlayerProgress } from "../utils/LevelGateValidator";
-import { BotBranding } from "../config/bot";
 
 export interface AssetPurchaseResult {
   success: boolean;
@@ -81,7 +81,11 @@ export class AssetService {
   /**
    * Get all available assets for a player's level
    */
-  getAvailableAssets(playerLevel: number, playerReputation: number, playerMoney: number): AssetTemplate[] {
+  getAvailableAssets(
+    playerLevel: number,
+    playerReputation: number,
+    playerMoney: number
+  ): AssetTemplate[] {
     return assetTemplates.filter((asset) => {
       const levelReq = asset.requirements?.level || 1;
       const repReq = asset.requirements?.reputation || 0;
@@ -90,7 +94,7 @@ export class AssetService {
       return (
         playerLevel >= levelReq &&
         playerReputation >= repReq &&
-        playerMoney >= (moneyReq + asset.basePrice) // Can afford requirement + purchase price
+        playerMoney >= moneyReq + asset.basePrice // Can afford requirement + purchase price
       );
     });
   }
@@ -108,7 +112,11 @@ export class AssetService {
   async validateAssetPurchase(
     userId: string,
     assetId: string
-  ): Promise<{ canPurchase: boolean; reason?: string; requirements: string[] }> {
+  ): Promise<{
+    canPurchase: boolean;
+    reason?: string;
+    requirements: string[];
+  }> {
     const asset = this.getAssetTemplate(assetId);
     if (!asset) {
       return {
@@ -132,9 +140,10 @@ export class AssetService {
       level: user.character.level,
       experience: user.character.experience,
       reputation: user.character.reputation,
-      stats: typeof user.character.stats === "string" 
-        ? JSON.parse(user.character.stats) 
-        : user.character.stats,
+      stats:
+        typeof user.character.stats === "string"
+          ? JSON.parse(user.character.stats)
+          : user.character.stats,
       money: user.character.cashOnHand + user.character.bankBalance,
     };
 
@@ -146,21 +155,30 @@ export class AssetService {
     // Check level requirement
     if (asset.requirements?.level && player.level < asset.requirements.level) {
       requirements.push(`Level ${asset.requirements.level}`);
-      missing.push(`Level ${asset.requirements.level} (current: ${player.level})`);
+      missing.push(
+        `Level ${asset.requirements.level} (current: ${player.level})`
+      );
       canPurchase = false;
     }
 
     // Check reputation requirement
-    if (asset.requirements?.reputation && (player.reputation || 0) < asset.requirements.reputation) {
+    if (
+      asset.requirements?.reputation &&
+      (player.reputation || 0) < asset.requirements.reputation
+    ) {
       requirements.push(`${asset.requirements.reputation} reputation`);
-      missing.push(`${asset.requirements.reputation} reputation (current: ${player.reputation || 0})`);
+      missing.push(
+        `${asset.requirements.reputation} reputation (current: ${
+          player.reputation || 0
+        })`
+      );
       canPurchase = false;
     }
-    
+
     // Additional check for total purchase cost
     const totalCost = asset.basePrice + (asset.requirements?.money || 0);
     const playerBalance = await this.moneyService.getUserBalance(userId);
-    
+
     if (!playerBalance) {
       return {
         canPurchase: false,
@@ -170,9 +188,11 @@ export class AssetService {
     }
 
     const availableFunds = playerBalance.cashOnHand + playerBalance.bankBalance;
-    
+
     if (availableFunds < totalCost) {
-      missing.push(`$${totalCost.toLocaleString()} total (have $${availableFunds.toLocaleString()})`);
+      missing.push(
+        `$${totalCost.toLocaleString()} total (have $${availableFunds.toLocaleString()})`
+      );
       return {
         canPurchase: false,
         reason: `Insufficient funds - need $${totalCost.toLocaleString()}, have $${availableFunds.toLocaleString()}`,
@@ -219,7 +239,7 @@ export class AssetService {
 
       const db = DatabaseManager.getClient();
       const user = await DatabaseManager.getUserForAuth(userId);
-      
+
       if (!user?.character) {
         return {
           success: false,
@@ -229,105 +249,120 @@ export class AssetService {
       }
 
       // Process entire purchase in a single transaction to prevent race conditions
-      const result = await db.$transaction(async (tx) => {
-        // Re-validate within transaction to prevent race conditions
-        const currentUser = await tx.user.findUnique({
-          where: { id: user.id },
-          include: { character: true },
-        });
+      const result = await db.$transaction(
+        async (tx) => {
+          // Re-validate within transaction to prevent race conditions
+          const currentUser = await tx.user.findUnique({
+            where: { id: user.id },
+            include: { character: true },
+          });
 
-        if (!currentUser?.character) {
-          throw new Error("Character not found");
-        }
+          if (!currentUser?.character) {
+            throw new Error("Character not found");
+          }
 
-        const totalCost = asset.basePrice;
+          const totalCost = asset.basePrice;
 
-        // Check payment availability within transaction
-        switch (paymentMethod) {
-          case "cash":
-            if (currentUser.character.cashOnHand < totalCost) {
-              throw new Error(`Insufficient cash - need $${totalCost.toLocaleString()}, have $${currentUser.character.cashOnHand.toLocaleString()}`);
-            }
-            // Deduct from cash
-            await tx.character.updateMany({
-              where: { userId: user.id },
-              data: { cashOnHand: { decrement: totalCost } },
-            });
-            break;
-
-          case "bank":
-            if (currentUser.character.bankBalance < totalCost) {
-              throw new Error(`Insufficient bank funds - need $${totalCost.toLocaleString()}, have $${currentUser.character.bankBalance.toLocaleString()}`);
-            }
-            // Deduct from bank
-            await tx.character.updateMany({
-              where: { userId: user.id },
-              data: { bankBalance: { decrement: totalCost } },
-            });
-            break;
-
-          case "mixed":
-            // Try to use bank first, then cash
-            const bankAmount = Math.min(currentUser.character.bankBalance, totalCost);
-            const cashAmount = totalCost - bankAmount;
-            
-            if (cashAmount > currentUser.character.cashOnHand) {
-              throw new Error(`Insufficient funds - need $${totalCost.toLocaleString()}, have $${(currentUser.character.cashOnHand + currentUser.character.bankBalance).toLocaleString()}`);
-            }
-
-            // Process mixed payment
-            if (bankAmount > 0) {
+          // Check payment availability within transaction
+          switch (paymentMethod) {
+            case "cash":
+              if (currentUser.character.cashOnHand < totalCost) {
+                throw new Error(
+                  `Insufficient cash - need $${totalCost.toLocaleString()}, have $${currentUser.character.cashOnHand.toLocaleString()}`
+                );
+              }
+              // Deduct from cash
               await tx.character.updateMany({
                 where: { userId: user.id },
-                data: { bankBalance: { decrement: bankAmount } },
+                data: { cashOnHand: { decrement: totalCost } },
               });
-            }
-            if (cashAmount > 0) {
+              break;
+
+            case "bank":
+              if (currentUser.character.bankBalance < totalCost) {
+                throw new Error(
+                  `Insufficient bank funds - need $${totalCost.toLocaleString()}, have $${currentUser.character.bankBalance.toLocaleString()}`
+                );
+              }
+              // Deduct from bank
               await tx.character.updateMany({
                 where: { userId: user.id },
-                data: { cashOnHand: { decrement: cashAmount } },
+                data: { bankBalance: { decrement: totalCost } },
               });
-            }
-            break;
-        }
+              break;
 
-        // Create the asset
-        const newAsset = await tx.asset.create({
-          data: {
-            ownerId: user.id,
-            type: asset.type,
-            name: asset.name,
-            level: 1,
-            incomeRate: asset.baseIncomeRate,
-            securityLevel: asset.baseSecurityLevel,
-            value: asset.basePrice,
-            lastIncomeTime: new Date(),
-          },
-        });
+            case "mixed":
+              // Try to use bank first, then cash
+              const bankAmount = Math.min(
+                currentUser.character.bankBalance,
+                totalCost
+              );
+              const cashAmount = totalCost - bankAmount;
 
-        // Log the purchase
-        await tx.actionLog.create({
-          data: {
-            userId: user.id,
-            actionType: "asset_purchase",
-            actionId: newAsset.id,
-            result: "success",
-            details: {
-              assetId: asset.id,
-              assetName: asset.name,
-              cost: totalCost,
-              paymentMethod,
+              if (cashAmount > currentUser.character.cashOnHand) {
+                throw new Error(
+                  `Insufficient funds - need $${totalCost.toLocaleString()}, have $${(
+                    currentUser.character.cashOnHand +
+                    currentUser.character.bankBalance
+                  ).toLocaleString()}`
+                );
+              }
+
+              // Process mixed payment
+              if (bankAmount > 0) {
+                await tx.character.updateMany({
+                  where: { userId: user.id },
+                  data: { bankBalance: { decrement: bankAmount } },
+                });
+              }
+              if (cashAmount > 0) {
+                await tx.character.updateMany({
+                  where: { userId: user.id },
+                  data: { cashOnHand: { decrement: cashAmount } },
+                });
+              }
+              break;
+          }
+
+          // Create the asset
+          const newAsset = await tx.asset.create({
+            data: {
+              ownerId: user.id,
+              type: asset.type,
+              name: asset.name,
+              level: 1,
+              incomeRate: asset.baseIncomeRate,
+              securityLevel: asset.baseSecurityLevel,
+              value: asset.basePrice,
+              lastIncomeTime: new Date(),
             },
-          },
-        });
+          });
 
-        return {
-          newAsset,
-          totalCost,
-        };
-      }, {
-        timeout: 10000, // 10 second timeout for purchase transaction
-      });
+          // Log the purchase
+          await tx.actionLog.create({
+            data: {
+              userId: user.id,
+              actionType: "asset_purchase",
+              actionId: newAsset.id,
+              result: "success",
+              details: {
+                assetId: asset.id,
+                assetName: asset.name,
+                cost: totalCost,
+                paymentMethod,
+              },
+            },
+          });
+
+          return {
+            newAsset,
+            totalCost,
+          };
+        },
+        {
+          timeout: 10000, // 10 second timeout for purchase transaction
+        }
+      );
 
       return {
         success: true,
@@ -343,20 +378,21 @@ export class AssetService {
       };
     } catch (error: any) {
       logger.error("Error purchasing asset:", error);
-      
+
       // Handle specific transaction errors
-      if (error.message && (
-        error.message.includes("Insufficient") || 
-        error.message.includes("need $") ||
-        error.message.includes("have $")
-      )) {
+      if (
+        error.message &&
+        (error.message.includes("Insufficient") ||
+          error.message.includes("need $") ||
+          error.message.includes("have $"))
+      ) {
         return {
           success: false,
           message: error.message,
           error: "Insufficient funds",
         };
       }
-      
+
       return {
         success: false,
         message: "Failed to purchase asset. Please try again.",
@@ -370,30 +406,50 @@ export class AssetService {
   /**
    * Calculate pending income for an asset based on time elapsed
    */
-  calculatePendingIncome(asset: any, template: AssetTemplate): {
+  calculatePendingIncome(
+    asset: any,
+    template: AssetTemplate
+  ): {
     totalIncome: number;
-    breakdown: { cash: number; bank: number; crypto: { [coinType: string]: number } };
+    breakdown: {
+      cash: number;
+      bank: number;
+      crypto: { [coinType: string]: number };
+    };
   } {
-    const hoursElapsed = Math.max(0, 
+    const hoursElapsed = Math.max(
+      0,
       (Date.now() - new Date(asset.lastIncomeTime).getTime()) / (1000 * 60 * 60)
     );
-    
-    // Cap at 24 hours to prevent exploitation
-    const cappedHours = Math.min(hoursElapsed, 24);
+
+    // Minimum collection time of 15 minutes to prevent spam clicking
+    if (hoursElapsed < 0.25) {
+      // 0.25 hours = 15 minutes
+      return {
+        totalIncome: 0,
+        breakdown: { cash: 0, bank: 0, crypto: {} },
+      };
+    }
+
+    // Cap at 1 hour to prevent infinite accumulation - users must actively collect
+    const cappedHours = Math.min(hoursElapsed, 1.0);
     const baseIncome = Math.floor(asset.incomeRate * cappedHours);
 
     // Apply characteristics modifiers
     let modifiedIncome = baseIncome;
-    
+
     if (template.characteristics?.seasonality) {
       modifiedIncome *= template.characteristics.seasonality;
     }
 
-    // Calculate distribution
+    // Calculate distribution with proper rounding to avoid losing small amounts
     const distribution = template.incomeDistribution;
-    const cashAmount = Math.floor(modifiedIncome * (distribution.cash / 100));
-    const bankAmount = Math.floor(modifiedIncome * (distribution.bank / 100));
-    const cryptoAmount = modifiedIncome - cashAmount - bankAmount;
+
+    // Use more precise calculation for small amounts
+    const cashAmount = Math.round(modifiedIncome * (distribution.cash / 100));
+    const bankAmount = Math.round(modifiedIncome * (distribution.bank / 100));
+    const cryptoPercent = distribution.crypto / 100;
+    const cryptoAmount = Math.max(0, modifiedIncome - cashAmount - bankAmount);
 
     const breakdown = {
       cash: cashAmount,
@@ -403,7 +459,7 @@ export class AssetService {
 
     // Distribute crypto income
     if (cryptoAmount > 0 && distribution.crypto > 0) {
-      const cryptoType = distribution.cryptoType || "bitcoin";
+      const cryptoType = distribution.cryptoType || "crypto";
       breakdown.crypto[cryptoType] = cryptoAmount;
     }
 
@@ -420,7 +476,7 @@ export class AssetService {
     try {
       const db = DatabaseManager.getClient();
       const user = await DatabaseManager.getUserForAuth(userId);
-      
+
       if (!user) {
         return {
           success: false,
@@ -437,33 +493,39 @@ export class AssetService {
       if (assets.length === 0) {
         return {
           success: false,
-          message: "You don't own any assets yet! Use `/assets` to browse available businesses.",
+          message:
+            "You don't own any assets yet! Use `/assets` to browse available businesses.",
           error: "No assets",
         };
       }
 
       let totalCash = 0;
       let totalBank = 0;
-      let totalCrypto: { [coinType: string]: number } = {};
+      let totalCryptoDollars: { [coinType: string]: number } = {}; // Store dollar amounts first
       let totalIncome = 0;
       let assetsWithIncome = 0;
 
       // Calculate and collect income from each asset
       for (const asset of assets) {
-        const template = assetTemplates.find((t) => t.type === asset.type && t.name === asset.name);
+        const template = assetTemplates.find(
+          (t) => t.type === asset.type && t.name === asset.name
+        );
         if (!template) continue;
 
         const income = this.calculatePendingIncome(asset, template);
-        
+
         if (income.totalIncome > 0) {
           totalCash += income.breakdown.cash;
           totalBank += income.breakdown.bank;
-          
-          // Aggregate crypto amounts
-          Object.entries(income.breakdown.crypto).forEach(([coin, amount]) => {
-            totalCrypto[coin] = (totalCrypto[coin] || 0) + amount;
-          });
-          
+
+          // Aggregate crypto dollar amounts (to be converted later)
+          Object.entries(income.breakdown.crypto).forEach(
+            ([coin, dollarAmount]) => {
+              totalCryptoDollars[coin] =
+                (totalCryptoDollars[coin] || 0) + dollarAmount;
+            }
+          );
+
           totalIncome += income.totalIncome;
           assetsWithIncome++;
 
@@ -478,66 +540,117 @@ export class AssetService {
       if (totalIncome === 0) {
         return {
           success: false,
-          message: "No income available to collect. Assets generate income over time.",
+          message:
+            "No income available to collect. Assets generate income over time.",
           error: "No pending income",
         };
       }
 
       // Distribute income to player's accounts
-      await db.$transaction(async (tx) => {
-        if (totalCash > 0) {
-          await tx.character.updateMany({
-            where: { userId: user.id },
-            data: { cashOnHand: { increment: totalCash } },
-          });
-        }
-
-        if (totalBank > 0) {
-          await tx.character.updateMany({
-            where: { userId: user.id },
-            data: { bankBalance: { increment: totalBank } },
-          });
-        }
-
-        // Handle crypto income directly in transaction
-        if (Object.keys(totalCrypto).length > 0) {
-          const character = await tx.character.findFirst({
-            where: { userId: user.id },
-          });
-          
-          if (character) {
-            // Parse the crypto wallet JSON properly
-            let currentWallet: { [key: string]: number } = {};
-            
-            try {
-              if (character.cryptoWallet) {
-                if (typeof character.cryptoWallet === 'string') {
-                  currentWallet = JSON.parse(character.cryptoWallet);
-                } else {
-                  currentWallet = character.cryptoWallet as { [key: string]: number };
-                }
-              }
-            } catch (error) {
-              console.warn("Error parsing crypto wallet, using empty wallet:", error);
-              currentWallet = {};
-            }
-            
-            // Add crypto amounts to existing wallet
-            for (const [coinType, amount] of Object.entries(totalCrypto)) {
-              if (amount > 0) {
-                currentWallet[coinType] = (currentWallet[coinType] || 0) + amount;
-              }
-            }
-            
+      await db.$transaction(
+        async (tx) => {
+          if (totalCash > 0) {
             await tx.character.updateMany({
               where: { userId: user.id },
-              data: { cryptoWallet: currentWallet },
+              data: { cashOnHand: { increment: totalCash } },
             });
           }
+
+          if (totalBank > 0) {
+            await tx.character.updateMany({
+              where: { userId: user.id },
+              data: { bankBalance: { increment: totalBank } },
+            });
+          }
+
+          // Convert crypto dollar amounts to actual crypto coins at current exchange rate
+          if (Object.keys(totalCryptoDollars).length > 0) {
+            const character = await tx.character.findFirst({
+              where: { userId: user.id },
+            });
+
+            if (character) {
+              // Parse the crypto wallet JSON properly
+              let currentWallet: { [key: string]: number } = {};
+
+              try {
+                if (character.cryptoWallet) {
+                  if (typeof character.cryptoWallet === "string") {
+                    currentWallet = JSON.parse(character.cryptoWallet);
+                  } else {
+                    currentWallet = character.cryptoWallet as {
+                      [key: string]: number;
+                    };
+                  }
+                }
+              } catch (error) {
+                console.warn(
+                  "Error parsing crypto wallet, using empty wallet:",
+                  error
+                );
+                currentWallet = {};
+              }
+
+              // Convert dollar amounts to crypto coins at current exchange rate
+              const moneyService = MoneyService.getInstance();
+              for (const [coinType, dollarAmount] of Object.entries(
+                totalCryptoDollars
+              )) {
+                if (dollarAmount > 0) {
+                  try {
+                    // Get current price for this coin type
+                    const currentPrice = await moneyService.getCoinPrice(
+                      coinType
+                    );
+                    // Convert dollars to actual crypto coins
+                    const cryptoCoins = dollarAmount / currentPrice;
+                    currentWallet[coinType] =
+                      (currentWallet[coinType] || 0) + cryptoCoins;
+                  } catch (error) {
+                    console.error(
+                      `Error getting price for ${coinType}:`,
+                      error
+                    );
+                    // Fallback: use default exchange rate or skip this crypto income
+                    console.warn(
+                      `Skipping crypto income for ${coinType} due to price error`
+                    );
+                  }
+                }
+              }
+
+              await tx.character.updateMany({
+                where: { userId: user.id },
+                data: { cryptoWallet: currentWallet },
+              });
+            }
+          }
+        },
+        {
+          timeout: 10000, // Increase timeout to 10 seconds
         }
-      }, {
-        timeout: 10000, // Increase timeout to 10 seconds
-      });
+      );
+
+      // Calculate final crypto amounts for response (convert dollars to crypto coins for display)
+      const finalCryptoAmounts: { [coinType: string]: number } = {};
+      const moneyService = MoneyService.getInstance();
+
+      for (const [coinType, dollarAmount] of Object.entries(
+        totalCryptoDollars
+      )) {
+        if (dollarAmount > 0) {
+          try {
+            const currentPrice = await moneyService.getCoinPrice(coinType);
+            finalCryptoAmounts[coinType] = dollarAmount / currentPrice;
+          } catch (error) {
+            console.error(
+              `Error calculating final crypto amount for ${coinType}:`,
+              error
+            );
+            finalCryptoAmounts[coinType] = 0; // Set to 0 if price lookup fails
+          }
+        }
+      }
 
       // Log the income collection
       await db.actionLog.create({
@@ -550,7 +663,7 @@ export class AssetService {
             breakdown: {
               cash: totalCash,
               bank: totalBank,
-              crypto: totalCrypto,
+              crypto: finalCryptoAmounts,
             },
             assetsCollected: assetsWithIncome,
           },
@@ -559,12 +672,14 @@ export class AssetService {
 
       return {
         success: true,
-        message: `💰 Collected ${BotBranding.formatCurrency(totalIncome)} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? 's' : ''}!`,
+        message: `💰 Collected ${BotBranding.formatCurrency(
+          totalIncome
+        )} from ${assetsWithIncome} asset${assetsWithIncome !== 1 ? "s" : ""}!`,
         totalIncome,
         incomeBreakdown: {
           cash: totalCash,
           bank: totalBank,
-          crypto: totalCrypto,
+          crypto: finalCryptoAmounts,
         },
         assetsCollected: assetsWithIncome,
       };
@@ -585,7 +700,7 @@ export class AssetService {
     try {
       const db = DatabaseManager.getClient();
       const user = await DatabaseManager.getUserForAuth(userId);
-      
+
       if (!user) {
         return [];
       }
@@ -596,8 +711,10 @@ export class AssetService {
       });
 
       return assets.map((asset) => {
-        const template = assetTemplates.find((t) => t.type === asset.type && t.name === asset.name);
-        
+        const template = assetTemplates.find(
+          (t) => t.type === asset.type && t.name === asset.name
+        );
+
         if (!template) {
           return {
             id: asset.id,
@@ -641,7 +758,11 @@ export class AssetService {
   /**
    * Calculate upgrade cost for an asset
    */
-  calculateUpgradeCost(asset: any, template: AssetTemplate, upgradeType: "income" | "security"): number | null {
+  calculateUpgradeCost(
+    asset: any,
+    template: AssetTemplate,
+    upgradeType: "income" | "security"
+  ): number | null {
     const currentLevel = asset.level;
     if (currentLevel >= template.maxLevel) {
       return null; // Already at max level
@@ -667,7 +788,7 @@ export class AssetService {
     try {
       const db = DatabaseManager.getClient();
       const user = await DatabaseManager.getUserForAuth(userId);
-      
+
       if (!user) {
         return {
           success: false,
@@ -690,7 +811,9 @@ export class AssetService {
       }
 
       // Get asset template
-      const template = assetTemplates.find((t) => t.type === asset.type && t.name === asset.name);
+      const template = assetTemplates.find(
+        (t) => t.type === asset.type && t.name === asset.name
+      );
       if (!template) {
         return {
           success: false,
@@ -751,12 +874,14 @@ export class AssetService {
       // Apply upgrade
       const upgrades = template.upgrades![upgradeType];
       const upgrade = upgrades[asset.level - 1];
-      
+
       const updateData: any = { level: { increment: 1 } };
-      
+
       if (upgradeType === "income") {
         const incomeUpgrade = upgrade as { cost: number; multiplier: number };
-        updateData.incomeRate = Math.floor(asset.incomeRate * incomeUpgrade.multiplier);
+        updateData.incomeRate = Math.floor(
+          asset.incomeRate * incomeUpgrade.multiplier
+        );
       } else {
         const securityUpgrade = upgrade as { cost: number; value: number };
         updateData.securityLevel = { increment: securityUpgrade.value };
@@ -785,7 +910,9 @@ export class AssetService {
 
       return {
         success: true,
-        message: `🔧 Successfully upgraded ${asset.name} ${upgradeType} to level ${asset.level + 1}!`,
+        message: `🔧 Successfully upgraded ${
+          asset.name
+        } ${upgradeType} to level ${asset.level + 1}!`,
         cost,
       };
     } catch (error) {
