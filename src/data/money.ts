@@ -1,3 +1,5 @@
+import { BotBranding } from "../config/bot";
+
 export interface CryptoCoin {
   id: string;
   name: string;
@@ -40,62 +42,22 @@ export interface MoneyEventTemplate {
   };
 }
 
-// Cryptocurrency definitions
-export const cryptoCoins: CryptoCoin[] = [
-  {
-    id: "bitcoin",
-    name: "Bitcoin",
-    symbol: "BTC",
-    description:
-      "The original cryptocurrency. Most stable but lower potential gains.",
-    basePrice: 45000,
-    volatility: 0.15,
-    category: "stable",
-    launchLevel: 1,
-  },
-  {
-    id: "ethereum",
-    name: "Ethereum",
-    symbol: "ETH",
-    description:
-      "Smart contract platform. Moderate volatility and growth potential.",
-    basePrice: 3000,
-    volatility: 0.25,
-    category: "stable",
-    launchLevel: 3,
-  },
-  {
-    id: "dogecoin",
-    name: "Dogecoin",
-    symbol: "DOGE",
-    description: "Meme coin with extreme volatility. High risk, high reward.",
-    basePrice: 0.25,
-    volatility: 0.45,
-    category: "meme",
-    launchLevel: 5,
-  },
-  {
-    id: "mafiacoin",
-    name: "MafiaCoin",
-    symbol: "MAFIA",
-    description:
-      "Game-specific currency. Affected by player actions and gang wars.",
-    basePrice: 10,
-    volatility: 0.35,
+// Cryptocurrency definitions - Single coin from environment configuration
+export function getCryptoCoin(): CryptoCoin {
+  return {
+    id: "crypto", // Single static ID for the game's cryptocurrency
+    name: BotBranding.getCryptoName(),
+    symbol: BotBranding.getCryptoSymbol(),
+    description: BotBranding.getCryptoDescription(),
+    basePrice: BotBranding.getCryptoBasePrice(),
+    volatility: BotBranding.getCryptoVolatility(),
     category: "game",
-    launchLevel: 8,
-  },
-  {
-    id: "crimechain",
-    name: "CrimeChain",
-    symbol: "CRIME",
-    description: "Underground currency for illegal activities. Very volatile.",
-    basePrice: 50,
-    volatility: 0.5,
-    category: "volatile",
-    launchLevel: 12,
-  },
-];
+    launchLevel: 1,
+  };
+}
+
+// Legacy support - returns array with single coin for backward compatibility
+export const cryptoCoins: CryptoCoin[] = [getCryptoCoin()];
 
 // Money-related random events
 export const moneyEvents: MoneyEventTemplate[] = [

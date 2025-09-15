@@ -1,12 +1,12 @@
+import { BotBranding } from "../config/bot";
 import {
   bankTiers,
-  cryptoCoins,
+  getCryptoCoin,
   type BankTier,
   type CryptoCoin,
 } from "../data/money";
 import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
-import { BotBranding } from "../config/bot";
 
 export interface MoneyBalance {
   cashOnHand: number;
@@ -227,7 +227,7 @@ export class MoneyService {
         };
       }
 
-      const character = user.character!
+      const character = user.character!;
       const bankTier =
         bankTiers.find((t) => t.level === character.bankAccessLevel) ||
         bankTiers[0];
@@ -245,7 +245,13 @@ export class MoneyService {
           );
           return {
             success: false,
-            message: `Insufficient bank funds. Need ${BotBranding.formatCurrency(totalWithdrawal)} (including ${BotBranding.formatCurrency(fee)} fee).\n💡 **Max you can withdraw:** ${BotBranding.formatCurrency(maxWithdrawable)}`,
+            message: `Insufficient bank funds. Need ${BotBranding.formatCurrency(
+              totalWithdrawal
+            )} (including ${BotBranding.formatCurrency(
+              fee
+            )} fee).\n💡 **Max you can withdraw:** ${BotBranding.formatCurrency(
+              maxWithdrawable
+            )}`,
             error: "Insufficient funds",
           };
         }
@@ -258,7 +264,9 @@ export class MoneyService {
         if (amount > bankTier.benefits.withdrawalLimit) {
           return {
             success: false,
-            message: `Daily withdrawal limit exceeded. Limit: ${BotBranding.formatCurrency(bankTier.benefits.withdrawalLimit)}`,
+            message: `Daily withdrawal limit exceeded. Limit: ${BotBranding.formatCurrency(
+              bankTier.benefits.withdrawalLimit
+            )}`,
             error: "Withdrawal limit exceeded",
           };
         }
@@ -274,9 +282,13 @@ export class MoneyService {
             success: false,
             message: `Insufficient cash. You have ${BotBranding.formatCurrency(
               character.cashOnHand
-            )}.\n💡 **Deposit ${BotBranding.formatCurrency(character.cashOnHand)} → Get:** ${BotBranding.formatCurrency(Math.floor(
-              character.cashOnHand * (1 - bankTier.benefits.depositFee)
-            ))} in bank`,
+            )}.\n💡 **Deposit ${BotBranding.formatCurrency(
+              character.cashOnHand
+            )} → Get:** ${BotBranding.formatCurrency(
+              Math.floor(
+                character.cashOnHand * (1 - bankTier.benefits.depositFee)
+              )
+            )} in bank`,
             error: "Insufficient funds",
           };
         }
@@ -323,7 +335,9 @@ export class MoneyService {
         success: true,
         message: `Successfully ${
           from === "cash" ? "deposited" : "withdrew"
-        } ${BotBranding.formatCurrency(amount)}${fee > 0 ? ` (fee: ${BotBranding.formatCurrency(fee)})` : ""}`,
+        } ${BotBranding.formatCurrency(amount)}${
+          fee > 0 ? ` (fee: ${BotBranding.formatCurrency(fee)})` : ""
+        }`,
         newBalance: newBalance || undefined,
         fees: fee,
       };
@@ -368,9 +382,11 @@ export class MoneyService {
       }
 
       // Generate new price (in real game, this would fetch from API)
-      const coin = cryptoCoins.find((c) => c.id === coinType);
-      if (!coin) {
-        throw new Error(`Unknown coin type: ${coinType}`);
+      const coin = getCryptoCoin();
+      if (coinType !== coin.id) {
+        throw new Error(
+          `Unknown coin type: ${coinType}. Only ${coin.id} is supported.`
+        );
       }
 
       // Simulate price fluctuation
@@ -409,8 +425,8 @@ export class MoneyService {
     } catch (error) {
       logger.error(`Error getting price for ${coinType}:`, error);
       // Return base price as fallback
-      const coin = cryptoCoins.find((c) => c.id === coinType);
-      return coin?.basePrice || 1;
+      const coin = getCryptoCoin();
+      return coin.basePrice;
     }
   }
 
@@ -454,20 +470,12 @@ export class MoneyService {
       const character = user.character;
 
       // Validate coin and level requirements
-      const coin = cryptoCoins.find((c) => c.id === coinType);
-      if (!coin) {
+      const coin = getCryptoCoin();
+      if (coinType !== coin.id) {
         return {
           success: false,
-          message: "Invalid cryptocurrency",
+          message: `Invalid cryptocurrency. Only ${coin.name} is supported.`,
           error: "Invalid coin",
-        };
-      }
-
-      if (coin.launchLevel && character.level < coin.launchLevel) {
-        return {
-          success: false,
-          message: `${coin.name} requires level ${coin.launchLevel}`,
-          error: "Level requirement not met",
         };
       }
 
@@ -485,7 +493,9 @@ export class MoneyService {
       if (sourceBalance < amount) {
         return {
           success: false,
-          message: `Insufficient ${paymentMethod}. Need ${BotBranding.formatCurrency(amount)}, have ${BotBranding.formatCurrency(sourceBalance)}`,
+          message: `Insufficient ${paymentMethod}. Need ${BotBranding.formatCurrency(
+            amount
+          )}, have ${BotBranding.formatCurrency(sourceBalance)}`,
           error: "Insufficient funds",
         };
       }
@@ -783,9 +793,9 @@ export class MoneyService {
    * Get available cryptocurrencies for user's level
    */
   getAvailableCoins(playerLevel: number): CryptoCoin[] {
-    return cryptoCoins.filter(
-      (coin) => !coin.launchLevel || playerLevel >= coin.launchLevel
-    );
+    const coin = getCryptoCoin();
+    // Since we only have one coin and it's available at level 1, always return it
+    return [coin];
   }
 
   /**
@@ -804,10 +814,13 @@ export class MoneyService {
     try {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
-        return { canUpgrade: false, reason: "Character not found - please create account first" };
+        return {
+          canUpgrade: false,
+          reason: "Character not found - please create account first",
+        };
       }
 
-      const character = user.character!
+      const character = user.character!;
       const currentTier = this.getUserBankTier(character.bankAccessLevel);
       const nextTier = bankTiers.find((t) => t.level === currentTier.level + 1);
 

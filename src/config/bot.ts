@@ -12,6 +12,13 @@ export interface BotConfig {
     symbol: string;
     name: string;
   };
+  crypto: {
+    name: string;
+    symbol: string;
+    description: string;
+    basePrice: number;
+    volatility: number;
+  };
   features: {
     enableCrypto: boolean;
     enableGangs: boolean;
@@ -32,6 +39,15 @@ function loadBotConfig(): BotConfig {
     currency: {
       symbol: process.env.BOT_CURRENCY_SYMBOL || "$",
       name: process.env.BOT_CURRENCY_NAME || "dollars",
+    },
+    crypto: {
+      name: process.env.CRYPTO_NAME || "MafiaCoin",
+      symbol: process.env.CRYPTO_SYMBOL || "MAFIA",
+      description:
+        process.env.CRYPTO_DESCRIPTION ||
+        "The official cryptocurrency of the criminal underworld.",
+      basePrice: parseFloat(process.env.CRYPTO_BASE_PRICE || "1337"),
+      volatility: parseFloat(process.env.CRYPTO_VOLATILITY || "0.35"),
     },
     features: {
       enableCrypto: process.env.BOT_ENABLE_CRYPTO !== "false",
@@ -95,6 +111,41 @@ export class BotBranding {
    */
   static isFeatureEnabled(feature: keyof BotConfig["features"]): boolean {
     return botConfig.features[feature];
+  }
+
+  /**
+   * Get the cryptocurrency name
+   */
+  static getCryptoName(): string {
+    return botConfig.crypto.name;
+  }
+
+  /**
+   * Get the cryptocurrency symbol
+   */
+  static getCryptoSymbol(): string {
+    return botConfig.crypto.symbol;
+  }
+
+  /**
+   * Get the cryptocurrency description
+   */
+  static getCryptoDescription(): string {
+    return botConfig.crypto.description;
+  }
+
+  /**
+   * Get the cryptocurrency base price
+   */
+  static getCryptoBasePrice(): number {
+    return botConfig.crypto.basePrice;
+  }
+
+  /**
+   * Get the cryptocurrency volatility
+   */
+  static getCryptoVolatility(): number {
+    return botConfig.crypto.volatility;
   }
 
   /**
