@@ -86,9 +86,6 @@ const businessCommand: Command = {
     const userTag = interaction.user.tag;
     const subcommand = interaction.options.getSubcommand();
 
-    // Defer the reply to prevent timeout for database operations
-    await interaction.deferReply({ ephemeral: true });
-
     try {
       // Check if user has an account
       const user = await DatabaseManager.getUserForAuth(userId);

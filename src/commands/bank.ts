@@ -60,7 +60,7 @@ const bankCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
       }
 
@@ -78,7 +78,7 @@ const bankCommand: Command = {
               "Character Not Found",
               "You need to create a character first! Use `/profile` to get started."
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             return { success: false, error: "No character" };
           }
 
@@ -123,18 +123,21 @@ const bankCommand: Command = {
                 cancelButton
               );
 
-              const response = await interaction.reply({
+              await ResponseUtil.smartReply(interaction, {
                 embeds: [embed],
                 components: [row],
                 flags: 64,
               });
+
+              // Get the message for button interactions
+              const response = await interaction.fetchReply();
 
               // Handle button interactions
               try {
                 const buttonInteraction = await response.awaitMessageComponent({
                   componentType: ComponentType.Button,
                   time: 30000, // 30 seconds timeout
-                  filter: (i) => i.user.id === userId,
+                  filter: (i: any) => i.user.id === userId,
                 });
 
                 if (
@@ -244,7 +247,7 @@ const bankCommand: Command = {
                 inline: false,
               });
 
-              await interaction.reply({ embeds: [embed], flags: 64 });
+              await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             }
 
             return { success: false, error: "Insufficient cash" };
@@ -276,7 +279,7 @@ const bankCommand: Command = {
             embed = ResponseUtil.error("Deposit Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
           return { success: result.success };
         }
 
@@ -291,7 +294,7 @@ const bankCommand: Command = {
               "Character Not Found",
               "You need to create a character first! Use `/profile` to get started."
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             return { success: false, error: "No character" };
           }
 
@@ -344,18 +347,21 @@ const bankCommand: Command = {
                 cancelButton
               );
 
-              const response = await interaction.reply({
+              await ResponseUtil.smartReply(interaction, {
                 embeds: [embed],
                 components: [row],
                 flags: 64,
               });
+
+              // Get the message for button interactions
+              const response = await interaction.fetchReply();
 
               // Handle button interactions
               try {
                 const buttonInteraction = await response.awaitMessageComponent({
                   componentType: ComponentType.Button,
                   time: 30000, // 30 seconds timeout
-                  filter: (i) => i.user.id === userId,
+                  filter: (i: any) => i.user.id === userId,
                 });
 
                 if (
@@ -466,7 +472,7 @@ const bankCommand: Command = {
                 inline: false,
               });
 
-              await interaction.reply({ embeds: [embed], flags: 64 });
+              await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             }
 
             return { success: false, error: "Insufficient bank funds" };
@@ -498,7 +504,7 @@ const bankCommand: Command = {
             embed = ResponseUtil.warning("Withdrawal Failed", result.message);
           }
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
           return { success: result.success };
         }
 
@@ -510,7 +516,7 @@ const bankCommand: Command = {
               "Character Not Found",
               "You need to create a character first! Use `/profile` to get started."
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             return { success: false, error: "No character" };
           }
 
@@ -581,7 +587,7 @@ const bankCommand: Command = {
             });
           }
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
           return { success: true };
         }
 
@@ -593,7 +599,7 @@ const bankCommand: Command = {
               "Upgrade Not Available",
               upgradeInfo.reason || "Cannot upgrade at this time"
             );
-            await interaction.reply({ embeds: [embed], flags: 64 });
+            await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
             return { success: false };
           }
 
@@ -603,7 +609,7 @@ const bankCommand: Command = {
             "Bank upgrades will be available in a future update!"
           );
 
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
           return { success: true };
         }
 
@@ -612,7 +618,7 @@ const bankCommand: Command = {
             "Invalid Command",
             "Unknown bank subcommand"
           );
-          await interaction.reply({ embeds: [embed], flags: 64 });
+          await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
           return { success: false };
       }
     } catch (error) {
@@ -623,7 +629,7 @@ const bankCommand: Command = {
         "Failed to process bank transaction. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Failed to process bank command" };
     }
   },

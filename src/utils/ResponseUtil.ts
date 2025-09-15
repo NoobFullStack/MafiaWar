@@ -258,4 +258,23 @@ export class ResponseUtil {
       }
     );
   }
+
+  /**
+   * Smart reply that handles both regular and deferred interactions
+   */
+  static async smartReply(
+    interaction: ChatInputCommandInteraction, 
+    options: any
+  ): Promise<void> {
+    try {
+      if (interaction.deferred) {
+        await interaction.editReply(options);
+      } else {
+        await interaction.reply(options);
+      }
+    } catch (error) {
+      logger.error("Failed to send reply", error);
+      throw error;
+    }
+  }
 }

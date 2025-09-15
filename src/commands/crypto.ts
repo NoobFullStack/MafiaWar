@@ -20,12 +20,11 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const moneyService = MoneyService.getInstance();
     const character = user.character!; // Safe because getUserForAuth checks for character existence
@@ -116,12 +115,11 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
     // IMMEDIATELY defer the response to avoid 3-second timeout
-    await interaction.deferReply({ flags: 64 });
 
     const coinType = interaction.options.getString("coin", true);
     const cashAmount = interaction.options.getInteger("amount", true);
@@ -487,12 +485,11 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const coinType = interaction.options.getString("coin", true);
     const coinAmount = interaction.options.getNumber("amount", true);
@@ -778,12 +775,11 @@ async function handlePortfolio(
     const user = await DatabaseManager.getUserForAuth(userId);
     if (!user) {
       const noAccountEmbed = ResponseUtil.noAccount(userTag);
-      await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
       return { success: false, error: "User not registered" };
     }
 
     // Defer immediately to avoid timeout
-    await interaction.deferReply({ flags: 64 });
 
     const moneyService = MoneyService.getInstance();
     const balance = await moneyService.getUserBalance(userId);
@@ -990,7 +986,7 @@ const cryptoCommand: Command = {
         case "portfolio":
           return await handlePortfolio(context);
         default:
-          await interaction.reply({
+          await ResponseUtil.smartReply(interaction, {
             content: "Unknown subcommand",
             flags: 64,
           });
@@ -1004,7 +1000,7 @@ const cryptoCommand: Command = {
         "An error occurred while processing your crypto transaction. Please try again."
       );
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Crypto command failed" };
     }
   },

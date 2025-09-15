@@ -50,7 +50,7 @@ const createAccountCommand: Command = {
           }
         );
 
-        await interaction.reply({ embeds: [alreadyExistsEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [alreadyExistsEmbed], flags: 64 });
         return { success: true };
       }
 
@@ -66,7 +66,7 @@ const createAccountCommand: Command = {
         "Failed to process account creation request. Please try again later."
       );
 
-      await interaction.reply({ embeds: [errorEmbed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [errorEmbed], flags: 64 });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -130,7 +130,7 @@ async function showRegistrationFlow(interaction: any, userTag: string, userId: s
         .setStyle(ButtonStyle.Danger)
     );
 
-  await interaction.reply({
+  await ResponseUtil.smartReply(interaction, {
     embeds: [welcomeEmbed],
     components: [actionRow],
     flags: 64 // Ephemeral
@@ -288,7 +288,7 @@ async function createCharacterConfirmation(interaction: any, characterName: stri
         .setStyle(ButtonStyle.Danger)
     );
 
-  await interaction.reply({
+  await ResponseUtil.smartReply(interaction, {
     embeds: [confirmEmbed],
     components: [confirmRow],
     flags: 64

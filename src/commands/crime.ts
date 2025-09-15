@@ -35,7 +35,7 @@ const crimeCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
       }
 
@@ -48,7 +48,7 @@ const crimeCommand: Command = {
           "🚔 You're in Jail!",
           `You're currently serving time and cannot commit crimes.\nTime remaining: ${jailStatus.timeLeft} minutes`
         );
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
         return { success: false, error: "Player is in jail" };
       }
 
@@ -59,7 +59,7 @@ const crimeCommand: Command = {
           "Invalid Crime",
           "The crime type you selected is not available."
         );
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
         return { success: false, error: "Invalid crime type" };
       }
 
@@ -88,9 +88,9 @@ const crimeCommand: Command = {
 
       // Successful crimes are private (to hide earnings), failed crimes are public (for social dynamics)
       if (result.success) {
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       } else {
-        await interaction.reply({ embeds: [embed] });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed] });
       }
 
       // Log the crime attempt (after successful reply)
@@ -119,7 +119,7 @@ const crimeCommand: Command = {
       // Only reply if we haven't already replied to the interaction
       if (!interaction.replied && !interaction.deferred) {
         const embed = ResponseUtil.error("Crime Error", errorMessage);
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       }
       return { success: false, error: errorMessage };
     }

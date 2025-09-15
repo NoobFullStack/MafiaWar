@@ -37,7 +37,7 @@ const assetsCommand: Command = {
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user?.character) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
-        await interaction.reply({ embeds: [noAccountEmbed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [noAccountEmbed], flags: 64 });
         return { success: false, error: "User not registered" };
       }
 
@@ -75,7 +75,7 @@ const assetsCommand: Command = {
             ? "No assets match your current level and resources. Keep playing to unlock more!" 
             : "No assets found in this category."
         );
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
         return { success: true };
       }
 
@@ -185,7 +185,7 @@ const assetsCommand: Command = {
         });
       }
 
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: true };
 
     } catch (error) {
@@ -194,7 +194,7 @@ const assetsCommand: Command = {
         "Command Failed",
         "An error occurred while fetching assets."
       );
-      await interaction.reply({ embeds: [embed], flags: 64 });
+      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
       return { success: false, error: "Command execution failed" };
     }
   },
