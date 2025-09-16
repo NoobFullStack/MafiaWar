@@ -199,6 +199,16 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         )
         .addFields(
           {
+            name: "🎓 RECOMMENDED: Interactive Tutorial",
+            value:
+              "`/tutorial` - **Complete guided tutorial for new players**\n" +
+              "`/tutorial crimes` - Learn the crime system\n" +
+              "`/tutorial business` - Master business investments\n" +
+              "`/tutorial money` - Understand the money system\n\n" +
+              "*The tutorial provides step-by-step guidance with examples!*",
+            inline: false,
+          },
+          {
             name: "1️⃣ Create Your Character",
             value:
               "`/user-create` - Join the underworld and create your criminal persona",
@@ -231,7 +241,7 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "💡 Pro Tips",
             value:
-              "• Bank your money to keep it safe from jail\n• Level up to unlock better crimes\n• Buy businesses for passive income\n• Use crypto trading for high-risk/high-reward",
+              "• **Use `/tutorial` for interactive guidance**\n• Bank your money to keep it safe from jail\n• Level up to unlock better crimes\n• Buy businesses for passive income\n• Use crypto trading for high-risk/high-reward",
             inline: false,
           }
         );
@@ -355,9 +365,16 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         )
         .addFields(
           {
+            name: "🎓 NEW: Interactive Tutorial",
+            value:
+              "**`/tutorial` - Complete guided tutorial for new players!**\n" +
+              "Step-by-step lessons on crimes, businesses, money management, and more.",
+            inline: false,
+          },
+          {
             name: "🚀 New Player?",
             value:
-              "Select **Getting Started** from the menu below for a step-by-step guide!",
+              "Use **`/tutorial`** for interactive guidance or select **Getting Started** from the menu below!",
             inline: false,
           },
           {
