@@ -250,7 +250,7 @@ export class AssetService {
 
       // Process entire purchase in a single transaction to prevent race conditions
       const result = await db.$transaction(
-        async (tx) => {
+        async (tx: any) => {
           // Re-validate within transaction to prevent race conditions
           const currentUser = await tx.user.findUnique({
             where: { id: user.id },
@@ -582,7 +582,7 @@ export class AssetService {
 
       // Distribute income to player's accounts
       await db.$transaction(
-        async (tx) => {
+        async (tx: any) => {
           if (totalCash > 0) {
             await tx.character.updateMany({
               where: { userId: user.id },
@@ -756,7 +756,7 @@ export class AssetService {
         orderBy: { name: "asc" },
       });
 
-      return assets.map((asset) => {
+      return assets.map((asset: any) => {
         const template = assetTemplates.find(
           (t) => t.type === asset.type && t.name === asset.name
         );

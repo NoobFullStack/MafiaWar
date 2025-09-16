@@ -35,7 +35,7 @@ async function findDuplicateAssets(): Promise<AssetCount[]> {
   // Group by owner + name + type to find duplicates
   const grouped = new Map<string, AssetCount>();
 
-  assets.forEach((asset) => {
+  assets.forEach((asset: any) => {
     const key = `${asset.ownerId}-${asset.name}-${asset.type}`;
 
     if (!grouped.has(key)) {

@@ -193,7 +193,7 @@ async function showUserAssets(discordId: string): Promise<void> {
     return;
   }
 
-  user.assets.forEach((asset, index) => {
+  user.assets.forEach((asset: any, index: number) => {
     const hoursElapsed = Math.max(
       0,
       (Date.now() - asset.lastIncomeTime.getTime()) / (1000 * 60 * 60)

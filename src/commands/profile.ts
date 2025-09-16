@@ -84,11 +84,11 @@ const profileCommand: Command = {
 
       // Calculate total asset value and income
       const totalAssetValue = user.assets.reduce(
-        (sum, asset) => sum + asset.value,
+        (sum: number, asset: any) => sum + asset.value,
         0
       );
       const totalAssetIncome = user.assets.reduce(
-        (sum, asset) => sum + asset.incomeRate,
+        (sum: number, asset: any) => sum + asset.incomeRate,
         0
       );
 

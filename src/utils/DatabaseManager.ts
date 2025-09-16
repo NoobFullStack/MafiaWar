@@ -242,7 +242,7 @@ class DatabaseManager {
       logger.info(`Starting deletion process for user: ${userId}`);
 
       // Start a transaction to ensure all deletions succeed or fail together
-      const result = await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx: any) => {
         // Get user data before deletion for logging
         const user = await tx.user.findUnique({
           where: { id: userId },
@@ -471,7 +471,7 @@ class DatabaseManager {
           bankBalance: user.character.bankBalance,
           reputation: user.character.reputation,
         } : null,
-        assets: user.assets.map(asset => ({
+        assets: user.assets.map((asset: any) => ({
           name: asset.name,
           type: asset.type,
           level: asset.level,
@@ -480,19 +480,19 @@ class DatabaseManager {
           robberyLogs: asset.robberyLogs.length,
         })),
         gangs: {
-          memberships: user.gangs.map(membership => ({
+          memberships: user.gangs.map((membership: any) => ({
             gangName: membership.gang.name,
             role: membership.role,
             joinedAt: membership.joinedAt,
           })),
-          leadership: user.ledGangs.map(gang => ({
+          leadership: user.ledGangs.map((gang: any) => ({
             gangName: gang.name,
             memberCount: gang.members.length,
-            willTransferTo: gang.members.find(m => m.userId !== user.id)?.userId || null,
+            willTransferTo: gang.members.find((m: any) => m.userId !== user.id)?.userId || null,
             willDelete: gang.members.length === 1, // Only the leader
           })),
         },
-        inventory: user.inventory.map(inv => ({
+        inventory: user.inventory.map((inv: any) => ({
           itemName: inv.item.name,
           quantity: inv.quantity,
           value: inv.item.value,
