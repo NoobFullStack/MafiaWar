@@ -46,7 +46,7 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     // Get price change from database
     const db = DatabaseManager.getClient();
     const priceData = await db.cryptoPrice.findUnique({
-      where: { coinType: coin.symbol },
+      where: { coinType: "crypto" },
     });
 
     const change24h = priceData?.change24h || 0;
@@ -875,7 +875,7 @@ async function handlePortfolio(
         // Get price change data
         const db = DatabaseManager.getClient();
         const priceData = await db.cryptoPrice.findUnique({
-          where: { coinType: cryptoKey },
+          where: { coinType: "crypto" },
         });
 
         const change24h = priceData?.change24h || 0;
