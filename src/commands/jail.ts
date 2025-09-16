@@ -42,15 +42,36 @@ async function handleStatus(interaction: any, userId: string): Promise<CommandRe
   }
 }
 
-async function handleBribe(interaction: any, userId: string): Promise<CommandResult> {
+async function handleBribe(interaction: any, userId: string, userTag: string): Promise<CommandResult> {
   try {
     const bribeResult = await JailService.processBribe(userId);
 
     if (bribeResult.success) {
+      const username = userTag.split("#")[0];
       const embed = ResponseUtil.success("🤝 Bribe Successful!", bribeResult.message);
       embed.setColor(0x00ff00); // Green for success
-      await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
+      
+      // Make successful bribe public - everyone should see we paid to get out of jail
+      await ResponseUtil.smartReply(interaction, { embeds: [embed] });
+      
+      // Also send a public announcement to the channel
+      try {
+        const publicMessage = `💰 **JAIL BRIBE** 💰\n${username} paid their way out of jail! Money talks in this city... 🚔💸`;
+        const publicEmbed = ResponseUtil.info("🚔 Corruption Alert", publicMessage);
+        
+        const channel = interaction.channel;
+        if (channel && "send" in channel) {
+          await channel.send({ embeds: [publicEmbed] });
+        }
+      } catch (announcementError) {
+        // Log but don't fail the command if public announcement fails
+        logger.warn(
+          `Failed to send public bribe announcement for user ${userId}:`,
+          announcementError
+        );
+      }
     } else {
+      // Keep failed bribes private to avoid spam
       const embed = ResponseUtil.error("❌ Bribe Failed", bribeResult.message);
       await ResponseUtil.smartReply(interaction, { embeds: [embed], flags: 64 });
     }
@@ -139,7 +160,7 @@ const jailCommand: Command = {
           return await handleStatus(interaction, userId);
           
         case "bribe":
-          return await handleBribe(interaction, userId);
+          return await handleBribe(interaction, userId, userTag);
           
         case "stats":
           return await handleStats(interaction, userId);
