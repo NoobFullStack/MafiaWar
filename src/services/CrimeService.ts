@@ -475,6 +475,11 @@ export class CrimeService {
         const reputationGain = Math.floor(crime.difficulty * 2);
         updateData.reputation = { increment: reputationGain };
 
+        // Update level if player leveled up
+        if (result.leveledUp && result.newLevel) {
+          updateData.level = result.newLevel;
+        }
+
         // Handle strategic payout in the same transaction
         if (result.paymentDetails?.breakdown) {
           const breakdown = result.paymentDetails.breakdown;
