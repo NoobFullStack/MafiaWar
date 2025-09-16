@@ -62,23 +62,21 @@ const businessCommand: Command = {
       subcommand
         .setName("upgrade")
         .setDescription("Upgrade one of your assets")
-        .addStringOption((option) =>
+        .addIntegerOption((option) =>
           option
-            .setName("asset_id")
+            .setName("asset_number")
             .setDescription(
-              "The ID of the asset to upgrade (use /business list to see IDs)"
+              "The position number of the asset to upgrade (use /business list to see numbers)"
             )
             .setRequired(true)
+            .setMinValue(1)
         )
         .addStringOption((option) =>
           option
             .setName("type")
             .setDescription("Type of upgrade")
             .setRequired(true)
-            .addChoices(
-              { name: "Income", value: "income" },
-              { name: "Security", value: "security" }
-            )
+            .addChoices({ name: "Income Rate", value: "income" })
         )
         .addStringOption((option) =>
           option
@@ -295,8 +293,7 @@ const businessCommand: Command = {
               (Date.now() - asset.lastIncomeTime.getTime()) / (1000 * 60 * 60)
             );
 
-            let assetInfo = `**ID:** \`${asset.id.substring(0, 8)}\`\n`;
-            assetInfo += `**Level:** ${asset.level}/${asset.template.maxLevel} • **Security:** ${asset.securityLevel}\n`;
+            let assetInfo = `**Level:** ${asset.level}/${asset.template.maxLevel}\n`;
             assetInfo += `**Income Rate:** ${BotBranding.formatCurrency(
               asset.incomeRate
             )}/hour\n`;
@@ -354,7 +351,7 @@ const businessCommand: Command = {
           });
 
           embed.setFooter({
-            text: "💡 Use /business collect to gather all pending income • /business upgrade to improve assets",
+            text: "💡 Use /business collect to gather all pending income • /business upgrade <number> income to improve income rates",
           });
 
           await interaction.editReply({ embeds: [embed] });
@@ -463,15 +460,59 @@ const businessCommand: Command = {
           }
         }
         case "upgrade": {
-          const assetId = interaction.options.getString("asset_id", true);
-          const upgradeType = interaction.options.getString("type", true) as
-            | "income"
-            | "security";
+          const assetNumber = interaction.options.getInteger(
+            "asset_number",
+            true
+          );
+          const upgradeType = "income"; // Only income upgrades for now
           const paymentMethod =
             (interaction.options.getString("payment") as
               | "cash"
               | "bank"
               | "mixed") || "mixed";
+
+          // Get player's assets to find the asset by number
+          const assets = await assetService.getPlayerAssets(userId);
+
+          if (assets.length === 0) {
+            const embed = ResponseUtil.error(
+              "No Assets Owned",
+              "You don't own any business assets yet! Use `/business buy <asset>` to purchase your first asset."
+            );
+            await interaction.editReply({ embeds: [embed] });
+            return { success: false, error: "No assets owned" };
+          }
+
+          if (assetNumber < 1 || assetNumber > assets.length) {
+            const embed = ResponseUtil.error(
+              "Invalid Asset Number",
+              `Please enter a number between 1 and ${assets.length}. Use \`/business list\` to see your assets with their positions.\n\n**Your Assets:**\n` +
+                assets
+                  .map(
+                    (asset, idx) =>
+                      `${idx + 1}. ${asset.name} (Level ${asset.level}/${
+                        asset.template.maxLevel
+                      })`
+                  )
+                  .join("\n")
+            );
+            await interaction.editReply({ embeds: [embed] });
+            return { success: false, error: "Invalid asset number" };
+          }
+
+          // Get the asset by number (subtract 1 for zero-based array)
+          const selectedAsset = assets[assetNumber - 1];
+          const assetId = selectedAsset.id;
+
+          // Check if asset can be upgraded
+          if (selectedAsset.level >= selectedAsset.template.maxLevel) {
+            const embed = ResponseUtil.error(
+              "Cannot Upgrade",
+              `**${selectedAsset.name}** (Position #${assetNumber}) is already at maximum level (${selectedAsset.template.maxLevel})!`
+            );
+            await interaction.editReply({ embeds: [embed] });
+            return { success: false, error: "Asset at max level" };
+          }
 
           const result = await assetService.upgradeAsset(
             userId,
@@ -482,7 +523,7 @@ const businessCommand: Command = {
 
           let embed;
           if (result.success) {
-            embed = ResponseUtil.success("🔧 Asset Upgraded!", result.message);
+            embed = ResponseUtil.success("🔧 Income Upgraded!", result.message);
 
             if (result.cost) {
               embed.addFields({
@@ -493,6 +534,20 @@ const businessCommand: Command = {
                 inline: true,
               });
             }
+
+            embed.addFields({
+              name: "📊 Business Details",
+              value: `**Business:** ${
+                selectedAsset.name
+              }\n**Position:** #${assetNumber}\n**New Level:** ${
+                selectedAsset.level + 1
+              }/${selectedAsset.template.maxLevel}`,
+              inline: true,
+            });
+
+            embed.setFooter({
+              text: "💡 Use /business list to see updated income rates",
+            });
           } else {
             embed = ResponseUtil.error("Upgrade Failed", result.message);
           }
