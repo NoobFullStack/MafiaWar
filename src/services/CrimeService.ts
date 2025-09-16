@@ -16,6 +16,7 @@ import { getCryptoCoin } from "../data/money";
 import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
+import CacheManager from "../utils/CacheManager";
 import JailService from "./JailService";
 import MoneyService from "./MoneyService";
 
@@ -50,20 +51,36 @@ export interface PlayerStats {
 
 export class CrimeService {
   /**
-   * Get all available crimes for a player based on their level
+   * Get all available crimes for a player based on their level (cached)
    */
   static getAvailableCrimes(playerLevel: number): CrimeData[] {
-    return crimeData.filter((crime) => {
-      const levelReq = crime.requirements?.level || 1;
-      return playerLevel >= levelReq;
-    });
+    const cacheKey = `available_crimes_${playerLevel}`;
+    
+    return CacheManager.get(cacheKey) || (() => {
+      const crimes = crimeData.filter((crime) => {
+        const levelReq = crime.requirements?.level || 1;
+        return playerLevel >= levelReq;
+      });
+      
+      // Cache for 5 minutes since crime data is static
+      CacheManager.set(cacheKey, crimes, 300);
+      return crimes;
+    })();
   }
 
   /**
-   * Get crime data by ID
+   * Get crime data by ID (cached)
    */
   static getCrimeById(crimeId: string): CrimeData | null {
-    return crimeData.find((crime) => crime.id === crimeId) || null;
+    const cacheKey = `crime_data_${crimeId}`;
+    
+    return CacheManager.get(cacheKey) || (() => {
+      const crime = crimeData.find((crime) => crime.id === crimeId) || null;
+      
+      // Cache for 10 minutes since crime data is static
+      CacheManager.set(cacheKey, crime, 600);
+      return crime;
+    })();
   }
 
   /**
@@ -202,26 +219,10 @@ export class CrimeService {
       throw new Error(`Crime with ID ${crimeId} not found`);
     }
 
-    // Get player data from database - use faster query
-    const db = DatabaseManager.getClient();
+    // OPTIMIZED: Use DatabaseManager's getUserForCommand for better performance  
     let user;
-
     try {
-      user = await db.user.findUnique({
-        where: { discordId: userId },
-        include: {
-          character: {
-            select: {
-              id: true,
-              userId: true,
-              experience: true,
-              reputation: true,
-              cashOnHand: true,
-              stats: true,
-            },
-          },
-        },
-      });
+      user = await DatabaseManager.getUserForCommand(userId, "crime");
     } catch (dbError) {
       logger.error(`Database error when fetching user ${userId}:`, dbError);
       throw new Error("Database connection failed. Please try again.");

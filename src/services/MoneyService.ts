@@ -7,6 +7,7 @@ import {
 } from "../data/money";
 import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
+import CacheManager from "../utils/CacheManager";
 
 export interface MoneyBalance {
   cashOnHand: number;
@@ -106,7 +107,13 @@ export class MoneyService {
       if (includePortfolioValue) {
         let cryptoValue = 0;
         for (const [coinType, amount] of Object.entries(cryptoWallet)) {
-          const price = await this.getCoinPrice(coinType);
+          // Use cached price lookup for better performance
+          const cacheKey = `crypto_price_${coinType}`;
+          const price = await CacheManager.getOrFetch(
+            cacheKey,
+            () => this.getCoinPrice(coinType),
+            120 // 2 minutes cache
+          );
           cryptoValue += (amount as number) * price;
         }
 

@@ -8,7 +8,18 @@ class DatabaseManager {
 
   private constructor() {
     this.prisma = new PrismaClient({
-      log: ["warn", "error"],
+      log: process.env.NODE_ENV === "production" ? ["error"] : ["warn", "error"],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+      // Optimize for production performance
+      ...(process.env.NODE_ENV === "production" && {
+        // Production-specific optimizations
+        errorFormat: "minimal",
+        rejectOnNotFound: false,
+      }),
     });
   }
 
@@ -55,16 +66,38 @@ class DatabaseManager {
 
   /**
    * Get or create user (auto-registration for server members)
+   * OPTIMIZED: Single query with all necessary includes for command execution
    */
   async getOrCreateUser(discordId: string, username: string) {
     try {
-      // Try to find existing user
+      // Try to find existing user with all commonly needed relations in one query
       let user = await this.prisma.user.findUnique({
         where: { discordId },
         include: {
           character: true,
-          assets: true,
-          gangs: true,
+          assets: {
+            select: {
+              id: true,
+              type: true,
+              name: true,
+              level: true,
+              value: true,
+              incomeRate: true,
+              lastIncomeTime: true,
+              securityLevel: true,
+            }
+          },
+          gangs: {
+            include: {
+              gang: {
+                select: {
+                  id: true,
+                  name: true,
+                  leaderId: true,
+                }
+              }
+            }
+          },
         },
       });
 
@@ -95,8 +128,29 @@ class DatabaseManager {
           },
           include: {
             character: true,
-            assets: true,
-            gangs: true,
+            assets: {
+              select: {
+                id: true,
+                type: true,
+                name: true,
+                level: true,
+                value: true,
+                incomeRate: true,
+                lastIncomeTime: true,
+                securityLevel: true,
+              }
+            },
+            gangs: {
+              include: {
+                gang: {
+                  select: {
+                    id: true,
+                    name: true,
+                    leaderId: true,
+                  }
+                }
+              }
+            },
           },
         });
 
@@ -109,8 +163,29 @@ class DatabaseManager {
             data: { username },
             include: {
               character: true,
-              assets: true,
-              gangs: true,
+              assets: {
+                select: {
+                  id: true,
+                  type: true,
+                  name: true,
+                  level: true,
+                  value: true,
+                  incomeRate: true,
+                  lastIncomeTime: true,
+                  securityLevel: true,
+                }
+              },
+              gangs: {
+                include: {
+                  gang: {
+                    select: {
+                      id: true,
+                      name: true,
+                      leaderId: true,
+                    }
+                  }
+                }
+              },
             },
           });
         }
@@ -520,8 +595,64 @@ class DatabaseManager {
   }
 
   /**
+   * Get user for command execution with performance optimization
+   * This replaces the common pattern of getUserForAuth + separate queries
+   */
+  async getUserForCommand(discordId: string, commandName: string): Promise<any> {
+    const startTime = Date.now();
+    
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { discordId },
+        include: {
+          character: true,
+          assets: {
+            select: {
+              id: true,
+              type: true,
+              name: true,
+              level: true,
+              value: true,
+              incomeRate: true,
+              lastIncomeTime: true,
+              securityLevel: true,
+            }
+          },
+          gangs: {
+            include: {
+              gang: {
+                select: {
+                  id: true,
+                  name: true,
+                  leaderId: true,
+                }
+              }
+            }
+          },
+        },
+      });
+
+      const queryTime = Date.now() - startTime;
+      
+      // Log slow queries for monitoring
+      if (queryTime > 500) {
+        logger.warn(`Slow getUserForCommand query: ${queryTime}ms for command ${commandName}`);
+      } else if (process.env.NODE_ENV !== "production") {
+        logger.info(`getUserForCommand query: ${queryTime}ms for command ${commandName}`);
+      }
+
+      return user?.character ? user : null;
+    } catch (error) {
+      const queryTime = Date.now() - startTime;
+      logger.error(`getUserForCommand error after ${queryTime}ms for command ${commandName}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Check if user exists and has a valid character (for authentication)
    * Returns null if user doesn't exist or doesn't have a character
+   * @deprecated Use getUserForCommand for better performance
    */
   async getUserForAuth(discordId: string) {
     try {

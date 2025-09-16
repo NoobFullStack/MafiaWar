@@ -83,8 +83,8 @@ const crimeCommand: Command = {
     const { interaction, userId, userTag } = context;
 
     try {
-      // Check if user has an account
-      const user = await DatabaseManager.getUserForAuth(userId);
+      // OPTIMIZED: Use performance-optimized user lookup
+      const user = await DatabaseManager.getUserForCommand(userId, "crime");
       if (!user) {
         const noAccountEmbed = ResponseUtil.noAccount(userTag);
         await ResponseUtil.smartReply(interaction, {

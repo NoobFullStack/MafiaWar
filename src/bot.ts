@@ -110,6 +110,7 @@ class MafiaWarBot {
   private async handleSlashCommand(
     interaction: ChatInputCommandInteraction
   ): Promise<void> {
+    const startTime = Date.now();
     const command = CommandManager.getCommand(interaction.commandName);
 
     if (!command) {
@@ -154,13 +155,21 @@ class MafiaWarBot {
         );
       }
 
-      // Log command usage
-      logger.info(
-        `${interaction.commandName} executed by ${interaction.user.username}`
-      );
+      // Performance logging
+      const executionTime = Date.now() - startTime;
+      if (executionTime > 2000) {
+        logger.warn(
+          `Slow command execution: ${interaction.commandName} took ${executionTime}ms for user ${interaction.user.username}`
+        );
+      } else if (process.env.NODE_ENV !== "production") {
+        logger.info(
+          `Command ${interaction.commandName} executed in ${executionTime}ms by ${interaction.user.username}`
+        );
+      }
     } catch (error) {
+      const executionTime = Date.now() - startTime;
       logger.error(
-        `Error executing command ${interaction.commandName}:`,
+        `Error executing command ${interaction.commandName} after ${executionTime}ms:`,
         error
       );
       await ErrorHandler.handleCommandError(

@@ -15,18 +15,8 @@ const profileCommand: Command = {
     const { interaction, userId, userTag } = context;
 
     try {
-      // Get user with character data
-      const user = await DatabaseManager.getClient().user.findUnique({
-        where: { discordId: userId },
-        include: {
-          character: true,
-          assets: {
-            include: {
-              // Include any asset upgrades if needed
-            },
-          },
-        },
-      });
+      // OPTIMIZED: Single query with all needed data and performance timing
+      const user = await DatabaseManager.getUserForCommand(userId, "profile");
 
       // If user doesn't exist, redirect to user-create
       if (!user) {
@@ -50,9 +40,13 @@ const profileCommand: Command = {
         return { success: false, error: "Character not found" };
       }
 
-      // Get comprehensive balance information
-      const moneyService = MoneyService.getInstance();
-      const balance = await moneyService.getUserBalance(userId, true);
+      // PARALLEL OPERATIONS: Get balance and calculate values concurrently
+      const [balance, bankTier] = await Promise.all([
+        // Get comprehensive balance information with caching
+        MoneyService.getInstance().getUserBalance(userId, true),
+        // Get bank tier (cached calculation)
+        Promise.resolve(MoneyService.getInstance().getUserBankTier(user.character.bankAccessLevel || 1))
+      ]);
 
       if (!balance) {
         const errorEmbed = ResponseUtil.error(
@@ -77,18 +71,18 @@ const profileCommand: Command = {
       const xpNeeded = nextLevelXP - currentLevelXP;
       const progressPercent = Math.floor((xpProgress / xpNeeded) * 100);
 
-      // Get user's bank tier information
-      const bankTier = moneyService.getUserBankTier(
-        user.character.bankAccessLevel || 1
-      );
+      // Get user's bank tier information (from parallel operation above)
+      // const bankTier = moneyService.getUserBankTier(
+      //   user.character.bankAccessLevel || 1
+      // );
 
-      // Calculate total asset value and income
+      // Calculate total asset value and income (use already loaded assets)
       const totalAssetValue = user.assets.reduce(
-        (sum, asset) => sum + asset.value,
+        (sum: number, asset: any) => sum + asset.value,
         0
       );
       const totalAssetIncome = user.assets.reduce(
-        (sum, asset) => sum + asset.incomeRate,
+        (sum: number, asset: any) => sum + asset.incomeRate,
         0
       );
 
