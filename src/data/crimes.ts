@@ -1,14 +1,43 @@
+/**
+ * CRIME DATA CONFIGURATION
+ *
+ * This file defines all available crimes in the Mafia War bot game.
+ * Each crime has specific difficulty levels, rewards, cooldowns, and requirements.
+ *
+ * Crime Categories:
+ * - petty: Low-level crimes for beginners (pickpocketing, shoplifting)
+ * - theft: Vehicle and property theft crimes
+ * - robbery: Armed robberies and heists
+ * - violence: Assassination and violent crimes
+ * - white_collar: Cyber crimes, fraud, money laundering
+ * - organized: High-level organized crime operations
+ *
+ * Payment Types:
+ * - cash: Money goes directly to cash on hand
+ * - bank: Money goes to bank account (for laundered/legitimate funds)
+ * - crypto: Money converted to cryptocurrency
+ * - mixed: Split between cash, bank, and crypto based on crime type
+ *
+ * Requirements:
+ * - level: Minimum character level required
+ * - reputation: Minimum reputation points required
+ * - items: Required items in inventory (future feature)
+ *
+ * XP Rewards calculated as: (difficulty × 5) + (cooldown in minutes ÷ 5)
+ * This ensures longer, harder crimes give more experience points.
+ */
+
 export interface CrimeData {
   id: string;
   name: string;
   description: string;
-  difficulty: number; // 1-10 scale
-  cooldown: number; // seconds
+  difficulty: number;
+  cooldown: number;
   rewardMin: number;
   rewardMax: number;
-  xpReward: number; // Experience points gained
-  baseSuccessRate: number; // 0.0-1.0
-  jailTimeMin: number; // minutes on failure
+  xpReward: number;
+  baseSuccessRate: number;
+  jailTimeMin: number;
   jailTimeMax: number;
   category:
     | "petty"
@@ -17,16 +46,12 @@ export interface CrimeData {
     | "violence"
     | "white_collar"
     | "organized";
-  // NEW: Strategic payout system
-  paymentType?: "cash" | "bank" | "crypto" | "mixed"; // Where money goes
-  paymentReason?: string; // Explanation for players
+  paymentType?: "cash" | "bank" | "crypto" | "mixed";
+  paymentReason?: string;
   requirements?: {
     level?: number;
     reputation?: number;
-    intelligence?: number;
-    strength?: number;
-    stealth?: number;
-    items?: string[]; // Required item IDs
+    items?: string[];
   };
   statBonuses?: {
     strength?: number;
@@ -35,22 +60,21 @@ export interface CrimeData {
   };
   riskFactors?: {
     injury_chance?: number;
-    heat_generation?: number; // Police attention
+    heat_generation?: number;
   };
 }
 
 export const crimeData: CrimeData[] = [
-  // === PETTY CRIMES ===
   {
     id: "pickpocketing",
     name: "Pickpocketing",
     description: "Steal from unsuspecting pedestrians in crowded areas.",
     difficulty: 1,
-    cooldown: 10, // 10 seconds - instant retry for beginners
+    cooldown: 10,
     rewardMin: 50,
     rewardMax: 200,
-    xpReward: 10, // Low XP for beginner crime
-    baseSuccessRate: 0.95, // Very high success rate for new players
+    xpReward: 10,
+    baseSuccessRate: 0.95,
     jailTimeMin: 1,
     jailTimeMax: 5,
     category: "petty",
@@ -66,16 +90,16 @@ export const crimeData: CrimeData[] = [
     name: "Shoplifting",
     description: "Steal merchandise from retail stores.",
     difficulty: 2,
-    cooldown: 30, // 30 seconds - much faster
+    cooldown: 30,
     rewardMin: 150,
     rewardMax: 450,
-    xpReward: 15, // Slightly more XP for difficulty 2
-    baseSuccessRate: 0.9, // High success rate for beginners
+    xpReward: 15,
+    baseSuccessRate: 0.9,
     jailTimeMin: 3,
     jailTimeMax: 7,
     category: "petty",
     requirements: {
-      level: 1, // Available from level 1
+      level: 1,
     },
     statBonuses: {
       stealth: 1,
@@ -86,63 +110,57 @@ export const crimeData: CrimeData[] = [
     name: "Bike Theft",
     description: "Steal bicycles from bike racks and parking areas.",
     difficulty: 2,
-    cooldown: 60, // 1 minute - much faster
+    cooldown: 60,
     rewardMin: 200,
     rewardMax: 500,
-    xpReward: 15, // Same as shoplifting (difficulty 2)
-    baseSuccessRate: 0.88, // High success rate
+    xpReward: 15,
+    baseSuccessRate: 0.88,
     jailTimeMin: 5,
     jailTimeMax: 10,
     category: "theft",
     requirements: {
-      level: 1, // Available from level 1
+      level: 1,
     },
     statBonuses: {
       stealth: 1,
       strength: 1,
     },
   },
-
-  // === FRAUD CRIMES ===
   {
     id: "credit_card_fraud",
     name: "Credit Card Fraud",
     description: "Use stolen credit card information for online purchases.",
     difficulty: 4,
-    cooldown: 1800, // 30 minutes
+    cooldown: 1800,
     rewardMin: 1200,
     rewardMax: 2400,
-    xpReward: 26, // Difficulty 4 × 5 + (1800/300) = 26
+    xpReward: 26,
     baseSuccessRate: 0.7,
     jailTimeMin: 60,
     jailTimeMax: 180,
     category: "white_collar",
     requirements: {
-      level: 3, // Unlocked at Petty Criminal
-      intelligence: 15,
+      level: 3,
     },
     statBonuses: {
       intelligence: 2,
     },
   },
-
-  // === THEFT CRIMES ===
   {
     id: "car_theft",
     name: "Car Theft",
     description: "Steal vehicles from parking lots and streets.",
     difficulty: 4,
-    cooldown: 1800, // 30 minutes
+    cooldown: 1800,
     rewardMin: 800,
     rewardMax: 2400,
-    xpReward: 26, // Difficulty 4 × 5 + (1800/300) = 26
+    xpReward: 26,
     baseSuccessRate: 0.65,
     jailTimeMin: 60,
     jailTimeMax: 180,
     category: "theft",
     requirements: {
-      level: 5, // Unlocked at Amateur Thief
-      stealth: 15,
+      level: 5,
     },
     statBonuses: {
       stealth: 2,
@@ -154,41 +172,37 @@ export const crimeData: CrimeData[] = [
     name: "Burglary",
     description: "Break into homes and steal valuables.",
     difficulty: 5,
-    cooldown: 2400, // 40 minutes
+    cooldown: 2400,
     rewardMin: 2000,
     rewardMax: 4500,
-    xpReward: 33, // Difficulty 5 × 5 + (2400/300) = 33
+    xpReward: 33,
     baseSuccessRate: 0.6,
     jailTimeMin: 90,
     jailTimeMax: 240,
     category: "theft",
     requirements: {
-      level: 8, // Unlocked at Professional Criminal
-      stealth: 20,
+      level: 8,
     },
     statBonuses: {
       stealth: 2,
       intelligence: 1,
     },
   },
-
-  // === ROBBERY CRIMES ===
   {
     id: "store_robbery",
     name: "Store Robbery",
     description: "Rob convenience stores and small businesses.",
     difficulty: 6,
-    cooldown: 3600, // 1 hour
+    cooldown: 3600,
     rewardMin: 2500,
     rewardMax: 5500,
-    xpReward: 42, // Difficulty 6 × 5 + (3600/300) = 42
+    xpReward: 42,
     baseSuccessRate: 0.55,
     jailTimeMin: 120,
     jailTimeMax: 300,
     category: "robbery",
     requirements: {
-      level: 8, // Unlocked at Professional Criminal
-      strength: 20,
+      level: 8,
     },
     statBonuses: {
       strength: 2,
@@ -204,20 +218,18 @@ export const crimeData: CrimeData[] = [
     name: "Bank Robbery",
     description: "Rob banks for large cash rewards - high risk, high reward.",
     difficulty: 9,
-    cooldown: 7200, // 2 hours
+    cooldown: 7200,
     rewardMin: 6000,
     rewardMax: 18000,
-    xpReward: 69, // Difficulty 9 × 5 + (7200/300) = 69
+    xpReward: 69,
     baseSuccessRate: 0.35,
     jailTimeMin: 300,
     jailTimeMax: 720,
     category: "robbery",
-    paymentType: "mixed", // Cash + some goes to bank (money laundering)
+    paymentType: "mixed",
     paymentReason: "Cash stolen + laundered funds transferred to bank",
     requirements: {
-      level: 15, // Unlocked at Criminal Mastermind
-      strength: 35,
-      stealth: 30,
+      level: 15,
     },
     statBonuses: {
       strength: 3,
@@ -228,52 +240,46 @@ export const crimeData: CrimeData[] = [
       heat_generation: 5,
     },
   },
-
-  // === WHITE COLLAR CRIMES ===
   {
     id: "hacking",
     name: "Cyber Hacking",
     description: "Hack into computer systems to steal data and money.",
     difficulty: 7,
-    cooldown: 4800, // 80 minutes
+    cooldown: 4800,
     rewardMin: 4000,
     rewardMax: 8500,
-    xpReward: 51, // Difficulty 7 × 5 + (4800/300) = 51
+    xpReward: 51,
     baseSuccessRate: 0.5,
     jailTimeMin: 180,
     jailTimeMax: 480,
     category: "white_collar",
-    paymentType: "crypto", // Digital crimes pay in cryptocurrency
+    paymentType: "crypto",
     paymentReason: "Digital theft converted to untraceable cryptocurrency",
     requirements: {
-      level: 12, // Unlocked at Crime Specialist
-      intelligence: 30,
+      level: 12,
     },
     statBonuses: {
       intelligence: 3,
     },
   },
-
-  // === ORGANIZED CRIME ===
   {
     id: "drug_dealing",
     name: "Drug Dealing",
     description: "Distribute illegal substances for high profits.",
     difficulty: 8,
-    cooldown: 5400, // 90 minutes
+    cooldown: 5400,
     rewardMin: 5000,
     rewardMax: 12000,
-    xpReward: 58, // Difficulty 8 × 5 + (5400/300) = 58
+    xpReward: 58,
     baseSuccessRate: 0.4,
     jailTimeMin: 240,
     jailTimeMax: 600,
     category: "organized",
-    paymentType: "cash", // Drug money is always cash
+    paymentType: "cash",
     paymentReason: "Street-level cash transactions",
     requirements: {
       level: 18,
       reputation: 100,
-      stealth: 25,
     },
     statBonuses: {
       stealth: 2,
@@ -284,28 +290,25 @@ export const crimeData: CrimeData[] = [
       heat_generation: 4,
     },
   },
-
   {
     id: "extortion",
     name: "Extortion",
     description:
       "Extract protection money from businesses through intimidation.",
     difficulty: 8,
-    cooldown: 6000, // 100 minutes
+    cooldown: 6000,
     rewardMin: 4500,
     rewardMax: 11000,
-    xpReward: 60, // Difficulty 8 × 5 + (6000/300) = 60
+    xpReward: 60,
     baseSuccessRate: 0.45,
     jailTimeMin: 220,
     jailTimeMax: 540,
     category: "organized",
-    paymentType: "mixed", // Business payments go to bank
+    paymentType: "mixed",
     paymentReason: "Protection payments processed through business accounts",
     requirements: {
       level: 16,
       reputation: 80,
-      strength: 30,
-      intelligence: 20,
     },
     statBonuses: {
       strength: 2,
@@ -316,26 +319,24 @@ export const crimeData: CrimeData[] = [
       heat_generation: 3,
     },
   },
-
   {
     id: "money_laundering",
     name: "Money Laundering",
     description: "Clean dirty money through legitimate businesses.",
     difficulty: 9,
-    cooldown: 7200, // 120 minutes
+    cooldown: 7200,
     rewardMin: 7000,
     rewardMax: 15000,
-    xpReward: 69, // Difficulty 9 × 5 + (7200/300) = 69
+    xpReward: 69,
     baseSuccessRate: 0.35,
     jailTimeMin: 300,
     jailTimeMax: 720,
     category: "white_collar",
-    paymentType: "bank", // All cleaned money goes to bank
+    paymentType: "bank",
     paymentReason: "Laundered funds transferred to legitimate accounts",
     requirements: {
       level: 20,
       reputation: 150,
-      intelligence: 40,
     },
     statBonuses: {
       intelligence: 4,
@@ -344,28 +345,24 @@ export const crimeData: CrimeData[] = [
       heat_generation: 5,
     },
   },
-
   {
     id: "assassination",
     name: "Assassination",
     description: "Elite contract killings for the highest bidders.",
     difficulty: 10,
-    cooldown: 10800, // 180 minutes
+    cooldown: 10800,
     rewardMin: 15000,
     rewardMax: 35000,
-    xpReward: 86, // Difficulty 10 × 5 + (10800/300) = 86
+    xpReward: 86,
     baseSuccessRate: 0.25,
     jailTimeMin: 480,
     jailTimeMax: 1440,
     category: "violence",
-    paymentType: "crypto", // Untraceable payments
+    paymentType: "crypto",
     paymentReason: "Contract payments in untraceable cryptocurrency",
     requirements: {
       level: 25,
       reputation: 250,
-      strength: 40,
-      stealth: 40,
-      intelligence: 30,
     },
     statBonuses: {
       strength: 3,
@@ -377,27 +374,24 @@ export const crimeData: CrimeData[] = [
       heat_generation: 8,
     },
   },
-
   {
     id: "arms_trafficking",
     name: "Arms Trafficking",
     description: "Smuggle and distribute illegal weapons.",
     difficulty: 9,
-    cooldown: 8400, // 140 minutes
+    cooldown: 8400,
     rewardMin: 8000,
     rewardMax: 20000,
-    xpReward: 73, // Difficulty 9 × 5 + (8400/300) = 73
+    xpReward: 73,
     baseSuccessRate: 0.3,
     jailTimeMin: 360,
     jailTimeMax: 900,
     category: "organized",
-    paymentType: "mixed", // Cash + crypto for international deals
+    paymentType: "mixed",
     paymentReason: "Weapons sales through multiple payment channels",
     requirements: {
       level: 22,
       reputation: 200,
-      strength: 35,
-      intelligence: 25,
     },
     statBonuses: {
       strength: 2,
@@ -408,28 +402,24 @@ export const crimeData: CrimeData[] = [
       heat_generation: 6,
     },
   },
-
   {
     id: "heist",
     name: "Grand Heist",
     description: "Orchestrate elaborate multi-target robberies.",
     difficulty: 10,
-    cooldown: 14400, // 240 minutes (4 hours)
+    cooldown: 14400,
     rewardMin: 20000,
     rewardMax: 50000,
-    xpReward: 98, // Difficulty 10 × 5 + (14400/300) = 98
+    xpReward: 98,
     baseSuccessRate: 0.2,
     jailTimeMin: 600,
     jailTimeMax: 1800,
     category: "organized",
-    paymentType: "mixed", // Complex heists have mixed payouts
+    paymentType: "mixed",
     paymentReason: "Multi-target heist proceeds distributed across accounts",
     requirements: {
       level: 30,
       reputation: 400,
-      strength: 35,
-      stealth: 35,
-      intelligence: 35,
     },
     statBonuses: {
       strength: 3,
