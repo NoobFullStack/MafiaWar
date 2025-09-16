@@ -802,19 +802,18 @@ export class AssetService {
   // ===== ASSET UPGRADES =====
 
   /**
-   * Calculate upgrade cost for an asset
+   * Calculate upgrade cost for an asset (income only)
    */
   calculateUpgradeCost(
     asset: any,
-    template: AssetTemplate,
-    upgradeType: "income" | "security"
+    template: AssetTemplate
   ): number | null {
     const currentLevel = asset.level;
     if (currentLevel >= template.maxLevel) {
       return null; // Already at max level
     }
 
-    const upgrades = template.upgrades?.[upgradeType];
+    const upgrades = template.upgrades?.income;
     if (!upgrades || upgrades.length < currentLevel) {
       return null; // No upgrade available
     }
@@ -823,12 +822,12 @@ export class AssetService {
   }
 
   /**
-   * Upgrade an asset (income or security)
+   * Upgrade an asset (income only)
    */
   async upgradeAsset(
     userId: string,
     assetId: string,
-    upgradeType: "income" | "security",
+    upgradeType: "income",
     paymentMethod: "cash" | "bank" | "mixed" = "mixed"
   ): Promise<AssetPurchaseResult> {
     try {
@@ -869,11 +868,11 @@ export class AssetService {
       }
 
       // Check if upgrade is available
-      const cost = this.calculateUpgradeCost(asset, template, upgradeType);
+      const cost = this.calculateUpgradeCost(asset, template);
       if (cost === null) {
         return {
           success: false,
-          message: `${asset.name} is already at maximum ${upgradeType} level`,
+          message: `${asset.name} is already at maximum level`,
           error: "Max level reached",
         };
       }
@@ -917,25 +916,18 @@ export class AssetService {
         });
       }
 
-      // Apply upgrade
-      const upgrades = template.upgrades![upgradeType];
-      const upgrade = upgrades[asset.level - 1];
+      // Apply income upgrade
+      const upgrades = template.upgrades!.income;
+      const upgrade = upgrades[asset.level - 1] as { cost: number; multiplier: number };
 
-      const updateData: any = { level: { increment: 1 } };
-
-      if (upgradeType === "income") {
-        const incomeUpgrade = upgrade as { cost: number; multiplier: number };
-        updateData.incomeRate = Math.floor(
-          asset.incomeRate * incomeUpgrade.multiplier
-        );
-      } else {
-        const securityUpgrade = upgrade as { cost: number; value: number };
-        updateData.securityLevel = { increment: securityUpgrade.value };
-      }
+      const newIncomeRate = Math.floor(asset.incomeRate * upgrade.multiplier);
 
       await db.asset.update({
         where: { id: assetId },
-        data: updateData,
+        data: { 
+          level: { increment: 1 },
+          incomeRate: newIncomeRate
+        },
       });
 
       // Log the upgrade
@@ -947,18 +939,17 @@ export class AssetService {
           result: "success",
           details: {
             assetName: asset.name,
-            upgradeType,
+            upgradeType: "income",
             cost,
             newLevel: asset.level + 1,
+            newIncomeRate: newIncomeRate,
           },
         },
       });
 
       return {
         success: true,
-        message: `🔧 Successfully upgraded ${
-          asset.name
-        } ${upgradeType} to level ${asset.level + 1}!`,
+        message: `🔧 Successfully upgraded ${asset.name} income to level ${asset.level + 1}! New income rate: ${BotBranding.formatCurrency(newIncomeRate)}/hour`,
         cost,
       };
     } catch (error) {

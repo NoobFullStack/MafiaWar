@@ -1,10 +1,108 @@
+/**
+ * ASSET TEMPLATES - BUSINESS CONFIGURATION
+ *
+ * This file defines all purchasable business assets in the MafiaWar game.
+ * Each asset represents a business that generates passive income for players.
+ *
+ * =============================================================================
+ * ASSET TEMPLATE STRUCTURE
+ * =============================================================================
+ *
+ * id: Unique identifier for the asset (used in database)
+ * type: Business category (shop, restaurant, nightclub, warehouse, casino)
+ * name: Display name shown to players
+ * description: Flavor text describing the business
+ * basePrice: Initial purchase cost in game currency
+ * baseIncomeRate: Starting hourly income generation
+ * baseSecurityLevel: Starting security rating (unused in simplified system)
+ * maxLevel: Maximum upgrade level (determines upgrade array length)
+ * category: Business legitimacy level affecting gameplay mechanics
+ *   - "legitimate": Low risk, lower income, minimal law enforcement attention
+ *   - "semi_legal": Medium risk/reward, moderate law enforcement attention
+ *   - "illegal": High risk/reward, heavy law enforcement attention
+ *
+ * =============================================================================
+ * REQUIREMENTS SYSTEM
+ * =============================================================================
+ *
+ * level: Minimum player level required to purchase
+ * reputation: Minimum reputation points required (for higher-tier businesses)
+ * money: Additional liquid funds required beyond base price
+ *
+ * =============================================================================
+ * UPGRADE SYSTEM (INCOME ONLY)
+ * =============================================================================
+ *
+ * income: Array of upgrade tiers, each containing:
+ *   - cost: Price to upgrade to this level
+ *   - multiplier: Income rate multiplier applied after upgrade
+ *
+ * security: Legacy system (kept for backwards compatibility, not used)
+ *
+ * Example: Level 1→2 upgrade with 1.2x multiplier increases $500/hr → $600/hr
+ *
+ * =============================================================================
+ * INCOME DISTRIBUTION SYSTEM
+ * =============================================================================
+ *
+ * Controls how generated income is split across the 3-layer money system:
+ *
+ * cash: Percentage going to immediate cash (0-100)
+ *   - Vulnerable to theft and raids
+ *   - Available for immediate spending
+ *   - Higher percentages for cash-heavy businesses
+ *
+ * bank: Percentage going to secured bank account (0-100)
+ *   - Protected from most theft
+ *   - Slight government seizure risk for illegal businesses
+ *   - Preferred for legitimate businesses
+ *
+ * crypto: Percentage going to anonymous cryptocurrency (0-100)
+ *   - Completely anonymous and secure
+ *   - Subject to market volatility
+ *   - Preferred for illegal operations
+ *
+ * cryptoType: Specific cryptocurrency used (defaults to "crypto")
+ *
+ * Note: cash + bank + crypto must equal 100
+ *
+ * =============================================================================
+ * BUSINESS CHARACTERISTICS
+ * =============================================================================
+ *
+ * seasonality: Income multiplier for seasonal effects (0.8-1.2)
+ *   - 1.0 = no seasonal impact
+ *   - >1.0 = benefits from seasons (restaurants during holidays)
+ *   - <1.0 = suffers during certain seasons
+ *
+ * marketSensitivity: How much market events affect income (0.0-1.0)
+ *   - 0.0 = completely immune to market fluctuations
+ *   - 1.0 = heavily affected by market conditions
+ *
+ * raidVulnerability: Chance of government raids per time period (0.0-1.0)
+ *   - 0.0 = never raided (legitimate businesses)
+ *   - 1.0 = constantly under government scrutiny
+ *   - Higher values for illegal operations
+ *
+ * =============================================================================
+ * BUSINESS PROGRESSION
+ * =============================================================================
+ *
+ * Level 1-5: Convenience Store → Restaurant → Pawn Shop
+ * Level 8+: Underground Nightclub (requires reputation)
+ * Level 12+: Storage Warehouse (high reputation required)
+ * Level 20+: Underground Casino (maximum reputation + liquid funds)
+ *
+ * Development: Lemonade Stand (testing only, very low cost/income)
+ */
+
 export interface AssetTemplate {
   id: string;
   type: string;
   name: string;
   description: string;
   basePrice: number;
-  baseIncomeRate: number; // per hour
+  baseIncomeRate: number;
   baseSecurityLevel: number;
   maxLevel: number;
   category: "legitimate" | "semi_legal" | "illegal";
@@ -17,36 +115,33 @@ export interface AssetTemplate {
     income: { cost: number; multiplier: number }[];
     security: { cost: number; value: number }[];
   };
-  // NEW: Strategic income distribution across 3-layered money system
   incomeDistribution: {
-    cash: number; // Percentage (0-100) - immediate, vulnerable to theft
-    bank: number; // Percentage (0-100) - secure, government seizure risk
-    crypto: number; // Percentage (0-100) - anonymous, market volatility risk
-    cryptoType?: string; // Preferred crypto coin for payments (optional)
+    cash: number;
+    bank: number;
+    crypto: number;
+    cryptoType?: string;
   };
-  // Business-specific characteristics for income generation
   characteristics?: {
-    seasonality?: number; // 0.8-1.2 multiplier for seasonal businesses
-    marketSensitivity?: number; // How much market events affect this business
-    raidVulnerability?: number; // Chance of government raids (0-1)
+    seasonality?: number;
+    marketSensitivity?: number;
+    raidVulnerability?: number;
   };
 }
 
 export const assetTemplates: AssetTemplate[] = [
-  // === DEVELOPMENT TEST BUSINESS ===
   {
     id: "test_lemonade_stand",
     type: "shop",
     name: "Lemonade Stand",
     description:
       "Simple test business for development - generates small income every few minutes.",
-    basePrice: 666, // Very affordable for testing
-    baseIncomeRate: 60, // $1 per minute (60/hour) for quick testing
+    basePrice: 666,
+    baseIncomeRate: 60,
     baseSecurityLevel: 1,
     maxLevel: 3,
     category: "legitimate",
     requirements: {
-      level: 1, // No level lock
+      level: 1,
     },
     upgrades: {
       income: [
@@ -59,19 +154,18 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 70, // 70% cash for quick testing
-      bank: 30, // 30% bank for testing bank mechanics
-      crypto: 0, // No crypto for basic test business
+      cash: 70,
+      bank: 30,
+      crypto: 0,
       cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 1.0,
       marketSensitivity: 0.1,
-      raidVulnerability: 0.01, // Almost no risk for testing
+      raidVulnerability: 0.01,
     },
   },
 
-  // === LEGITIMATE BUSINESSES ===
   {
     id: "convenience_store",
     type: "shop",
@@ -100,16 +194,17 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 90, // Daily sales, mostly cash transactions
-      bank: 10, // Small card payments and suppliers
-      crypto: 0, // No crypto for basic legitimate business
+      cash: 90,
+      bank: 10,
+      crypto: 0,
     },
     characteristics: {
       seasonality: 1.0,
       marketSensitivity: 0.3,
-      raidVulnerability: 0.05, // Very low chance
+      raidVulnerability: 0.05,
     },
   },
+
   {
     id: "restaurant",
     type: "restaurant",
@@ -121,7 +216,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "legitimate",
     requirements: {
-      level: 5, // Unlocked at Amateur Thief
+      level: 5,
     },
     upgrades: {
       income: [
@@ -138,18 +233,17 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 85, // Tips and some cash customers
-      bank: 15, // Credit cards, proper business banking
-      crypto: 0, // Legitimate restaurant doesn't use crypto
+      cash: 85,
+      bank: 15,
+      crypto: 0,
     },
     characteristics: {
       seasonality: 1.1,
       marketSensitivity: 0.4,
-      raidVulnerability: 0.02, // Extremely low for legitimate business
+      raidVulnerability: 0.02,
     },
   },
 
-  // === SEMI-LEGAL BUSINESSES ===
   {
     id: "pawn_shop",
     type: "shop",
@@ -161,7 +255,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "semi_legal",
     requirements: {
-      level: 3, // Unlocked at Petty Criminal
+      level: 3,
     },
     upgrades: {
       income: [
@@ -178,17 +272,18 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 80, // Cash business, "no questions asked"
-      bank: 15, // Some legitimate banking
-      crypto: 5, // Small anonymous transactions
-      cryptoType: "crypto", // Game-specific currency for sketchy deals
+      cash: 80,
+      bank: 15,
+      crypto: 5,
+      cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 0.9,
       marketSensitivity: 0.6,
-      raidVulnerability: 0.15, // Higher risk due to questionable practices
+      raidVulnerability: 0.15,
     },
   },
+
   {
     id: "nightclub",
     type: "nightclub",
@@ -218,19 +313,18 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 50, // Door fees, drinks, private room payments
-      bank: 35, // Card payments, DJ fees, legitimate business
-      crypto: 15, // VIP services, underground activities
-      cryptoType: "crypto", // Popular for club scenes
+      cash: 50,
+      bank: 35,
+      crypto: 15,
+      cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 1.2,
       marketSensitivity: 0.5,
-      raidVulnerability: 0.25, // Higher profile attracts attention
+      raidVulnerability: 0.25,
     },
   },
 
-  // === ILLEGAL OPERATIONS ===
   {
     id: "warehouse",
     type: "warehouse",
@@ -242,7 +336,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "illegal",
     requirements: {
-      level: 12, // Unlocked at Crime Specialist
+      level: 12,
       reputation: 50,
     },
     upgrades: {
@@ -260,17 +354,18 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 25, // Direct contraband sales
-      bank: 25, // Laundered through shell companies
-      crypto: 50, // Anonymous transactions for illegal goods
-      cryptoType: "crypto", // Underground currency for illegal activities
+      cash: 25,
+      bank: 25,
+      crypto: 50,
+      cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 1.0,
       marketSensitivity: 0.8,
-      raidVulnerability: 0.4, // High risk of government raids
+      raidVulnerability: 0.4,
     },
   },
+
   {
     id: "casino",
     type: "casino",
@@ -282,7 +377,7 @@ export const assetTemplates: AssetTemplate[] = [
     maxLevel: 5,
     category: "illegal",
     requirements: {
-      level: 20, // Unlocked at Crime Boss
+      level: 20,
       reputation: 100,
       money: 750000,
     },
@@ -301,15 +396,15 @@ export const assetTemplates: AssetTemplate[] = [
       ],
     },
     incomeDistribution: {
-      cash: 20, // Small bets, tips
-      bank: 30, // Laundered winnings through front businesses
-      crypto: 50, // High-stakes anonymous gambling
-      cryptoType: "crypto", // Preferred for big money laundering
+      cash: 20,
+      bank: 30,
+      crypto: 50,
+      cryptoType: "crypto",
     },
     characteristics: {
       seasonality: 1.1,
       marketSensitivity: 0.9,
-      raidVulnerability: 0.35, // Very high profile, attracts law enforcement
+      raidVulnerability: 0.35,
     },
   },
 ];
