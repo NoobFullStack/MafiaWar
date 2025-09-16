@@ -52,8 +52,8 @@ const helpCommand: Command = {
 
     try {
       // Check if user has an account for crime-specific functionality
-      let user = null;
-      let character = null;
+      let user: any = null;
+      let character: any = null;
       try {
         user = await DatabaseManager.getUserForAuth(userId);
         character = user?.character;

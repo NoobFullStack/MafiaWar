@@ -27,7 +27,7 @@ async function testBribeConsistency() {
     // Test 2: Check bribe amount multiple times with delays
     logger.info("Test 2: Checking bribe amount consistency");
     
-    const checks = [];
+    const checks: any[] = [];
     for (let i = 0; i < 5; i++) {
       const jailStatus = await JailService.isPlayerInJail(testDiscordId);
       checks.push({

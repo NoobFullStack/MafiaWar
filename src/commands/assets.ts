@@ -168,7 +168,7 @@ const assetsCommand: Command = {
 
           // Requirements only if not met
           if (!meetsReqs) {
-            const missing = [];
+            const missing: string[] = [];
             if (!meetsLevel) missing.push(`Level ${asset.requirements?.level}`);
             if (!meetsRep)
               missing.push(`${asset.requirements?.reputation} reputation`);

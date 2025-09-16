@@ -30,8 +30,8 @@ function validateEnvironment() {
     'CRYPTO_SYMBOL'
   ];
 
-  let missingRequired = [];
-  let missingOptional = [];
+  let missingRequired: string[] = [];
+  let missingOptional: string[] = [];
 
   // Check required variables
   for (const varName of requiredVars) {
