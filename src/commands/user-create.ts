@@ -616,7 +616,7 @@ async function finalizeCharacterCreation(
       },
     });
 
-    // Show success message
+    // Show success message with tutorial prompt
     const successContent = RegistrationContent.success;
     const successEmbed = new EmbedBuilder()
       .setColor(0x00ff00)
@@ -632,16 +632,112 @@ async function finalizeCharacterCreation(
           name: successContent.fields.pathToPower.name,
           value: successContent.fields.pathToPower.value,
           inline: false,
+        },
+        {
+          name: "🎓 New to MafiaWar?",
+          value: 
+            "**Get started with our interactive tutorial!**\n" +
+            "`/tutorial` - Complete guided tutorial\n" +
+            "`/help getting-started` - Quick reference guide\n" +
+            "`/crime pickpocket` - Your first crime\n\n" +
+            "*The tutorial will teach you crimes, businesses, money management, and more!*",
+          inline: false,
         }
       )
       .setFooter({ text: successContent.footer })
       .setTimestamp();
 
+    // Add tutorial button for immediate access
+    const tutorialButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId("start_tutorial")
+        .setLabel("🎓 Start Tutorial")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId("quick_help")
+        .setLabel("📖 Quick Help")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId("skip_tutorial")
+        .setLabel("Skip for Now")
+        .setStyle(ButtonStyle.Secondary)
+    );
+
     // Update the confirmation message with private success info (ephemeral)
     await interaction.editReply({
       embeds: [successEmbed],
-      components: [],
+      components: [tutorialButton],
     });
+
+    // Set up collector for tutorial buttons
+    const tutorialCollector = interaction.channel?.createMessageComponentCollector({
+      filter: (i: any) => i.user.id === interaction.user.id,
+      componentType: ComponentType.Button,
+      time: 60000, // 1 minute
+    });
+
+    if (tutorialCollector) {
+      tutorialCollector.on("collect", async (buttonInteraction: any) => {
+        try {
+          switch (buttonInteraction.customId) {
+            case "start_tutorial":
+              await buttonInteraction.deferUpdate();
+              tutorialCollector.stop();
+              // Remove buttons and update to tutorial starting message
+              await interaction.editReply({
+                embeds: [successEmbed],
+                components: [],
+              });
+              // Start tutorial via followUp to avoid interaction conflicts
+              await buttonInteraction.followUp({
+                content: "🎓 **Starting your tutorial now!** Use `/tutorial` anytime to access it again.",
+                flags: 64,
+              });
+              break;
+
+            case "quick_help":
+              await buttonInteraction.deferUpdate();
+              tutorialCollector.stop();
+              await interaction.editReply({
+                embeds: [successEmbed],
+                components: [],
+              });
+              // Provide quick help via followUp
+              await buttonInteraction.followUp({
+                content: 
+                  "🚀 **Quick Start Commands:**\n" +
+                  "`/profile` - View your character\n" +
+                  "`/crime` - See available crimes\n" +
+                  "`/wallet` - Check your money\n" +
+                  "`/assets` - Browse businesses\n" +
+                  "`/help` - Full command reference\n\n" +
+                  "*Use `/tutorial` anytime for the complete guide!*",
+                flags: 64,
+              });
+              break;
+
+            case "skip_tutorial":
+              await buttonInteraction.deferUpdate();
+              tutorialCollector.stop();
+              await interaction.editReply({
+                embeds: [successEmbed],
+                components: [],
+              });
+              break;
+          }
+        } catch (error) {
+          logger.error("Error handling tutorial button", error);
+        }
+      });
+
+      tutorialCollector.on("end", () => {
+        // Remove buttons after timeout
+        interaction.editReply({ 
+          embeds: [successEmbed], 
+          components: [] 
+        }).catch(() => {});
+      });
+    }
 
     // Send public announcement to the channel
     try {
