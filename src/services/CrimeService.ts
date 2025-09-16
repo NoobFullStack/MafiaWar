@@ -100,31 +100,7 @@ export class CrimeService {
       };
     }
 
-    // Check stat requirements
-    if (
-      crime.requirements?.strength &&
-      player.stats.strength < crime.requirements.strength
-    ) {
-      requirements.push(
-        `Strength ${crime.requirements.strength} (you have ${player.stats.strength})`
-      );
-    }
-    if (
-      crime.requirements?.stealth &&
-      player.stats.stealth < crime.requirements.stealth
-    ) {
-      requirements.push(
-        `Stealth ${crime.requirements.stealth} (you have ${player.stats.stealth})`
-      );
-    }
-    if (
-      crime.requirements?.intelligence &&
-      player.stats.intelligence < crime.requirements.intelligence
-    ) {
-      requirements.push(
-        `Intelligence ${crime.requirements.intelligence} (you have ${player.stats.intelligence})`
-      );
-    }
+
 
     // Check required items
     if (crime.requirements?.items && crime.requirements.items.length > 0) {
