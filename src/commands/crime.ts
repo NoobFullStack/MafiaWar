@@ -1,71 +1,10 @@
 import { SlashCommandBuilder } from "discord.js";
 import { getCrimeAnnouncement } from "../content/crimeAnnouncements";
+import { crimeData } from "../data/crimes";
 import { CrimeService } from "../services/CrimeService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
-
-// Simple cache for user levels to avoid DB hits on every autocomplete
-interface UserLevelCache {
-  level: number;
-  timestamp: number;
-}
-
-class CrimeAutocompleteCache {
-  private static userLevels: Map<string, UserLevelCache> = new Map();
-  private static readonly CACHE_TTL = 300000; // 5 minutes
-  private static readonly DEFAULT_LEVEL = 1;
-
-  static async getUserLevel(userId: string): Promise<number> {
-    const cached = this.userLevels.get(userId);
-    const now = Date.now();
-
-    // Return cached level if it's still fresh
-    if (cached && now - cached.timestamp < this.CACHE_TTL) {
-      return cached.level;
-    }
-
-    // Try to fetch fresh data, but with a timeout
-    try {
-      const user = (await Promise.race([
-        DatabaseManager.getUserForAuth(userId),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("DB timeout")), 1500)
-        ),
-      ])) as any;
-
-      const level = user?.character?.level || this.DEFAULT_LEVEL;
-
-      // Cache the result
-      this.userLevels.set(userId, {
-        level,
-        timestamp: now,
-      });
-
-      return level;
-    } catch (error) {
-      // If DB fails, return cached level (even if expired) or default
-      return cached?.level || this.DEFAULT_LEVEL;
-    }
-  }
-
-  static invalidateUser(userId: string): void {
-    this.userLevels.delete(userId);
-  }
-
-  // Clean up old cache entries periodically
-  static cleanup(): void {
-    const now = Date.now();
-    for (const [userId, cache] of this.userLevels.entries()) {
-      if (now - cache.timestamp > this.CACHE_TTL * 2) {
-        this.userLevels.delete(userId);
-      }
-    }
-  }
-}
-
-// Set up periodic cache cleanup
-setInterval(() => CrimeAutocompleteCache.cleanup(), 600000); // Every 10 minutes
 
 const crimeCommand: Command = {
   data: new SlashCommandBuilder()
@@ -193,11 +132,6 @@ const crimeCommand: Command = {
         `Crime ${crimeType} executed by ${userId}: Success=${result.success}, Money=${result.moneyEarned}, XP=${result.experienceGained}`
       );
 
-      // Only invalidate user level cache if they actually leveled up
-      if (result.leveledUp) {
-        CrimeAutocompleteCache.invalidateUser(userId);
-      }
-
       return { success: true };
     } catch (error) {
       logger.error(`Crime command error for user ${userId}:`, error);
@@ -294,47 +228,46 @@ const crimeCommand: Command = {
     interaction: import("discord.js").AutocompleteInteraction
   ) {
     try {
-      const userId = interaction.user.id;
       const focusedValue = interaction.options.getFocused().toLowerCase();
 
-      // Get user level from cache (much faster than DB)
-      const userLevel = await CrimeAutocompleteCache.getUserLevel(userId);
-
-      // Get available crimes for this player's level
-      const availableCrimes = CrimeService.getAvailableCrimes(userLevel);
-
-      // Filter and format crimes
-      const filtered = availableCrimes
+      // Get all crimes and format them with level requirements
+      const allCrimes = crimeData
         .filter(
           (crime) =>
             crime.name.toLowerCase().includes(focusedValue) ||
             crime.id.toLowerCase().includes(focusedValue)
         )
         .slice(0, 25) // Discord limits to 25 choices
-        .map((crime) => ({
-          name: crime.name,
-          value: crime.id,
-        }));
+        .map((crime) => {
+          const level = crime.requirements?.level || 1;
+          return {
+            name: `Lv.${level} - ${crime.name}`,
+            value: crime.id,
+          };
+        });
 
       // Always provide at least some options
-      if (filtered.length === 0) {
+      if (allCrimes.length === 0) {
+        // Show fallback crimes with level indicators
         await interaction.respond([
-          { name: "Pickpocketing", value: "pickpocketing" },
-          { name: "Shoplifting", value: "shoplifting" },
+          { name: "Lv.1 - Pickpocketing", value: "pickpocketing" },
+          { name: "Lv.1 - Shoplifting", value: "shoplifting" },
+          { name: "Lv.1 - Bike Theft", value: "bike_theft" },
         ]);
       } else {
-        await interaction.respond(filtered);
+        await interaction.respond(allCrimes);
       }
     } catch (error) {
       logger.error(
         `Autocomplete error for user ${interaction.user.id}:`,
         error
       );
-      // Always provide fallback options
+      // Always provide fallback options with level indicators
       try {
         await interaction.respond([
-          { name: "Pickpocketing", value: "pickpocketing" },
-          { name: "Shoplifting", value: "shoplifting" },
+          { name: "Lv.1 - Pickpocketing", value: "pickpocketing" },
+          { name: "Lv.1 - Shoplifting", value: "shoplifting" },
+          { name: "Lv.1 - Bike Theft", value: "bike_theft" },
         ]);
       } catch (respondError) {
         logger.error(
