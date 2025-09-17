@@ -887,33 +887,66 @@ export class AssetService {
         };
       }
 
-      if (paymentMethod === "cash" && balance.cashOnHand < cost) {
-        return {
-          success: false,
-          message: `Insufficient cash - need $${cost.toLocaleString()}, have $${balance.cashOnHand.toLocaleString()}`,
-          error: "Insufficient cash",
-        };
+      // Validate payment method and available funds
+      if (paymentMethod === "cash") {
+        if (balance.cashOnHand < cost) {
+          return {
+            success: false,
+            message: `Insufficient cash - need $${cost.toLocaleString()}, have $${balance.cashOnHand.toLocaleString()}`,
+            error: "Insufficient cash",
+          };
+        }
+      } else if (paymentMethod === "bank") {
+        if (balance.bankBalance < cost) {
+          return {
+            success: false,
+            message: `Insufficient bank funds - need $${cost.toLocaleString()}, have $${balance.bankBalance.toLocaleString()}`,
+            error: "Insufficient bank funds",
+          };
+        }
+      } else if (paymentMethod === "mixed") {
+        // Check if total available funds (cash + bank) are sufficient
+        const totalAvailable = balance.cashOnHand + balance.bankBalance;
+        if (totalAvailable < cost) {
+          return {
+            success: false,
+            message: `Insufficient funds - need $${cost.toLocaleString()}, have $${totalAvailable.toLocaleString()} (cash + bank)`,
+            error: "Insufficient funds",
+          };
+        }
       }
 
-      if (paymentMethod === "bank" && balance.bankBalance < cost) {
-        return {
-          success: false,
-          message: `Insufficient bank funds - need $${cost.toLocaleString()}, have $${balance.bankBalance.toLocaleString()}`,
-          error: "Insufficient bank funds",
-        };
-      }
-
-      // Deduct payment
+      // Deduct payment using proper logic for each method
       if (paymentMethod === "cash") {
         await db.character.updateMany({
           where: { userId: user.id },
           data: { cashOnHand: { decrement: cost } },
         });
-      } else {
+      } else if (paymentMethod === "bank") {
         await db.character.updateMany({
           where: { userId: user.id },
           data: { bankBalance: { decrement: cost } },
         });
+      } else if (paymentMethod === "mixed") {
+        // Use bank first, then cash to cover remaining amount
+        const bankAmount = Math.min(balance.bankBalance, cost);
+        const cashAmount = cost - bankAmount;
+
+        // Deduct from bank first
+        if (bankAmount > 0) {
+          await db.character.updateMany({
+            where: { userId: user.id },
+            data: { bankBalance: { decrement: bankAmount } },
+          });
+        }
+
+        // Deduct remaining from cash
+        if (cashAmount > 0) {
+          await db.character.updateMany({
+            where: { userId: user.id },
+            data: { cashOnHand: { decrement: cashAmount } },
+          });
+        }
       }
 
       // Apply income upgrade

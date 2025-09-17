@@ -71,23 +71,6 @@ const businessCommand: Command = {
             .setRequired(true)
             .setMinValue(1)
         )
-        .addStringOption((option) =>
-          option
-            .setName("type")
-            .setDescription("Type of upgrade")
-            .setRequired(true)
-            .addChoices({ name: "Income Rate", value: "income" })
-        )
-        .addStringOption((option) =>
-          option
-            .setName("payment")
-            .setDescription("Payment method")
-            .addChoices(
-              { name: "Cash", value: "cash" },
-              { name: "Bank", value: "bank" },
-              { name: "Mixed (Bank + Cash)", value: "mixed" }
-            )
-        )
     ),
 
   async execute(context: CommandContext): Promise<CommandResult> {
@@ -464,12 +447,8 @@ const businessCommand: Command = {
             "asset_number",
             true
           );
-          const upgradeType = "income"; // Only income upgrades for now
-          const paymentMethod =
-            (interaction.options.getString("payment") as
-              | "cash"
-              | "bank"
-              | "mixed") || "mixed";
+          const upgradeType = "income"; // Default to income upgrades
+          const paymentMethod = "mixed"; // Default to mixed payment (automatic)
 
           // Get player's assets to find the asset by number
           const assets = await assetService.getPlayerAssets(userId);
@@ -530,7 +509,7 @@ const businessCommand: Command = {
                 name: "💰 Upgrade Cost",
                 value: `${BotBranding.formatCurrency(
                   result.cost
-                )} (${paymentMethod})`,
+                )} (paid automatically)`,
                 inline: true,
               });
             }

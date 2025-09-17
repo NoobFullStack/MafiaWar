@@ -27,6 +27,7 @@
     "test:jail": "ts-node src/scripts/testing/testJail.ts",
     "test:bribe": "ts-node src/scripts/testing/testBribePayment.ts",
     "test:bribe-consistency": "ts-node src/scripts/testing/testBribeConsistency.ts",
+    "test:business-upgrade": "ts-node src/scripts/testing/testBusinessUpgradePayment.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
