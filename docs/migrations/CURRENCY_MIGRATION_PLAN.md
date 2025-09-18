@@ -1,91 +1,65 @@
-# Currency Migration Plan: Character-Based to Dedicated Tables
+# Currency Migration Status
 
-## Overview
-This document outlines the migration from storing currency data as columns in the Character table to dedicated, normalized currency tables.
+## ✅ Phase 1: Schema Addition (COMPLETE)
+- [x] Added `CurrencyBalance` table for normalized currency storage
+- [x] Added `BankingProfile` table for banking-specific data
+- [x] Updated User model with new relationships
+- [x] Maintained backward compatibility with existing Character columns
 
-## Current State
-```sql
--- Character table (current)
-model Character {
-  cashOnHand      Int      @default(0)     // Vulnerable to theft
-  bankBalance     Int      @default(0)     // Vulnerable to government  
-  cryptoWallet    Json     @default("{}")  // {"bitcoin": 1.5, "ethereum": 0.8}
-  bankAccessLevel Int      @default(1)     // Unlocks higher limits
-  lastBankVisit   DateTime?
-  // ... other fields
-}
+## ✅ Phase 2: Migration Infrastructure (COMPLETE)
+- [x] Created comprehensive migration script (`migrateCurrency.ts`)
+- [x] Built data validation and integrity checking
+- [x] Implemented dry-run and rollback capabilities
+
+## ✅ Phase 3: Hybrid Service Implementation (COMPLETE)
+- [x] Developed `MoneyServiceV2` with full API compatibility
+- [x] Implemented hybrid read/write capabilities
+- [x] Added automatic migration state detection
+- [x] Maintained all existing transaction logging
+
+## ✅ Phase 4: Code Migration (COMPLETE)
+- [x] Replaced MoneyService with MoneyServiceV2 across all commands
+- [x] Updated CrimeService, JailService, and AssetService
+- [x] Ensured zero breaking changes to existing functionality
+- [x] Added missing methods for full compatibility
+
+## 🔄 Phase 5: Production Migration (READY)
+- [ ] Run migration script on production data
+- [ ] Validate data integrity
+- [ ] Monitor system performance
+- [ ] Complete rollback preparation
+
+## 🔄 Phase 6: Legacy Cleanup (PENDING)
+- [ ] Remove deprecated Character table columns
+- [ ] Remove original MoneyService
+- [ ] Update all documentation
+- [ ] Performance optimization
+
+## Migration Commands
+
+```bash
+# Test hybrid service functionality
+yarn test:money-service-v2
+
+# Run migration dry run
+yarn migrate:currency
+
+# Run actual migration (when ready)
+yarn migrate:currency --apply
 ```
 
-## Target State
-```sql
--- New dedicated currency tables
-model CurrencyBalance {
-  id              String   @id @default(uuid())
-  userId          String   
-  currencyType    String   // "cash", "bank", "crypto"
-  coinType        String?  // For crypto: "bitcoin", "ethereum", etc. NULL for cash/bank
-  amount          Float    // Support both integer (cash/bank) and decimal (crypto) amounts
-  lastUpdated     DateTime @default(now()) @updatedAt
-  
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, currencyType, coinType])
-  @@index([userId, currencyType])
-}
+## Rollback Strategy
 
-model BankingProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  accessLevel     Int      @default(1)
-  lastVisit       DateTime?
-  interestAccrued Float    @default(0)
-  
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-```
-
-## Migration Strategy
-
-### Phase 1: Schema Addition (Safe)
-1. Add new `CurrencyBalance` and `BankingProfile` tables
-2. Keep existing Character columns temporarily for backwards compatibility
-3. Deploy schema changes
-
-### Phase 2: Data Migration (Zero Downtime)
-1. Create migration script that populates new tables from existing Character data
-2. Validate data integrity
-3. Keep both systems in sync during transition
-
-### Phase 3: Service Updates (Surgical)
-1. Update MoneyService to read/write from new tables
-2. Add fallback logic to read from Character table if new tables are empty
-3. Maintain transaction logging in existing tables
-
-### Phase 4: Code Migration (Iterative)
-1. Update all currency operations across codebase
-2. Remove fallback logic
-3. Test thoroughly
-
-### Phase 5: Cleanup (Final)
-1. Remove deprecated columns from Character table
-2. Update documentation
-3. Verify all functionality
+If issues are discovered:
+1. MoneyServiceV2 automatically falls back to Character table columns
+2. No data is lost during migration
+3. Original MoneyService can be quickly restored
+4. Migration can be reversed with validation
 
 ## Data Integrity Guarantees
-- All migrations will be wrapped in database transactions
-- Rollback capability at each phase
-- Validation checks before each step
-- Audit trail preservation
+
+- All operations wrapped in database transactions
+- Comprehensive validation before and after migration
 - Zero data loss commitment
-
-## Backwards Compatibility
-- Existing APIs will continue to work during migration
-- Gradual cutover approach
-- Rollback procedures documented
-
-## Testing Strategy
-- Unit tests for new CurrencyBalance operations
-- Integration tests for MoneyService
-- End-to-end tests for all currency commands
-- Data integrity validation scripts
-- Performance benchmarking
+- Audit trail preservation
+- Backwards compatibility maintained

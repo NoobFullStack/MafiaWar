@@ -17,7 +17,7 @@ import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
 import JailService from "./JailService";
-import MoneyService from "./MoneyService";
+import MoneyServiceV2 from "./MoneyServiceV2";
 
 export interface CrimeResult {
   success: boolean;
@@ -489,7 +489,7 @@ export class CrimeService {
           const cryptoInfo = result.paymentDetails.breakdown.crypto;
           setImmediate(async () => {
             try {
-              const moneyService = MoneyService.getInstance();
+              const moneyService = MoneyServiceV2.getInstance();
               await moneyService.buyCrypto(
                 user.discordId,
                 cryptoInfo.coin,

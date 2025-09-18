@@ -842,4 +842,227 @@ export class MoneyServiceV2 {
       };
     }
   }
+
+  // ===== MISSING METHODS FROM ORIGINAL SERVICE =====
+
+  /**
+   * Calculate maximum amounts for crypto purchase
+   */
+  calculateMaxAmounts(
+    balances: {
+      cashOnHand: number;
+      bankBalance: number;
+      cryptoWallet: Record<string, number>;
+    },
+    coinPrice: number
+  ) {
+    const maxCashBuy = balances.cashOnHand > 10 ? balances.cashOnHand : 0;
+    const maxBankBuy = balances.bankBalance > 10 ? balances.bankBalance : 0;
+
+    return {
+      maxCashBuy,
+      maxBankBuy,
+      maxCashCoins: maxCashBuy > 0 ? maxCashBuy / coinPrice : 0,
+      maxBankCoins: maxBankBuy > 0 ? maxBankBuy / coinPrice : 0,
+    };
+  }
+
+  /**
+   * Get user's bank tier information
+   */
+  getUserBankTier(bankAccessLevel: number): BankTier {
+    return bankTiers.find((t) => t.level === bankAccessLevel) || bankTiers[0];
+  }
+
+  /**
+   * Check if user can upgrade bank access
+   */
+  async canUpgradeBank(
+    userId: string
+  ): Promise<{ canUpgrade: boolean; nextTier?: BankTier; reason?: string }> {
+    try {
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        return {
+          canUpgrade: false,
+          reason: "Character not found - please create account first",
+        };
+      }
+
+      const bankingProfile = await this.getBankingProfile(userId);
+      const currentTier = this.getUserBankTier(bankingProfile.accessLevel);
+      const nextTier = bankTiers.find((t) => t.level === currentTier.level + 1);
+
+      if (!nextTier) {
+        return { canUpgrade: false, reason: "Already at maximum bank tier" };
+      }
+
+      const balance = await this.getUserBalance(userId, true);
+      if (!balance) {
+        return { canUpgrade: false, reason: "Character not found" };
+      }
+
+      if (balance.level < nextTier.requirements.minLevel) {
+        return {
+          canUpgrade: false,
+          reason: `Requires level ${nextTier.requirements.minLevel}`,
+        };
+      }
+
+      if ((balance.totalValue || 0) < nextTier.requirements.minNetWorth) {
+        return {
+          canUpgrade: false,
+          reason: `Requires ${BotBranding.formatCurrency(
+            nextTier.requirements.minNetWorth
+          )} net worth`,
+        };
+      }
+
+      return { canUpgrade: true, nextTier };
+    } catch (error) {
+      logger.error("Error checking bank upgrade eligibility:", error);
+      return { canUpgrade: false, reason: "Service error" };
+    }
+  }
+
+  /**
+   * Sell cryptocurrency for cash or bank funds
+   */
+  async sellCrypto(
+    userId: string,
+    coinType: string,
+    amount: number,
+    targetCurrency: "cash" | "bank" = "cash"
+  ): Promise<MoneyTransferResult> {
+    const startTime = Date.now();
+
+    try {
+      if (!userId || typeof userId !== "string") {
+        return {
+          success: false,
+          message: "Invalid user ID",
+          error: "Invalid input",
+        };
+      }
+
+      if (!amount || amount <= 0) {
+        return {
+          success: false,
+          message: "Amount must be positive",
+          error: "Invalid amount",
+        };
+      }
+
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: "Character not found - please create account first",
+          error: "No character",
+        };
+      }
+
+      // Get current balance
+      const balance = await this.getUserBalance(userId);
+      if (!balance) {
+        return {
+          success: false,
+          message: "Could not retrieve balance",
+          error: "No balance data",
+        };
+      }
+
+      // Validate coin and check holdings
+      const coin = getCryptoCoin();
+      if (coinType !== coin.id && coinType !== coin.symbol) {
+        return {
+          success: false,
+          message: `Invalid cryptocurrency. Only ${coin.name} is supported.`,
+          error: "Invalid coin",
+        };
+      }
+
+      const currentHoldings = balance.cryptoWallet[coinType] || 0;
+      if (currentHoldings < amount) {
+        return {
+          success: false,
+          message: `Insufficient ${coin.symbol}. You have ${currentHoldings.toFixed(
+            6
+          )}, need ${amount.toFixed(6)}`,
+          error: "Insufficient crypto",
+        };
+      }
+
+      // Get current crypto price
+      const coinPrice = await this.getCoinPrice(coinType);
+
+      // Calculate transaction details
+      const grossValue = amount * coinPrice;
+      const fee = Math.floor(grossValue * 0.03); // 3% fee
+      const netValue = grossValue - fee;
+
+      // Update balances using hybrid system
+      const db = DatabaseManager.getClient();
+
+      await db.$transaction(async (tx: any) => {
+        // Remove crypto
+        await this.updateCurrencyBalance(userId, "crypto", currentHoldings - amount, coinType);
+
+        // Add cash or bank
+        if (targetCurrency === "cash") {
+          await this.updateCurrencyBalance(userId, "cash", balance.cashOnHand + netValue);
+        } else {
+          await this.updateCurrencyBalance(userId, "bank", balance.bankBalance + netValue);
+        }
+
+        // Log transaction
+        await tx.cryptoTransaction.create({
+          data: {
+            userId: user.id,
+            coinType,
+            transactionType: "sell",
+            amount: amount,
+            pricePerCoin: coinPrice,
+            totalValue: grossValue,
+            fee,
+            fromCurrency: coinType,
+            toCurrency: targetCurrency,
+          },
+        });
+      });
+
+      const endTime = Date.now();
+      logger.info(`Crypto sell completed in ${endTime - startTime}ms`);
+
+      return {
+        success: true,
+        message: `Sold ${amount.toFixed(6)} ${
+          coin.symbol
+        } for ${BotBranding.formatCurrency(netValue)}`,
+        fees: fee,
+        data: {
+          amountProcessed: grossValue,
+          fees: fee,
+          coinAmount: amount,
+          fromBalance: currentHoldings - amount,
+          toBalance: targetCurrency === "cash" ? balance.cashOnHand + netValue : balance.bankBalance + netValue,
+          cryptoBalance: { ...balance.cryptoWallet, [coinType]: currentHoldings - amount },
+        },
+      };
+    } catch (error) {
+      logger.error("Error selling crypto:", error);
+      const endTime = Date.now();
+      logger.warn(`Crypto sell failed in ${endTime - startTime}ms`);
+
+      return {
+        success: false,
+        message: "Crypto sale failed",
+        error: "Database error",
+      };
+    }
+  }
 }
+
+// Export as both named and default for compatibility
+export { MoneyServiceV2 };
+export default MoneyServiceV2;

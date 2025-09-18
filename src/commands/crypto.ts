@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 import { BotBranding } from "../config/bot";
 import { getCryptoCoin } from "../data/money";
-import MoneyService from "../services/MoneyService";
+import MoneyServiceV2 from "../services/MoneyServiceV2";
 import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
@@ -31,7 +31,7 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
 
     // No need to defer - the bot already defers all interactions except ping
 
-    const moneyService = MoneyService.getInstance();
+    const moneyService = MoneyServiceV2.getInstance();
     const character = user.character!; // Safe because getUserForAuth checks for character existence
     const coin = getCryptoCoin();
 
@@ -115,7 +115,7 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     const paymentMethod =
       (interaction.options.getString("method") as "cash" | "bank") || "cash";
 
-    const moneyService = MoneyService.getInstance();
+    const moneyService = MoneyServiceV2.getInstance();
     const coin = getCryptoCoin();
 
     // Fast balance check
@@ -509,7 +509,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     const coin = getCryptoCoin();
 
     // Get current holdings using fast service
-    const balance = await MoneyService.getInstance().getUserBalance(userId);
+    const balance = await MoneyServiceV2.getInstance().getUserBalance(userId);
     
     // Check if user has any of this coin - check both ID and symbol for compatibility
     let currentHolding = 0;
@@ -552,7 +552,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     if (coinAmount > currentHolding) {
       // Calculate what user would get if they sold their maximum holdings
       const maxCoinAmount = currentHolding;
-      const maxPrice = await MoneyService.getInstance().getCoinPrice(cryptoKey);
+      const maxPrice = await MoneyServiceV2.getInstance().getCoinPrice(cryptoKey);
       const maxGrossAmount = maxCoinAmount * maxPrice;
       const maxFee = Math.floor(maxGrossAmount * 0.04); // 4% selling fee
       const maxNetCash = maxGrossAmount - maxFee;
@@ -611,7 +611,7 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
           // Execute max sale
           await buttonInteraction.deferUpdate();
 
-          const moneyService = MoneyService.getInstance();
+          const moneyService = MoneyServiceV2.getInstance();
           const maxResult = await moneyService.sellCrypto(
             userId,
             cryptoKey,
@@ -717,13 +717,13 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     }
 
     // Get current price for display
-    const currentPrice = await MoneyService.getInstance().getCoinPrice(cryptoKey);
+    const currentPrice = await MoneyServiceV2.getInstance().getCoinPrice(cryptoKey);
     const grossAmount = coinAmount * currentPrice;
     const fee = Math.floor(grossAmount * 0.04); // 4% selling fee
     const netCash = grossAmount - fee;
 
     // Execute the sale using the correct crypto key
-    const moneyService = MoneyService.getInstance();
+    const moneyService = MoneyServiceV2.getInstance();
     const result = await moneyService.sellCrypto(userId, cryptoKey, coinAmount);
 
     if (!result.success) {
@@ -818,7 +818,7 @@ async function handlePortfolio(
 
     // No need to defer - the bot already defers all interactions except ping
 
-    const moneyService = MoneyService.getInstance();
+    const moneyService = MoneyServiceV2.getInstance();
     const balance = await moneyService.getUserBalance(userId);
     const coin = getCryptoCoin();
 
