@@ -31,6 +31,8 @@ model User {
   moneyEvents    MoneyEvent[]
   bankTransactions BankTransaction[]
   cryptoTransactions CryptoTransaction[]
+  currencyBalances CurrencyBalance[]
+  bankingProfile BankingProfile?
 }
 
 model Character {
@@ -262,4 +264,30 @@ model MoneyEventHistory {
   isActive        Boolean  @default(true)
   eventData       Json     // Configuration and results
   timestamp       DateTime @default(now())
+}
+
+// === NEW DEDICATED CURRENCY TABLES ===
+
+model CurrencyBalance {
+  id              String   @id @default(uuid())
+  userId          String   
+  currencyType    String   // "cash", "bank", "crypto"
+  coinType        String?  // For crypto: "bitcoin", "ethereum", etc. NULL for cash/bank
+  amount          Float    // Support both integer (cash/bank) and decimal (crypto) amounts
+  lastUpdated     DateTime @default(now()) @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, currencyType, coinType])
+  @@index([userId, currencyType])
+}
+
+model BankingProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  accessLevel     Int      @default(1)
+  lastVisit       DateTime?
+  interestAccrued Float    @default(0)
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
