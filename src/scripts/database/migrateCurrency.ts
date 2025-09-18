@@ -56,7 +56,7 @@ export async function migrateCurrencyToTables(dryRun: boolean = true): Promise<M
       try {
         if (!dryRun) {
           // Use transaction to ensure atomicity
-          await db.$transaction(async (tx) => {
+          await db.$transaction(async (tx: any) => {
             const currencyRecords = [];
             
             // Migrate cash if > 0
@@ -205,7 +205,7 @@ export async function validateMigrationIntegrity(): Promise<boolean> {
 
       // Validate cash
       const cashBalance = character.user.currencyBalances.find(
-        cb => cb.currencyType === "cash" && cb.coinType === null
+        (cb: any) => cb.currencyType === "cash" && cb.coinType === null
       );
       if (character.cashOnHand > 0 && (!cashBalance || cashBalance.amount !== character.cashOnHand)) {
         logger.error(`Cash mismatch for ${character.name}: Character=${character.cashOnHand}, CurrencyBalance=${cashBalance?.amount || 0}`);
@@ -214,7 +214,7 @@ export async function validateMigrationIntegrity(): Promise<boolean> {
 
       // Validate bank
       const bankBalance = character.user.currencyBalances.find(
-        cb => cb.currencyType === "bank" && cb.coinType === null
+        (cb: any) => cb.currencyType === "bank" && cb.coinType === null
       );
       if (character.bankBalance > 0 && (!bankBalance || bankBalance.amount !== character.bankBalance)) {
         logger.error(`Bank mismatch for ${character.name}: Character=${character.bankBalance}, CurrencyBalance=${bankBalance?.amount || 0}`);
@@ -230,7 +230,7 @@ export async function validateMigrationIntegrity(): Promise<boolean> {
         for (const [coinType, amount] of Object.entries(cryptoWallet)) {
           if (typeof amount === 'number' && amount > 0) {
             const cryptoBalance = character.user.currencyBalances.find(
-              cb => cb.currencyType === "crypto" && cb.coinType === coinType
+              (cb: any) => cb.currencyType === "crypto" && cb.coinType === coinType
             );
             if (!cryptoBalance || cryptoBalance.amount !== amount) {
               logger.error(`Crypto mismatch for ${character.name} (${coinType}): Character=${amount}, CurrencyBalance=${cryptoBalance?.amount || 0}`);
