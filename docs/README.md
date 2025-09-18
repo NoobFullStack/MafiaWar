@@ -12,6 +12,7 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 
 ### **Core Systems**
 
+- 🏗️ **[Architecture](architecture/)** - System architecture documentation and performance analysis
 - 🌱 **[Seeding System](setup/SEEDING.md)** - Managing game data (items, crimes, assets)
 - 💰 **[Money System](economy/MONEY_SYSTEM.md)** - Multi-layered strategic money management with risk profiles
 - 📊 **[Economics Analysis](economy/ECONOMICS.md)** - Gameplay-based economy balance and XP progression analysis
@@ -59,6 +60,9 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 
 ```
 docs/
+├── architecture/
+│   ├── README.md               # Architecture overview and tools
+│   └── static-data-migration.md # Performance analysis and migration status
 ├── setup/
 │   ├── INSTALLATION.md     # Complete setup and configuration guide
 │   └── SEEDING.md         # Data management and seeding system
@@ -77,6 +81,13 @@ docs/
 ```
 
 ## 🌟 Recent Updates
+
+### **Static Data Performance Analysis** (September 2025)
+- **[Static Data Migration Analysis](architecture/static-data-migration.md)** - Comprehensive analysis showing optimal architecture already implemented
+- **Performance**: Static data access ~500-1000x faster than database queries (~0.1ms vs ~50-100ms)
+- **Architecture**: Hybrid system with static data in TypeScript files, dynamic data in database
+- **Tools**: New `yarn validate:static-data` command for data integrity validation
+- **Finding**: Zero migration needed - performance goals already achieved
 
 ### **Asset System Documentation** (September 2025)
 - **[Asset Integration Guide](development/ASSET_INTEGRATION.md)** - Complete implementation details

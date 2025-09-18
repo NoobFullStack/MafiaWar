@@ -565,7 +565,7 @@ export const crimeData: CrimeData[] = [
     name: "International Cartel Operation",
     description:
       "Lead massive drug and trafficking operations across international borders.",
-    difficulty: 11,
+    difficulty: 10,
     cooldown: 10800,
     rewardMin: 30000,
     rewardMax: 60000,

@@ -28,6 +28,7 @@
     "test:bribe": "ts-node src/scripts/testing/testBribePayment.ts",
     "test:bribe-consistency": "ts-node src/scripts/testing/testBribeConsistency.ts",
     "test:business-upgrade": "ts-node src/scripts/testing/testBusinessUpgradePayment.ts",
+    "validate:static-data": "ts-node src/utils/StaticDataValidator.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
