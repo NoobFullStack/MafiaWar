@@ -193,29 +193,70 @@ Players should choose storage based on their risk tolerance and play style:
 
 ## 🔧 Technical Implementation
 
-### Database Schema
+### Database Schema (Updated Architecture)
 
 ```sql
--- Character money fields
+-- NEW: Dedicated currency tables (normalized)
+model CurrencyBalance {
+  id              String   @id @default(uuid())
+  userId          String   
+  currencyType    String   // "cash", "bank", "crypto"
+  coinType        String?  // For crypto: "bitcoin", "ethereum", etc. NULL for cash/bank
+  amount          Float    // Support both integer (cash/bank) and decimal (crypto) amounts
+  lastUpdated     DateTime @default(now()) @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, currencyType, coinType])
+  @@index([userId, currencyType])
+}
+
+model BankingProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  accessLevel     Int      @default(1)
+  lastVisit       DateTime?
+  interestAccrued Float    @default(0)
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+-- LEGACY: Character money fields (maintained for backward compatibility)
 cashOnHand     INT DEFAULT 0      -- Immediate access, theft risk
 bankBalance    INT DEFAULT 0      -- Protected from players
 cryptoWallet   JSON DEFAULT '{}'  -- Protected from all threats
 bankAccessLevel INT DEFAULT 1     -- Current bank tier (1-5)
 
--- Supporting tables
+-- Supporting tables (unchanged)
 CryptoPrice    -- Real-time market data
 MoneyEvent     -- Random events log
 BankTransaction -- Audit trail
 CryptoTransaction -- Trading history
 ```
 
-### MoneyService API
+### MoneyServiceV2 API (Hybrid System)
 
-- `getUserBalance()` - Complete portfolio overview
-- `transferMoney()` - Move between cash/bank/crypto
-- `buyCrypto()` / `sellCrypto()` - Cryptocurrency trading
+The new service provides:
+- **Hybrid Read**: Automatically reads from new tables if available, falls back to Character columns
+- **Smart Write**: Detects migration state and writes to appropriate storage
+- **Zero Downtime**: Seamless operation during migration process
+- **Full Compatibility**: All existing APIs preserved
+
+Core methods:
+- `getUserBalance()` - Complete portfolio overview with hybrid read
+- `transferMoney()` - Move between cash/bank/crypto with smart storage
+- `buyCrypto()` / `sellCrypto()` - Cryptocurrency trading with hybrid support
+- `addMoney()` - Direct currency additions with type safety
 - `processRandomEvent()` - Handle market/government events
 - `getBankTierInfo()` - Banking upgrade information
+
+### Migration Status
+
+- ✅ **Schema Ready**: New tables defined and deployable
+- ✅ **Code Migrated**: All financial operations use MoneyServiceV2
+- ✅ **Backward Compatible**: Automatic fallback to Character columns
+- ✅ **Zero Risk**: Transaction-safe migration with rollback capability
+- 🔄 **Production Ready**: Awaiting deployment approval
 
 ## 🚀 Future Enhancements
 
