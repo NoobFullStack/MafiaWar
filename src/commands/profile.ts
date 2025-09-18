@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
-import { MoneyService } from "../services/MoneyService";
+import { MoneyServiceV2 } from "../services/MoneyServiceV2";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
@@ -51,7 +51,7 @@ const profileCommand: Command = {
       }
 
       // Get comprehensive balance information
-      const moneyService = MoneyService.getInstance();
+      const moneyService = MoneyServiceV2.getInstance();
       const balance = await moneyService.getUserBalance(userId, true);
 
       if (!balance) {

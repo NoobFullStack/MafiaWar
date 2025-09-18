@@ -12,7 +12,7 @@
 import { BotBranding } from "../config/bot";
 import DatabaseManager from "../utils/DatabaseManager";
 import { logger } from "../utils/ResponseUtil";
-import MoneyService from "./MoneyService";
+import MoneyServiceV2 from "./MoneyServiceV2";
 
 export interface JailStatus {
   inJail: boolean;

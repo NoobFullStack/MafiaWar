@@ -28,6 +28,8 @@
     "test:bribe": "ts-node src/scripts/testing/testBribePayment.ts",
     "test:bribe-consistency": "ts-node src/scripts/testing/testBribeConsistency.ts",
     "test:business-upgrade": "ts-node src/scripts/testing/testBusinessUpgradePayment.ts",
+    "test:money-service-v2": "ts-node src/scripts/testing/testMoneyServiceV2.ts",
+    "migrate:currency": "ts-node src/scripts/database/migrateCurrency.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {

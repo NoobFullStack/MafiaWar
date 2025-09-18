@@ -14,7 +14,7 @@ import { AssetTemplate, assetTemplates } from "../data/assets";
 import DatabaseManager from "../utils/DatabaseManager";
 import { PlayerProgress } from "../utils/LevelGateValidator";
 import { logger } from "../utils/ResponseUtil";
-import { MoneyService } from "./MoneyService";
+import { MoneyServiceV2 } from "./MoneyServiceV2";
 
 export interface AssetPurchaseResult {
   success: boolean;
@@ -63,10 +63,10 @@ export interface AssetInfo {
 
 export class AssetService {
   private static instance: AssetService;
-  private moneyService: MoneyService;
+  private moneyService: MoneyServiceV2;
 
   constructor() {
-    this.moneyService = MoneyService.getInstance();
+    this.moneyService = MoneyServiceV2.getInstance();
   }
 
   public static getInstance(): AssetService {
@@ -626,7 +626,7 @@ export class AssetService {
               }
 
               // Convert dollar amounts to crypto coins at current exchange rate
-              const moneyService = MoneyService.getInstance();
+              const moneyService = MoneyServiceV2.getInstance();
               for (const [coinType, dollarAmount] of Object.entries(
                 totalCryptoDollars
               )) {
@@ -667,7 +667,7 @@ export class AssetService {
 
       // Calculate final crypto amounts for response (convert dollars to crypto coins for display)
       const finalCryptoAmounts: { [coinType: string]: number } = {};
-      const moneyService = MoneyService.getInstance();
+      const moneyService = MoneyServiceV2.getInstance();
 
       for (const [coinType, dollarAmount] of Object.entries(
         totalCryptoDollars

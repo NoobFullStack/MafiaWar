@@ -5,7 +5,7 @@ import {
   ComponentType,
   SlashCommandBuilder,
 } from "discord.js";
-import MoneyService from "../services/MoneyService";
+import MoneyServiceV2 from "../services/MoneyServiceV2";
 import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
@@ -74,7 +74,7 @@ const bankCommand: Command = {
         return { success: false, error: "Player is in jail" };
       }
 
-      const moneyService = MoneyService.getInstance();
+      const moneyService = MoneyServiceV2.getInstance();
 
       switch (subcommand) {
         case "deposit": {
