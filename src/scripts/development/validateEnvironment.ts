@@ -16,9 +16,14 @@ function validateEnvironment() {
     'DEBUG_DISCORD_ID',
     'DISCORD_BOT_TOKEN',
     'DISCORD_CLIENT_ID',
-    'DATABASE_URL',
-    'SUPABASE_URL',
-    'SUPABASE_ANON_KEY'
+    'DATABASE_URL'
+  ];
+
+  // Optional during SQLite migration period - keep for data migration safety
+  const migrationVars = [
+    'SOURCE_DATABASE_URL', // For data migration (usually same as old SUPABASE connection)
+    'SUPABASE_URL',        // Keep until migration is fully validated
+    'SUPABASE_ANON_KEY'    // Keep until migration is fully validated
   ];
 
   const optionalVars = [
@@ -49,6 +54,17 @@ function validateEnvironment() {
       } else {
         logger.info(`✅ ${varName}: Set`);
       }
+    }
+  }
+
+  // Check migration variables (optional but important for data safety)
+  logger.info("\n🔄 Migration Variables (optional during SQLite transition):");
+  for (const varName of migrationVars) {
+    const value = process.env[varName];
+    if (value) {
+      logger.info(`✅ ${varName}: Set (available for data migration)`);
+    } else {
+      logger.warn(`⚠️  ${varName}: Not set (data migration will be skipped)`);
     }
   }
 

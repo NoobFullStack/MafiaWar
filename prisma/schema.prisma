@@ -41,7 +41,7 @@ model Character {
   // Multi-layered money system
   cashOnHand      Int      @default(0)     // Vulnerable to theft
   bankBalance     Int      @default(0)     // Vulnerable to government
-  cryptoWallet    Json     @default("{}")  // {"bitcoin": 1.5, "ethereum": 0.8}
+  cryptoWallet    Json     // {"bitcoin": 1.5, "ethereum": 0.8}
   
   // Banking system
   bankAccessLevel Int      @default(1)     // Unlocks higher limits and better protection
