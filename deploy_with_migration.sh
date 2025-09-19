@@ -57,15 +57,21 @@ if ! grep -q "SOURCE_DATABASE_URL" .env; then
     exit 1
 fi
 
-if ! grep -q "DATABASE_URL.*sqlite" .env; then
+# Check DATABASE_URL format - should be SQLite (file: protocol)
+DATABASE_URL_LINE=$(grep "DATABASE_URL" .env)
+print_status "Found DATABASE_URL: ${DATABASE_URL_LINE}"
+
+if ! grep -q "DATABASE_URL.*file:" .env; then
     print_error "DATABASE_URL not configured for SQLite in .env"
+    print_error "Expected format: DATABASE_URL=\"file:./data/production.db\""
+    print_error "Current value: ${DATABASE_URL_LINE}"
     exit 1
 fi
 
 print_success "Environment configuration looks good!"
 
 # Backup existing database if it exists
-DB_PATH=$(grep "DATABASE_URL" .env | cut -d'"' -f2 | sed 's/file://' | sed 's/\.\///')
+DB_PATH=$(grep "DATABASE_URL" .env | cut -d'=' -f2 | tr -d '"' | sed 's/file://' | sed 's/\.\///')
 if [ -f "$DB_PATH" ]; then
     BACKUP_PATH="${DB_PATH}.backup.$(date +%Y%m%d_%H%M%S)"
     print_status "Backing up existing database to $BACKUP_PATH"
