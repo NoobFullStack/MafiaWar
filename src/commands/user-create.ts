@@ -166,11 +166,37 @@ async function showRegistrationFlow(
       time: 120000,
     });
 
-    if (!collector) return;
+    if (!collector) {
+      // Try alternative approach - get the message and create collector from it
+      try {
+        const reply = await interaction.fetchReply();
+        const altCollector = reply.createMessageComponentCollector({
+          filter: (i: any) => i.user.id === interaction.user.id,
+          componentType: ComponentType.Button,
+          time: 120000,
+        });
+        
+        if (altCollector) {
+          // Continue with the alternative collector
+          setupCollectorHandlers(altCollector, interaction, userId, userTag, actionRow);
+        }
+      } catch (altError) {
+        logger.error(`Alternative collector approach failed:`, altError);
+      }
+      return;
+    }
 
-    let isHandled = false;
+    setupCollectorHandlers(collector, interaction, userId, userTag, actionRow);
+  } catch (error) {
+    logger.error("Error in showRegistrationFlow", error);
+  }
+}
 
-    collector.on("collect", async (buttonInteraction: any) => {
+// Extract collector setup into separate function
+function setupCollectorHandlers(collector: any, interaction: any, userId: string, userTag: string, actionRow: any) {
+  let isHandled = false;
+
+  collector.on("collect", async (buttonInteraction: any) => {
       // Prevent multiple collections
       if (isHandled) return;
       isHandled = true;
@@ -197,18 +223,15 @@ async function showRegistrationFlow(
       }
     });
 
-    collector.on("end", (_collected: any, reason: string) => {
-      // Only disable buttons if the collector timed out (not manually stopped)
-      if (reason === "time" && !isHandled) {
-        const disabledRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          ...actionRow.components.map((button) => button.setDisabled(true))
-        );
-        interaction.editReply({ components: [disabledRow] }).catch(() => {});
-      }
-    });
-  } catch (error) {
-    logger.error("Error in showRegistrationFlow", error);
-  }
+  collector.on("end", (_collected: any, reason: string) => {
+    // Only disable buttons if the collector timed out (not manually stopped)
+    if (reason === "time" && !isHandled) {
+      const disabledRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        ...actionRow.components.map((button: any) => button.setDisabled(true))
+      );
+      interaction.editReply({ components: [disabledRow] }).catch(() => {});
+    }
+  });
 }
 
 // Handle create character button
@@ -500,20 +523,31 @@ async function showCharacterConfirmation(
         .setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({
-      embeds: [confirmEmbed],
-      components: [confirmButtons],
-      flags: 64,
-    });
+    // Handle modal submit interaction properly
+    if (interaction.isModalSubmit()) {
+      await interaction.update({
+        embeds: [confirmEmbed],
+        components: [confirmButtons],
+      });
+    } else {
+      await interaction.reply({
+        embeds: [confirmEmbed],
+        components: [confirmButtons],
+        flags: 64,
+      });
+    }
 
     // Set up collector for confirmation
-    const collector = interaction.channel?.createMessageComponentCollector({
+    const reply = await interaction.fetchReply();
+    const collector = reply.createMessageComponentCollector({
       filter: (i: any) => i.user.id === interaction.user.id,
       componentType: ComponentType.Button,
       time: 120000,
     });
 
-    if (!collector) return;
+    if (!collector) {
+      return;
+    }
 
     let isConfirmHandled = false;
 
@@ -683,10 +717,25 @@ async function finalizeCharacterCreation(
       RegistrationContent.errors.creationFailed
     );
 
-    await interaction.editReply({
-      embeds: [errorEmbed],
-      components: [],
-    });
+    try {
+      await interaction.editReply({
+        embeds: [errorEmbed],
+        components: [],
+      });
+    } catch (replyError) {
+      logger.error("Failed to send error reply:", replyError);
+      // Try alternative error handling
+      try {
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            embeds: [errorEmbed],
+            ephemeral: true,
+          });
+        }
+      } catch (fallbackError) {
+        logger.error("All error response methods failed:", fallbackError);
+      }
+    }
   }
 }
 
