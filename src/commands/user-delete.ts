@@ -149,27 +149,56 @@ async function showDeletionWarning(
     time: 300000, // 5 minutes
   });
 
-  if (collector) {
-    collector.on("collect", async (i: any) => {
-      try {
-        if (i.customId === "confirm_deletion") {
-          await executeAccountDeletion(i, userId, userTag, preview);
-        } else if (i.customId === "cancel_deletion") {
-          // Simply dismiss the interaction without showing any message
-          collector.stop();
-          await i.deferUpdate();
-        }
-      } catch (error) {
-        logger.error("Error handling deletion button interaction", error);
+  if (!collector) {
+    // Try alternative approach for ephemeral interactions
+    try {
+      const reply = await interaction.fetchReply();
+      const altCollector = reply.createMessageComponentCollector({
+        filter,
+        componentType: ComponentType.Button,
+        time: 300000, // 5 minutes
+      });
+      
+      if (altCollector) {
+        setupDeletionCollectorHandlers(altCollector, interaction, userId, userTag, preview, actionRow);
       }
-    });
-
-    collector.on("end", () => {
-      // Disable buttons after timeout
-      actionRow.components.forEach((button) => button.setDisabled(true));
-      interaction.editReply({ components: [actionRow] }).catch(() => {});
-    });
+    } catch (altError) {
+      logger.error("Alternative collector approach failed:", altError);
+    }
+    return;
   }
+
+  setupDeletionCollectorHandlers(collector, interaction, userId, userTag, preview, actionRow);
+}
+
+// Extract collector setup into separate function
+function setupDeletionCollectorHandlers(
+  collector: any, 
+  interaction: any, 
+  userId: string, 
+  userTag: string, 
+  preview: any, 
+  actionRow: any
+) {
+  collector.on("collect", async (i: any) => {
+    try {
+      if (i.customId === "confirm_deletion") {
+        await showVerificationModal(i, userId, userTag, preview);
+      } else if (i.customId === "cancel_deletion") {
+        // Simply dismiss the interaction without showing any message
+        collector.stop();
+        await i.deferUpdate();
+      }
+    } catch (error) {
+      logger.error("Error handling deletion button interaction", error);
+    }
+  });
+
+  collector.on("end", () => {
+    // Disable buttons after timeout
+    actionRow.components.forEach((button: any) => button.setDisabled(true));
+    interaction.editReply({ components: [actionRow] }).catch(() => {});
+  });
 }
 
 async function showVerificationModal(
@@ -269,10 +298,18 @@ async function executeAccountDeletion(
     .setDescription(loadingContent.description)
     .setTimestamp();
 
-  await interaction.update({
-    embeds: [loadingEmbed],
-    components: [],
-  });
+  // Handle different interaction types properly
+  if (interaction.isModalSubmit()) {
+    await interaction.update({
+      embeds: [loadingEmbed],
+      components: [],
+    });
+  } else {
+    await interaction.update({
+      embeds: [loadingEmbed],
+      components: [],
+    });
+  }
 
   try {
     // Get user ID from database

@@ -119,21 +119,32 @@ const helpCommand: Command = {
           selectMenu
         );
 
-      await ResponseUtil.smartReply(interaction, {
+      const reply = await ResponseUtil.smartReply(interaction, {
         embeds: [embed],
         components: [actionRow],
         flags: 64,
       });
 
-      // Handle menu interactions
+      // Handle menu interactions - use alternative approach for ephemeral interactions
       const collector = interaction.channel?.createMessageComponentCollector({
-        filter: (i) => i.user.id === interaction.user.id,
+        filter: (i: any) => i.user.id === interaction.user.id,
         componentType: ComponentType.StringSelect,
         time: 300000, // 5 minutes
       });
 
-      if (collector) {
-        collector.on("collect", async (selectInteraction) => {
+      // Alternative collector for when channel is not available (ephemeral interactions)
+      let altCollector = null;
+      if (!collector && reply && typeof reply === 'object' && 'createMessageComponentCollector' in reply) {
+        altCollector = (reply as any).createMessageComponentCollector({
+          filter: (i: any) => i.user.id === interaction.user.id,
+          componentType: ComponentType.StringSelect,
+          time: 300000, // 5 minutes
+        });
+      }
+
+      const activeCollector = collector || altCollector;
+      if (activeCollector) {
+        activeCollector.on("collect", async (selectInteraction: any) => {
           try {
             const selectedCategory = selectInteraction.values[0];
 
@@ -156,7 +167,7 @@ const helpCommand: Command = {
           }
         });
 
-        collector.on("end", () => {
+        activeCollector.on("end", () => {
           // Disable menu after timeout
           selectMenu.setDisabled(true);
           interaction.editReply({ components: [actionRow] }).catch(() => {});
