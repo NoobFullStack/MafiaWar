@@ -12,6 +12,12 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
+    "migrate": "ts-node src/scripts/database/migrateSQLite.ts",
+    "migrate-data": "ts-node src/scripts/database/migrateDataSQLite.ts",
+    "migrate-supabase": "ts-node src/scripts/database/migrateSupabaseToSQLite.ts",
+    "migrate-force": "ts-node src/scripts/database/forceMigrateMyCharacter.ts",
+    "migrate-complete": "ts-node src/scripts/database/completeForceSupabaseMigration.ts",
+    "db:setup-sqlite": "ts-node src/scripts/database/setupSQLite.ts",
     "seed": "ts-node src/scripts/database/seed.ts",
     "commands:register": "ts-node src/scripts/commands/forceRegisterCommands.ts",
     "commands:dev": "ts-node src/scripts/commands/registerDevCommands.ts",
@@ -27,6 +33,8 @@
     "test:jail": "ts-node src/scripts/testing/testJail.ts",
     "test:bribe": "ts-node src/scripts/testing/testBribePayment.ts",
     "test:bribe-consistency": "ts-node src/scripts/testing/testBribeConsistency.ts",
+    "test:validate": "ts-node src/scripts/testing/validateImplementation.ts",
+    "test:sqlite-queue": "ts-node src/scripts/testing/testSQLiteAndQueue.ts",
     "test:business-upgrade": "ts-node src/scripts/testing/testBusinessUpgradePayment.ts",
     "lint": "tsc --noEmit"
   },
@@ -37,10 +45,11 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
-    "@supabase/supabase-js": "^2.57.4",
+    "@types/pg": "^8.15.5",
     "@types/ws": "^8.18.1",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.2",
+    "pg": "^8.16.3",
     "prisma": "^6.16.1"
   }
 }

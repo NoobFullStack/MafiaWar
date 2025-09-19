@@ -1,24 +1,35 @@
 import { PrismaClient } from "@prisma/client";
 import { initializeGameData } from "./GameSeeder";
 import { logger } from "./ResponseUtil";
+import { WriteQueueService } from "../services/WriteQueueService";
 
 class DatabaseManager {
   private static instance: DatabaseManager;
   private prisma: PrismaClient;
+  private writeQueue: WriteQueueService;
 
   private constructor() {
+    // Configure for SQLite
+    const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
+    
     this.prisma = new PrismaClient({
       log: process.env.NODE_ENV === "production" ? ["error"] : ["warn", "error"],
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: databaseUrl,
         },
       },
-      // Optimize for production performance
+      // Optimize for SQLite and production performance
       ...(process.env.NODE_ENV === "production" && {
-        // Production-specific optimizations
         errorFormat: "minimal",
       }),
+    });
+
+    // Initialize write queue
+    this.writeQueue = WriteQueueService.getInstance(this.prisma, {
+      batchSize: parseInt(process.env.WRITE_QUEUE_BATCH_SIZE || '10'),
+      processingInterval: parseInt(process.env.WRITE_QUEUE_INTERVAL || '1000'),
+      maxRetries: parseInt(process.env.WRITE_QUEUE_MAX_RETRIES || '3'),
     });
   }
 
@@ -33,13 +44,21 @@ class DatabaseManager {
     return this.prisma;
   }
 
+  public getWriteQueue(): WriteQueueService {
+    return this.writeQueue;
+  }
+
   /**
    * Initialize database connection and optionally seed game data
    */
   async connect(seedData: boolean = false): Promise<void> {
     try {
       await this.prisma.$connect();
-      logger.info("✅ Database connected successfully");
+      logger.info("✅ SQLite database connected successfully");
+
+      // Start the write queue processing
+      this.writeQueue.start();
+      logger.info("🚀 Write queue service started");
 
       if (seedData) {
         logger.info("🌱 Initializing game data...");
@@ -56,6 +75,11 @@ class DatabaseManager {
    */
   async disconnect(): Promise<void> {
     try {
+      // Stop write queue and flush remaining operations
+      this.writeQueue.stop();
+      await this.writeQueue.flush();
+      logger.info("📝 Write queue flushed and stopped");
+
       await this.prisma.$disconnect();
       logger.info("📡 Database disconnected");
     } catch (error) {
@@ -134,7 +158,7 @@ class DatabaseManager {
   }
 
   /**
-   * Update character stats
+   * Update character stats (using write queue)
    */
   async updateCharacterStats(
     userId: string,
@@ -152,10 +176,14 @@ class DatabaseManager {
       const currentStats = character.stats as any;
       const newStats = { ...currentStats, ...stats };
 
-      return await this.prisma.character.update({
-        where: { userId },
-        data: { stats: newStats },
-      });
+      // Use write queue for async processing
+      const operationId = this.writeQueue.updateCharacter(
+        { userId },
+        { stats: newStats }
+      );
+
+      logger.debug(`Queued character stats update for user ${userId} (op: ${operationId})`);
+      return { operationId, stats: newStats };
     } catch (error) {
       logger.error("Error updating character stats", error);
       throw error;
@@ -163,7 +191,7 @@ class DatabaseManager {
   }
 
   /**
-   * Update character money
+   * Update character money (using write queue with high priority)
    */
   async updateCharacterMoney(
     userId: string,
@@ -192,10 +220,14 @@ class DatabaseManager {
           break;
       }
 
-      return await this.prisma.character.update({
-        where: { userId },
-        data: { money: newAmount },
-      });
+      // Use high-priority queue for money operations
+      const operationId = this.writeQueue.updateCharacterMoney(
+        { userId },
+        { money: newAmount }
+      );
+
+      logger.debug(`Queued character money update for user ${userId}: ${operation} ${amount} (op: ${operationId})`);
+      return { operationId, newAmount };
     } catch (error) {
       logger.error("Error updating character money", error);
       throw error;
@@ -203,7 +235,7 @@ class DatabaseManager {
   }
 
   /**
-   * Log user action
+   * Log user action (using write queue)
    */
   async logAction(
     userId: string,
@@ -213,15 +245,17 @@ class DatabaseManager {
     actionId?: string
   ) {
     try {
-      return await this.prisma.actionLog.create({
-        data: {
-          userId,
-          actionType,
-          actionId,
-          result,
-          details,
-        },
+      // Use write queue for action logging
+      const operationId = this.writeQueue.createActionLog({
+        userId,
+        actionType,
+        actionId,
+        result,
+        details,
       });
+
+      logger.debug(`Queued action log for user ${userId}: ${actionType} (op: ${operationId})`);
+      return { operationId };
     } catch (error) {
       logger.error("Error logging action", error);
       throw error;
@@ -252,7 +286,7 @@ class DatabaseManager {
       logger.info(`Starting deletion process for user: ${userId}`);
 
       // Start a transaction to ensure all deletions succeed or fail together
-      const result = await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx: any) => {
         // Get user data before deletion for logging
         const user = await tx.user.findUnique({
           where: { id: userId },
@@ -481,7 +515,7 @@ class DatabaseManager {
           bankBalance: user.character.bankBalance,
           reputation: user.character.reputation,
         } : null,
-        assets: user.assets.map(asset => ({
+        assets: user.assets.map((asset: any) => ({
           name: asset.name,
           type: asset.type,
           level: asset.level,
@@ -490,19 +524,19 @@ class DatabaseManager {
           robberyLogs: asset.robberyLogs.length,
         })),
         gangs: {
-          memberships: user.gangs.map(membership => ({
+          memberships: user.gangs.map((membership: any) => ({
             gangName: membership.gang.name,
             role: membership.role,
             joinedAt: membership.joinedAt,
           })),
-          leadership: user.ledGangs.map(gang => ({
+          leadership: user.ledGangs.map((gang: any) => ({
             gangName: gang.name,
             memberCount: gang.members.length,
-            willTransferTo: gang.members.find(m => m.userId !== user.id)?.userId || null,
+            willTransferTo: gang.members.find((m: any) => m.userId !== user.id)?.userId || null,
             willDelete: gang.members.length === 1, // Only the leader
           })),
         },
-        inventory: user.inventory.map(inv => ({
+        inventory: user.inventory.map((inv: any) => ({
           itemName: inv.item.name,
           quantity: inv.quantity,
           value: inv.item.value,
