@@ -22,6 +22,7 @@
     "economy:suggest": "ts-node src/scripts/development/economy.ts suggest",
     "level:demo": "ts-node src/scripts/demos/levelGatingDemo.ts",
     "cleanup:duplicates": "ts-node src/scripts/database/cleanupDuplicateAssets.ts",
+    "cleanup:jail-fields": "ts-node src/scripts/database/cleanupDeprecatedJailFields.ts",
     "crime:demo": "ts-node src/scripts/demos/crimeSystemDemo.ts",
     "env:validate": "ts-node src/scripts/development/validateEnvironment.ts",
     "test:jail": "ts-node src/scripts/testing/testJail.ts",
