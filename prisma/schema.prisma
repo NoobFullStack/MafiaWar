@@ -49,12 +49,12 @@ model Character {
   lastBankVisit   DateTime?
   bankInterestAccrued Float @default(0)
   
-  // Jail system
-  jailUntil       DateTime? // When the player gets out of jail (null = not in jail)
-  jailCrime       String?   // What crime landed them in jail
-  jailSeverity    Int       @default(0) // Severity of the crime (affects bribe cost)
-  jailBribeAmount Int?      // Fixed bribe amount set when jailed (null = not in jail)
-  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats)
+  // Jail system - moved to separate Jail table, keeping these for migration compatibility
+  jailUntil       DateTime? // DEPRECATED: Will be removed after migration
+  jailCrime       String?   // DEPRECATED: Will be removed after migration
+  jailSeverity    Int       @default(0) // DEPRECATED: Will be removed after migration
+  jailBribeAmount Int?      // DEPRECATED: Will be removed after migration
+  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats) - will be kept
   
   // Legacy field for backward compatibility (will be migrated to cashOnHand)
   money           Int      @default(0)
@@ -63,6 +63,26 @@ model Character {
   level           Int      @default(1)
   experience      Int      @default(0) // Total XP earned
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jailRecords     Jail[]   // Jail records for this character
+}
+
+model Jail {
+  id                String    @id @default(uuid())
+  characterId       String
+  jailUntil         DateTime? // When the player gets out of jail (null = released)
+  jailCrime         String    // What crime landed them in jail
+  jailSeverity      Int       // Severity of the crime (1-10, affects bribe cost)
+  jailBribeAmount   Int       // Fixed bribe amount set when jailed
+  jailTimeMinutes   Int       // Original jail time sentence in minutes
+  isActive          Boolean   @default(true) // Whether this is the current active jail sentence
+  jailedAt          DateTime  @default(now()) // When the player was jailed
+  releasedAt        DateTime? // When the player was released (null = still in jail)
+  releaseReason     String?   // "time_served", "bribed_out", "admin_release"
+  releaseCooldownUntil DateTime? // When the player can be jailed again (15 min cooldown)
+  character         Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  
+  @@index([characterId, isActive])
+  @@index([releaseCooldownUntil])
 }
 
 model Gang {

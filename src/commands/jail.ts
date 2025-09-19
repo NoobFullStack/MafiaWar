@@ -69,15 +69,23 @@ async function handleStats(interaction: any, userId: string): Promise<CommandRes
     const jailStats = await JailService.getJailStats(userId);
     const jailStatus = await JailService.isPlayerInJail(userId);
 
-    const embed = ResponseUtil.info(
-      "📊 Jail Statistics",
-      `**Total Time Served:** ${JailService.formatJailTime(jailStats.totalJailTime)}\n` +
-      `**Currently in Jail:** ${jailStats.currentlyInJail ? "Yes" : "No"}\n` +
-      (jailStats.currentlyInJail && jailStats.timeLeft ? 
-        `**Time Remaining:** ${JailService.formatJailTime(jailStats.timeLeft)}\n` : "") +
-      `**Bribes Used:** ${jailStats.escapesUsed}\n\n` +
-      `💡 *Tip: Keep some crypto hidden - police can't see it for bribes!*`
-    );
+    let statsText = `**Total Time Served:** ${JailService.formatJailTime(jailStats.totalJailTime)}\n` +
+      `**Total Jail Sentences:** ${jailStats.totalJailSentences}\n` +
+      `**Currently in Jail:** ${jailStats.currentlyInJail ? "Yes" : "No"}\n`;
+    
+    if (jailStats.currentlyInJail && jailStats.timeLeft) {
+      statsText += `**Time Remaining:** ${JailService.formatJailTime(jailStats.timeLeft)}\n`;
+    }
+    
+    statsText += `**Bribes Used:** ${jailStats.totalBribesUsed}\n`;
+    
+    if (jailStats.releaseCooldown) {
+      statsText += `\n⏳ **Release Cooldown:** ${jailStats.releaseCooldown.timeLeftFormatted}\n`;
+    }
+    
+    statsText += `\n💡 *Tip: Keep some crypto hidden - police can't see it for bribes!*`;
+
+    const embed = ResponseUtil.info("📊 Jail Statistics", statsText);
 
     if (jailStatus.inJail) {
       embed.setColor(0xff6b6b); // Red-ish for jailed
