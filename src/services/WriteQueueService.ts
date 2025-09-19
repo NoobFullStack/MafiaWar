@@ -149,7 +149,7 @@ export class WriteQueueService {
     logger.debug(`⚡ Processing batch of ${operations.length} operations`);
 
     // Use a transaction for atomic batch processing
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: any) => {
       for (const operation of operations) {
         try {
           await this.executeOperation(tx, operation);

@@ -16,7 +16,7 @@ A text-based multiplayer mafia game for Discord, inspired by bootleggers.us. Bui
 - 📊 **Profile Management** - View character stats, level, XP progress, and reputation
 - ⚡ **Performance Optimization** - Atomic transactions, timeout handling, race condition prevention
 - 🛡️ **Cooldown System** - Built-in spam protection with deferred interactions
-- 🗄️ **Database Integration** - PostgreSQL with Prisma ORM and comprehensive logging
+- 🗄️ **Database Integration** - SQLite3 with Prisma ORM and comprehensive logging
 - 🌱 **Advanced Seeding** - Safe, extensible data management system
 - 📈 **Economic Analysis** - Real-time balance validation and XP progression analysis
 
@@ -145,7 +145,7 @@ Extensible data management that grows with your game:
 ### **Prerequisites**
 
 - Node.js 18+
-- PostgreSQL database (or Supabase)
+- SQLite3 database
 - Discord Bot Token
 
 ### **Installation**
@@ -328,6 +328,15 @@ yarn lint       # Run TypeScript checks
 
 ## 🛠️ Recent Improvements
 
+### **SQLite3 Migration & Write Queue System** 🚀 (September 2024)
+
+- **Complete migration from PostgreSQL/Supabase to SQLite3** for simplified deployment
+- **Custom write queue system** with batching, retries, and error handling
+- **Asynchronous write processing** improving response times and reliability
+- **Priority-based operation queuing** ensuring critical operations are processed first
+- **Atomic batch transactions** maintaining data consistency across operations
+- **Configurable queue settings** for optimal performance tuning
+
 ### **Asset System Implementation** ✨ (September 2025)
 
 - **Complete business management** with 6 asset types (convenience stores to casinos)
@@ -355,7 +364,7 @@ yarn lint       # Run TypeScript checks
 
 ## 🗄️ Database Schema
 
-The bot uses PostgreSQL with the following main entities:
+The bot uses SQLite3 with the following main entities:
 
 - **Users** - Discord user accounts linked to game profiles
 - **Characters** - Player stats, level, XP, reputation, and **multi-layered money system**
@@ -386,7 +395,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by [bootleggers.us](https://bootleggers.us) - Classic mafia browser game
 - Built with [Discord.js](https://discord.js.org/) for Discord integration
 - Database powered by [Prisma](https://prisma.io/) ORM
-- Hosted on [Supabase](https://supabase.com/) for PostgreSQL
+- Uses SQLite3 for efficient local storage
 
 ## 📞 Support
 

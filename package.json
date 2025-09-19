@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
+    "migrate": "ts-node src/scripts/database/migrateSQLite.ts",
     "db:setup-sqlite": "ts-node src/scripts/database/setupSQLite.ts",
     "seed": "ts-node src/scripts/database/seed.ts",
     "commands:register": "ts-node src/scripts/commands/forceRegisterCommands.ts",
@@ -28,6 +29,8 @@
     "test:jail": "ts-node src/scripts/testing/testJail.ts",
     "test:bribe": "ts-node src/scripts/testing/testBribePayment.ts",
     "test:bribe-consistency": "ts-node src/scripts/testing/testBribeConsistency.ts",
+    "test:validate": "ts-node src/scripts/testing/validateImplementation.ts",
+    "test:sqlite-queue": "ts-node src/scripts/testing/testSQLiteAndQueue.ts",
     "test:business-upgrade": "ts-node src/scripts/testing/testBusinessUpgradePayment.ts",
     "lint": "tsc --noEmit"
   },
