@@ -22,6 +22,7 @@ export interface JailStatus {
   severity?: number; // crime severity (1-10)
   canBribe?: boolean; // whether bribing is allowed
   bribeAmount?: number; // cost to bribe out
+  jailRecord?: any; // The current jail record from the Jail table
 }
 
 export interface BribeResult {
@@ -29,6 +30,13 @@ export interface BribeResult {
   message: string;
   amountPaid?: number;
   timeReduced?: number; // minutes reduced from sentence
+}
+
+export interface CooldownStatus {
+  onCooldown: boolean;
+  timeLeft?: number; // minutes remaining
+  timeLeftFormatted?: string; // human readable
+  canBeJailed: boolean;
 }
 
 export class JailService {
@@ -46,11 +54,32 @@ export class JailService {
         };
       }
 
-      const character = user.character;
+      const db = DatabaseManager.getClient();
       const now = new Date();
 
-      // Check if player is in jail
-      if (!character.jailUntil || character.jailUntil <= now) {
+      // Check for active jail record
+      const activeJailRecord = await db.jail.findFirst({
+        where: {
+          characterId: user.character.id,
+          isActive: true
+        },
+        orderBy: {
+          jailedAt: 'desc'
+        }
+      });
+
+      if (!activeJailRecord) {
+        return {
+          inJail: false,
+          timeLeft: 0,
+          timeLeftFormatted: "0m"
+        };
+      }
+
+      // Check if jail time has expired
+      if (!activeJailRecord.jailUntil || activeJailRecord.jailUntil <= now) {
+        // Auto-release if time has expired
+        await this.autoReleaseExpiredJail(activeJailRecord.id);
         return {
           inJail: false,
           timeLeft: 0,
@@ -59,27 +88,21 @@ export class JailService {
       }
 
       // Player is in jail - calculate remaining time
-      const timeLeftMs = character.jailUntil.getTime() - now.getTime();
+      const timeLeftMs = activeJailRecord.jailUntil.getTime() - now.getTime();
       const timeLeftMinutes = Math.max(0, Math.ceil(timeLeftMs / (1000 * 60)));
 
-      // Use stored bribe amount, or calculate if not set (legacy support)
-      let bribeAmount = character.jailBribeAmount;
-      if (!bribeAmount) {
-        // Fallback for existing jail sentences without stored bribe amount
-        const playerWealth = character.cashOnHand + character.bankBalance;
-        bribeAmount = this.calculateBribeAmount(character.jailSeverity, playerWealth, timeLeftMinutes);
-      }
-
-      const canAffordBribe = (character.cashOnHand + character.bankBalance) >= bribeAmount;
+      const bribeAmount = activeJailRecord.jailBribeAmount;
+      const canAffordBribe = (user.character.cashOnHand + user.character.bankBalance) >= bribeAmount;
 
       return {
         inJail: true,
         timeLeft: timeLeftMinutes,
         timeLeftFormatted: this.formatJailTime(timeLeftMinutes),
-        crime: character.jailCrime || "Unknown",
-        severity: character.jailSeverity,
+        crime: activeJailRecord.jailCrime,
+        severity: activeJailRecord.jailSeverity,
         bribeAmount,
-        canBribe: canAffordBribe
+        canBribe: canAffordBribe,
+        jailRecord: activeJailRecord
       };
 
     } catch (error) {
@@ -93,6 +116,88 @@ export class JailService {
   }
 
   /**
+   * Auto-release a player from jail when time has expired
+   */
+  private static async autoReleaseExpiredJail(jailRecordId: string): Promise<void> {
+    try {
+      const db = DatabaseManager.getClient();
+      const now = new Date();
+      
+      await db.jail.update({
+        where: { id: jailRecordId },
+        data: {
+          isActive: false,
+          releasedAt: now,
+          releaseReason: 'time_served',
+          releaseCooldownUntil: new Date(now.getTime() + (15 * 60 * 1000)) // 15 minute cooldown
+        }
+      });
+
+      logger.info(`Auto-released expired jail record ${jailRecordId}`);
+    } catch (error) {
+      logger.error(`Failed to auto-release jail record ${jailRecordId}:`, error);
+    }
+  }
+
+  /**
+   * Check if a player is on release cooldown (cannot be jailed again yet)
+   */
+  static async checkReleaseCooldown(userId: string): Promise<CooldownStatus> {
+    try {
+      const user = await DatabaseManager.getUserForAuth(userId);
+      if (!user?.character) {
+        return {
+          onCooldown: false,
+          canBeJailed: true
+        };
+      }
+
+      const db = DatabaseManager.getClient();
+      const now = new Date();
+
+      // Check for recent release with active cooldown
+      const recentRelease = await db.jail.findFirst({
+        where: {
+          characterId: user.character.id,
+          releaseCooldownUntil: {
+            gt: now
+          }
+        },
+        orderBy: {
+          releasedAt: 'desc'
+        }
+      });
+
+      if (!recentRelease || !recentRelease.releaseCooldownUntil) {
+        return {
+          onCooldown: false,
+          canBeJailed: true
+        };
+      }
+
+      const timeLeftMs = recentRelease.releaseCooldownUntil.getTime() - now.getTime();
+      const timeLeftMinutes = Math.max(0, Math.ceil(timeLeftMs / (1000 * 60)));
+
+      return {
+        onCooldown: true,
+        timeLeft: timeLeftMinutes,
+        timeLeftFormatted: this.formatJailTime(timeLeftMinutes),
+        canBeJailed: false
+      };
+
+    } catch (error) {
+      logger.error(`Failed to check release cooldown for ${userId}:`, error);
+      return {
+        onCooldown: false,
+        canBeJailed: true
+      };
+    }
+  }
+
+  /**
+   * Send a player to jail
+   */
+  /**
    * Send a player to jail
    */
   static async sendToJail(
@@ -102,9 +207,22 @@ export class JailService {
     severity: number = 5
   ): Promise<void> {
     try {
+      // Check if player is on release cooldown
+      const cooldownStatus = await this.checkReleaseCooldown(userId);
+      if (cooldownStatus.onCooldown) {
+        logger.info(`Cannot jail player ${userId} - still on release cooldown for ${cooldownStatus.timeLeftFormatted}`);
+        throw new Error(`Player cannot be jailed yet - release cooldown active for ${cooldownStatus.timeLeftFormatted}`);
+      }
+
       const user = await DatabaseManager.getUserForAuth(userId);
       if (!user?.character) {
         throw new Error("Character not found");
+      }
+
+      // Check if player is already in jail
+      const currentJailStatus = await this.isPlayerInJail(userId);
+      if (currentJailStatus.inJail) {
+        throw new Error("Player is already in jail");
       }
 
       const character = user.character;
@@ -117,14 +235,23 @@ export class JailService {
       
       const db = DatabaseManager.getClient();
 
-      // Update character directly using character ID
-      await db.character.update({
-        where: { id: character.id },
+      // Create new jail record
+      await db.jail.create({
         data: {
+          characterId: character.id,
           jailUntil,
           jailCrime: crime,
           jailSeverity: clampedSeverity,
-          jailBribeAmount: bribeAmount, // Store the calculated bribe amount
+          jailBribeAmount: bribeAmount,
+          jailTimeMinutes,
+          isActive: true
+        }
+      });
+
+      // Update character's total jail time stat
+      await db.character.update({
+        where: { id: character.id },
+        data: {
           totalJailTime: { increment: jailTimeMinutes }
         }
       });
@@ -147,14 +274,28 @@ export class JailService {
       }
 
       const db = DatabaseManager.getClient();
+      const now = new Date();
       
-      await db.character.update({
-        where: { id: user.character.id },
+      // Find active jail record
+      const activeJailRecord = await db.jail.findFirst({
+        where: {
+          characterId: user.character.id,
+          isActive: true
+        }
+      });
+
+      if (!activeJailRecord) {
+        throw new Error("No active jail record found");
+      }
+
+      // Update jail record to mark as released with cooldown
+      await db.jail.update({
+        where: { id: activeJailRecord.id },
         data: {
-          jailUntil: null,
-          jailCrime: null,
-          jailSeverity: 0,
-          jailBribeAmount: null // Clear the stored bribe amount
+          isActive: false,
+          releasedAt: now,
+          releaseReason: reason,
+          releaseCooldownUntil: new Date(now.getTime() + (15 * 60 * 1000)) // 15 minute cooldown
         }
       });
 
@@ -199,7 +340,7 @@ export class JailService {
       }
 
       // Release from jail
-      await this.releaseFromJail(userId, "bribed out");
+      await this.releaseFromJail(userId, "bribed_out");
 
       const timeReduced = jailStatus.timeLeft || 0;
 
@@ -208,7 +349,8 @@ export class JailService {
         message: `🤝 **Bribe successful!** You've paid ${BotBranding.formatCurrency(bribeAmount)} to get out of jail.\n` +
                 `💳 **Payment:** ${paymentResult.source}\n` +
                 `⏰ You saved **${jailStatus.timeLeftFormatted}** of jail time.\n` +
-                `💡 *Remember: Crypto is invisible to police, so keep some hidden!*`,
+                `💡 *Remember: Crypto is invisible to police, so keep some hidden!*\n` +
+                `⏳ You cannot be jailed again for 15 minutes.`,
         amountPaid: bribeAmount,
         timeReduced
       };
@@ -360,7 +502,10 @@ export class JailService {
     totalJailTime: number;
     currentlyInJail: boolean;
     timeLeft?: number;
-    escapesUsed: number; // Future: track bribe usage
+    totalJailSentences: number;
+    totalBribesUsed: number;
+    lastJailedAt?: Date;
+    releaseCooldown?: CooldownStatus;
   }> {
     try {
       const user = await DatabaseManager.getUserForAuth(userId);
@@ -369,24 +514,60 @@ export class JailService {
         return {
           totalJailTime: 0,
           currentlyInJail: false,
-          escapesUsed: 0
+          totalJailSentences: 0,
+          totalBribesUsed: 0
         };
       }
 
+      const db = DatabaseManager.getClient();
       const jailStatus = await this.isPlayerInJail(userId);
+      const cooldownStatus = await this.checkReleaseCooldown(userId);
+
+      // Get jail statistics from the Jail table
+      const jailStats = await db.jail.aggregate({
+        where: {
+          characterId: user.character.id
+        },
+        _count: {
+          id: true
+        }
+      });
+
+      const bribeStats = await db.jail.aggregate({
+        where: {
+          characterId: user.character.id,
+          releaseReason: 'bribed_out'
+        },
+        _count: {
+          id: true
+        }
+      });
+
+      const lastJailRecord = await db.jail.findFirst({
+        where: {
+          characterId: user.character.id
+        },
+        orderBy: {
+          jailedAt: 'desc'
+        }
+      });
 
       return {
         totalJailTime: user.character.totalJailTime,
         currentlyInJail: jailStatus.inJail,
         timeLeft: jailStatus.timeLeft,
-        escapesUsed: 0 // TODO: Track bribe usage in future
+        totalJailSentences: jailStats._count.id,
+        totalBribesUsed: bribeStats._count.id,
+        lastJailedAt: lastJailRecord?.jailedAt,
+        releaseCooldown: cooldownStatus.onCooldown ? cooldownStatus : undefined
       };
     } catch (error) {
       logger.error(`Failed to get jail stats for ${userId}:`, error);
       return {
         totalJailTime: 0,
         currentlyInJail: false,
-        escapesUsed: 0
+        totalJailSentences: 0,
+        totalBribesUsed: 0
       };
     }
   }
@@ -423,6 +604,36 @@ export class JailService {
     }
 
     return { blocked: false };
+  }
+
+  /**
+   * Check if a player can be jailed (not in jail and not on release cooldown)
+   */
+  static async canPlayerBeJailed(userId: string): Promise<{
+    canBeJailed: boolean;
+    reason?: string;
+    cooldownStatus?: CooldownStatus;
+  }> {
+    // First check if already in jail
+    const jailStatus = await this.isPlayerInJail(userId);
+    if (jailStatus.inJail) {
+      return {
+        canBeJailed: false,
+        reason: `Player is already in jail for ${jailStatus.timeLeftFormatted}`
+      };
+    }
+
+    // Check release cooldown
+    const cooldownStatus = await this.checkReleaseCooldown(userId);
+    if (cooldownStatus.onCooldown) {
+      return {
+        canBeJailed: false,
+        reason: `Player is on release cooldown for ${cooldownStatus.timeLeftFormatted}`,
+        cooldownStatus
+      };
+    }
+
+    return { canBeJailed: true };
   }
 }
 
