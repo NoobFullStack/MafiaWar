@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
+    "db:setup-sqlite": "ts-node src/scripts/database/setupSQLite.ts",
     "seed": "ts-node src/scripts/database/seed.ts",
     "commands:register": "ts-node src/scripts/commands/forceRegisterCommands.ts",
     "commands:dev": "ts-node src/scripts/commands/registerDevCommands.ts",
@@ -37,7 +38,6 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
-    "@supabase/supabase-js": "^2.57.4",
     "@types/ws": "^8.18.1",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.2",

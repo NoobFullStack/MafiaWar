@@ -1,24 +1,35 @@
 import { PrismaClient } from "@prisma/client";
 import { initializeGameData } from "./GameSeeder";
 import { logger } from "./ResponseUtil";
+import { WriteQueueService } from "../services/WriteQueueService";
 
 class DatabaseManager {
   private static instance: DatabaseManager;
   private prisma: PrismaClient;
+  private writeQueue: WriteQueueService;
 
   private constructor() {
+    // Configure for SQLite
+    const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
+    
     this.prisma = new PrismaClient({
       log: process.env.NODE_ENV === "production" ? ["error"] : ["warn", "error"],
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: databaseUrl,
         },
       },
-      // Optimize for production performance
+      // Optimize for SQLite and production performance
       ...(process.env.NODE_ENV === "production" && {
-        // Production-specific optimizations
         errorFormat: "minimal",
       }),
+    });
+
+    // Initialize write queue
+    this.writeQueue = WriteQueueService.getInstance(this.prisma, {
+      batchSize: parseInt(process.env.WRITE_QUEUE_BATCH_SIZE || '10'),
+      processingInterval: parseInt(process.env.WRITE_QUEUE_INTERVAL || '1000'),
+      maxRetries: parseInt(process.env.WRITE_QUEUE_MAX_RETRIES || '3'),
     });
   }
 
@@ -33,13 +44,21 @@ class DatabaseManager {
     return this.prisma;
   }
 
+  public getWriteQueue(): WriteQueueService {
+    return this.writeQueue;
+  }
+
   /**
    * Initialize database connection and optionally seed game data
    */
   async connect(seedData: boolean = false): Promise<void> {
     try {
       await this.prisma.$connect();
-      logger.info("✅ Database connected successfully");
+      logger.info("✅ SQLite database connected successfully");
+
+      // Start the write queue processing
+      this.writeQueue.start();
+      logger.info("🚀 Write queue service started");
 
       if (seedData) {
         logger.info("🌱 Initializing game data...");
@@ -56,6 +75,11 @@ class DatabaseManager {
    */
   async disconnect(): Promise<void> {
     try {
+      // Stop write queue and flush remaining operations
+      this.writeQueue.stop();
+      await this.writeQueue.flush();
+      logger.info("📝 Write queue flushed and stopped");
+
       await this.prisma.$disconnect();
       logger.info("📡 Database disconnected");
     } catch (error) {
@@ -134,7 +158,7 @@ class DatabaseManager {
   }
 
   /**
-   * Update character stats
+   * Update character stats (using write queue)
    */
   async updateCharacterStats(
     userId: string,
@@ -152,10 +176,14 @@ class DatabaseManager {
       const currentStats = character.stats as any;
       const newStats = { ...currentStats, ...stats };
 
-      return await this.prisma.character.update({
-        where: { userId },
-        data: { stats: newStats },
-      });
+      // Use write queue for async processing
+      const operationId = this.writeQueue.updateCharacter(
+        { userId },
+        { stats: newStats }
+      );
+
+      logger.debug(`Queued character stats update for user ${userId} (op: ${operationId})`);
+      return { operationId, stats: newStats };
     } catch (error) {
       logger.error("Error updating character stats", error);
       throw error;
@@ -163,7 +191,7 @@ class DatabaseManager {
   }
 
   /**
-   * Update character money
+   * Update character money (using write queue with high priority)
    */
   async updateCharacterMoney(
     userId: string,
@@ -192,10 +220,14 @@ class DatabaseManager {
           break;
       }
 
-      return await this.prisma.character.update({
-        where: { userId },
-        data: { money: newAmount },
-      });
+      // Use high-priority queue for money operations
+      const operationId = this.writeQueue.updateCharacterMoney(
+        { userId },
+        { money: newAmount }
+      );
+
+      logger.debug(`Queued character money update for user ${userId}: ${operation} ${amount} (op: ${operationId})`);
+      return { operationId, newAmount };
     } catch (error) {
       logger.error("Error updating character money", error);
       throw error;
@@ -203,7 +235,7 @@ class DatabaseManager {
   }
 
   /**
-   * Log user action
+   * Log user action (using write queue)
    */
   async logAction(
     userId: string,
@@ -213,15 +245,17 @@ class DatabaseManager {
     actionId?: string
   ) {
     try {
-      return await this.prisma.actionLog.create({
-        data: {
-          userId,
-          actionType,
-          actionId,
-          result,
-          details,
-        },
+      // Use write queue for action logging
+      const operationId = this.writeQueue.createActionLog({
+        userId,
+        actionType,
+        actionId,
+        result,
+        details,
       });
+
+      logger.debug(`Queued action log for user ${userId}: ${actionType} (op: ${operationId})`);
+      return { operationId };
     } catch (error) {
       logger.error("Error logging action", error);
       throw error;
