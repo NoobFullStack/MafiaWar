@@ -41,6 +41,7 @@ const helpCommand: Command = {
           { name: "Economy & Money", value: "economy" },
           { name: "Crime & Activities", value: "crime" },
           { name: "Business & Assets", value: "business" },
+          { name: "Casino & Gambling", value: "casino" },
           { name: "Available Crimes", value: "crimes" },
           { name: "System & Info", value: "system" }
         )
@@ -103,6 +104,11 @@ const helpCommand: Command = {
             value: "business",
           },
           {
+            label: "🎰 Casino & Gambling",
+            description: "Slots, roulette, betting games",
+            value: "casino",
+          },
+          {
             label: "📋 Available Crimes",
             description: "View all crimes & requirements",
             value: "crimes",
@@ -134,7 +140,12 @@ const helpCommand: Command = {
 
       // Alternative collector for when channel is not available (ephemeral interactions)
       let altCollector = null;
-      if (!collector && reply && typeof reply === 'object' && 'createMessageComponentCollector' in reply) {
+      if (
+        !collector &&
+        reply &&
+        typeof reply === "object" &&
+        "createMessageComponentCollector" in reply
+      ) {
         altCollector = (reply as any).createMessageComponentCollector({
           filter: (i: any) => i.user.id === interaction.user.id,
           componentType: ComponentType.StringSelect,
@@ -335,6 +346,37 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
             name: "`/business`",
             value:
               "💼 **buy** `<asset>` - Purchase a business\n💼 **list** - View your owned businesses\n💼 **collect** - Collect profits from all businesses\n💼 **sell** `<asset>` - Sell a business",
+            inline: false,
+          }
+        );
+      break;
+
+    case "casino":
+      embed
+        .setTitle("🎰 Casino & Gambling")
+        .setDescription("Risk it all at the underground casino")
+        .addFields(
+          {
+            name: "`/casino info`",
+            value: "ℹ️ View casino rules, game mechanics, and betting limits",
+            inline: false,
+          },
+          {
+            name: "`/casino slots <bet>`",
+            value:
+              "🎰 Play the slot machine\n💡 Three matching symbols in middle row wins!\n🎯 Bet: $10 - $10,000",
+            inline: false,
+          },
+          {
+            name: "`/casino roulette <bet_type> <amount>`",
+            value:
+              "🎡 Play roulette with various betting options\n🔴 Even money: Red, Black, Even, Odd, 1-18, 19-36\n💰 Dozens: 1st/2nd/3rd dozen (2:1)\n🎯 Straight: Single number (35:1)\n💵 Bet: $5 - $50,000",
+            inline: false,
+          },
+          {
+            name: "⚠️ Gambling Tips",
+            value:
+              "• House always has an edge (~5%)\n• Set a budget and stick to it\n• Use `/wallet` to check balance\n• Gamble responsibly",
             inline: false,
           }
         );
