@@ -6,8 +6,8 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { logger } from "../src/utils/ResponseUtil";
-import { initializeGameData } from "../src/utils/GameSeeder";
+import { logger } from "../../src/utils/ResponseUtil";
+import { initializeGameData } from "../../src/utils/GameSeeder";
 import fs from "fs";
 import path from "path";
 

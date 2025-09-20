@@ -6,8 +6,8 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { GameSeeder } from "../src/utils/GameSeeder";
-import { logger } from "../src/utils/ResponseUtil";
+import { GameSeeder } from "../../src/utils/GameSeeder";
+import { logger } from "../../src/utils/ResponseUtil";
 
 const prisma = new PrismaClient();
 
