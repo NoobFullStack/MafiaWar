@@ -235,28 +235,50 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 | `yarn cleanup:duplicates` | Remove duplicate assets (with --execute)     |
 | `yarn assets:validate`    | Validate asset templates and requirements    |
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
 ```
+# Root Configuration
+├── package.json          # Dependencies and scripts
+├── tsconfig.json         # TypeScript compiler configuration
+├── deploy_sqlite.sh      # Current deployment script
+├── .env.example          # Environment template
+└── README.md             # Project documentation
+
 src/
 ├── commands/          # Slash command implementations
 ├── config/           # Economy config and XP progression system
+├── content/          # Game content (announcements, messages)
 ├── data/             # Game data (items, crimes, assets) with level requirements
 ├── services/         # Business logic (CrimeService, etc.)
 ├── utils/            # Core utilities (database, logging, level validation)
-├── scripts/          # Analysis and demonstration scripts
 ├── types/            # TypeScript type definitions
-└── bot.ts           # Main bot entry point
+└── bot.ts           # Main bot entry pointscripts/               # Moved from src/scripts/ for better organization
+├── commands/         # Discord command registration scripts
+├── database/         # Database migration and seeding scripts
+├── development/      # Development and economy analysis tools
+├── demos/            # System demonstration scripts
+└── testing/          # Testing and validation scripts
+
+config/               # Configuration files
+└── ecosystem.config.js  # PM2 deployment configuration
+
+docs/                 # Documentation (reorganized)
+├── admin/            # Admin guides (commands, copilot instructions)
+├── deployment/       # Deployment and migration guides
+├── development/      # Development documentation and planning
+├── economy/          # Economic analysis and balance documentation
+├── setup/            # Installation and configuration guides
+└── README.md         # Documentation index
+
+archive/              # Deprecated files kept for reference
+├── deploy.sh         # Legacy deployment script
+├── deploy_with_migration.sh  # Migration deployment script
+└── README.md         # Archive documentation
 
 prisma/
-├── schema.prisma    # Database schema
-└── migrations/      # Database migration files
-
-docs/
-├── setup/             # Installation and configuration guides
-├── economy/           # Economic analysis and balance documentation
-├── development/       # Development documentation and planning
-└── README.md         # Documentation index
+├── schema.prisma     # Database schema
+└── migrations/       # Database migration files
 ```
 
 ## 🛠️ Development
@@ -318,13 +340,17 @@ yarn lint       # Run TypeScript checks
 
 - 🚀 **[Installation Guide](./docs/setup/INSTALLATION.md)** - Complete setup instructions and configuration
 - 🎮 **[Game Design](./docs/development/game-design.md)** - Core gameplay mechanics and features
-- 🗺️ **[Development Roadmap](./docs/development/roadmap.md)** - Project phases and timeline
+- � **[Commands Reference](./docs/admin/COMMANDS.md)** - Complete list of all bot commands
+- 🤖 **[Copilot Instructions](./docs/admin/COPILOT_INSTRUCTIONS.md)** - AI coding agent guidelines
+- 🚀 **[Deployment Guide](./docs/deployment/VPS_DEPLOYMENT_GUIDE.md)** - Current SQLite deployment instructions
+- 📊 **[Migration Summary](./docs/deployment/MIGRATION_SUMMARY.md)** - SQLite migration implementation details
+- �🗺️ **[Development Roadmap](./docs/development/roadmap.md)** - Project phases and timeline
 - 💡 **[Feature Ideas](./docs/development/feature-ideas.md)** - Command concepts and future features
-- � **[Communications Planning](./docs/development/communications-planning.md)** - Public vs private message strategy
+- 📞 **[Communications Planning](./docs/development/communications-planning.md)** - Public vs private message strategy
 - 🏢 **[Asset Integration](./docs/development/ASSET_INTEGRATION.md)** - Asset system implementation details
 - 💰 **[Money System](./docs/economy/MONEY_SYSTEM.md)** - Multi-tier financial architecture
 - 📊 **[Economics Analysis](./docs/economy/ECONOMICS.md)** - Balance validation and progression
-- �📖 **[Full Documentation](./docs/README.md)** - Complete documentation index
+- 📖 **[Full Documentation](./docs/README.md)** - Complete documentation index
 
 ## 🛠️ Recent Improvements
 

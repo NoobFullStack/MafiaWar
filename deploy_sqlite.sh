@@ -138,7 +138,7 @@ if pm2 describe mafia-war-bot > /dev/null 2>&1; then
     pm2 restart mafia-war-bot
 else
     print_status "Starting new bot instance..."
-    pm2 start ecosystem.config.js --env production
+    pm2 start config/ecosystem.config.js --env production
     
     print_status "Saving PM2 configuration..."
     pm2 save
