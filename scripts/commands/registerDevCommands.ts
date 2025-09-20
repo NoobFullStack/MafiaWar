@@ -7,7 +7,7 @@
 
 import { REST, Routes } from "discord.js";
 import dotenv from "dotenv";
-import CommandManager from "../src/utils/CommandManager";
+import CommandManager from "../../src/utils/CommandManager";
 
 dotenv.config();
 
