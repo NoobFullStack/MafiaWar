@@ -209,6 +209,29 @@ export const crimeData: CrimeData[] = [
     },
   },
   {
+    id: "credit_card_fraud",
+    name: "Credit Card Fraud",
+    description:
+      "Use stolen credit card data for online purchases and cash advances.",
+    difficulty: 4,
+    cooldown: 1500,
+    rewardMin: 600,
+    rewardMax: 1200,
+    xpReward: 35,
+    baseSuccessRate: 0.71,
+    jailTimeMin: 25,
+    jailTimeMax: 45,
+    category: "white_collar",
+    paymentType: "crypto",
+    paymentReason: "Digital theft converted to untraceable cryptocurrency",
+    requirements: {
+      level: 8,
+    },
+    statBonuses: {
+      intelligence: 2,
+    },
+  },
+  {
     id: "burglary",
     name: "Burglary",
     description:
@@ -236,29 +259,6 @@ export const crimeData: CrimeData[] = [
     },
   },
   {
-    id: "credit_card_fraud",
-    name: "Credit Card Fraud",
-    description:
-      "Use stolen credit card data for online purchases and cash advances.",
-    difficulty: 4,
-    cooldown: 1500,
-    rewardMin: 600,
-    rewardMax: 1200,
-    xpReward: 35,
-    baseSuccessRate: 0.71,
-    jailTimeMin: 25,
-    jailTimeMax: 45,
-    category: "white_collar",
-    paymentType: "crypto",
-    paymentReason: "Digital theft converted to untraceable cryptocurrency",
-    requirements: {
-      level: 8,
-    },
-    statBonuses: {
-      intelligence: 2,
-    },
-  },
-  {
     id: "identity_theft",
     name: "Identity Theft",
     description:
@@ -279,29 +279,6 @@ export const crimeData: CrimeData[] = [
     },
     statBonuses: {
       intelligence: 3,
-    },
-  },
-  {
-    id: "hacking",
-    name: "Corporate Hacking",
-    description:
-      "Hack into corporate systems to steal data, cryptocurrency, and trade secrets.",
-    difficulty: 7,
-    cooldown: 3600,
-    rewardMin: 2500,
-    rewardMax: 5000,
-    xpReward: 80,
-    baseSuccessRate: 0.47,
-    jailTimeMin: 45,
-    jailTimeMax: 90,
-    category: "white_collar",
-    paymentType: "crypto",
-    paymentReason: "Digital assets stolen and converted to untraceable crypto",
-    requirements: {
-      level: 15,
-    },
-    statBonuses: {
-      intelligence: 4,
     },
   },
   {
@@ -328,6 +305,29 @@ export const crimeData: CrimeData[] = [
     riskFactors: {
       injury_chance: 0.15,
       heat_generation: 2,
+    },
+  },
+  {
+    id: "hacking",
+    name: "Corporate Hacking",
+    description:
+      "Hack into corporate systems to steal data, cryptocurrency, and trade secrets.",
+    difficulty: 7,
+    cooldown: 3600,
+    rewardMin: 2500,
+    rewardMax: 5000,
+    xpReward: 80,
+    baseSuccessRate: 0.47,
+    jailTimeMin: 45,
+    jailTimeMax: 90,
+    category: "white_collar",
+    paymentType: "crypto",
+    paymentReason: "Digital assets stolen and converted to untraceable crypto",
+    requirements: {
+      level: 15,
+    },
+    statBonuses: {
+      intelligence: 4,
     },
   },
   {
