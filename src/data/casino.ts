@@ -274,7 +274,7 @@ export const casinoConfig: CasinoConfig = {
   },
   roulette: {
     minBet: 5,
-    maxBet: 5000000000,
+    maxBet: 50000,
     houseEdge: 0.0526, // 5.26% house edge (American roulette with 0 and 00)
   },
 };
