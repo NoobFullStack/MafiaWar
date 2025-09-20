@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
+import { BotBranding } from "../config/bot";
 import CasinoService from "../services/CasinoService";
 import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
@@ -135,11 +136,23 @@ const casinoCommand: Command = {
           );
 
           if (!transaction.success) {
-            const errorEmbed = ResponseUtil.error(
-              "🎰 Slots Error",
-              transaction.message
-            );
-            await interaction.editReply({ embeds: [errorEmbed] });
+            // Check if this is an insufficient funds error - make it private
+            if (transaction.error === "Insufficient funds") {
+              const errorEmbed = ResponseUtil.error(
+                "🎰 Insufficient Funds",
+                transaction.message
+              );
+              // Delete the original deferred message and send ephemeral followup
+              await interaction.deleteReply();
+              await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            } else {
+              // Other errors can be public
+              const errorEmbed = ResponseUtil.error(
+                "🎰 Slots Error",
+                transaction.message
+              );
+              await interaction.editReply({ embeds: [errorEmbed] });
+            }
             return { success: false, error: transaction.error };
           }
 
@@ -150,8 +163,8 @@ const casinoCommand: Command = {
           return {
             success: true,
             message: result.isWin
-              ? `Won $${result.payout.toLocaleString()}!`
-              : `Lost $${result.betAmount.toLocaleString()}`,
+              ? `Won ${BotBranding.formatCurrency(result.payout)}!`
+              : `Lost ${BotBranding.formatCurrency(result.betAmount)}`,
           };
         }
 
@@ -210,11 +223,23 @@ const casinoCommand: Command = {
           );
 
           if (!transaction.success) {
-            const errorEmbed = ResponseUtil.error(
-              "🎡 Roulette Error",
-              transaction.message
-            );
-            await interaction.editReply({ embeds: [errorEmbed] });
+            // Check if this is an insufficient funds error - make it private
+            if (transaction.error === "Insufficient funds") {
+              const errorEmbed = ResponseUtil.error(
+                "🎡 Insufficient Funds",
+                transaction.message
+              );
+              // Delete the original deferred message and send ephemeral followup
+              await interaction.deleteReply();
+              await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+            } else {
+              // Other errors can be public
+              const errorEmbed = ResponseUtil.error(
+                "🎡 Roulette Error",
+                transaction.message
+              );
+              await interaction.editReply({ embeds: [errorEmbed] });
+            }
             return { success: false, error: transaction.error };
           }
 
@@ -228,8 +253,8 @@ const casinoCommand: Command = {
           return {
             success: true,
             message: result.isWin
-              ? `Won $${result.payout.toLocaleString()}!`
-              : `Lost $${result.betAmount.toLocaleString()}`,
+              ? `Won ${BotBranding.formatCurrency(result.payout)}!`
+              : `Lost ${BotBranding.formatCurrency(result.betAmount)}`,
           };
         }
 

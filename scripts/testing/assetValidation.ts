@@ -6,9 +6,10 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { assetTemplates } from "../src/data/assets";
-import { AssetService } from "../src/services/AssetService";
-import { logger } from "../src/utils/ResponseUtil";
+import { BotBranding } from "../../src/config/bot";
+import { assetTemplates } from "../../src/data/assets";
+import { AssetService } from "../../src/services/AssetService";
+import { logger } from "../../src/utils/ResponseUtil";
 
 const prisma = new PrismaClient();
 
@@ -139,7 +140,7 @@ async function main() {
       logger.info(
         `  Lv.${level}: ${
           asset.name
-        } - $${price.toLocaleString()} (${paybackHours}h payback)`
+        } - ${BotBranding.formatCurrency(price)} (${paybackHours}h payback)`
       );
     });
 

@@ -437,28 +437,28 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     embed.addFields(
       {
         name: "💰 Transaction Details",
-        value: `**Spent:** $${cashAmount.toLocaleString()}\n**Fee:** $${fee.toLocaleString()} (3%)\n**Net Amount:** $${netAmount.toLocaleString()}`,
+        value: `**Spent:** ${BotBranding.formatCurrency(cashAmount)}\n**Fee:** ${BotBranding.formatCurrency(fee)} (3%)\n**Net Amount:** ${BotBranding.formatCurrency(netAmount)}`,
         inline: true,
       },
       {
         name: `₿ ${coin.symbol} Acquired`,
         value: `**Amount:** ${result.data?.coinAmount?.toFixed(6)} ${
           coin.symbol
-        }\n**Price:** $${currentPrice.toFixed(2)} per ${
+        }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(2)))} per ${
           coin.symbol
-        }\n**Value:** $${netAmount.toLocaleString()}`,
+        }\n**Value:** ${BotBranding.formatCurrency(netAmount)}`,
         inline: true,
       },
       {
         name: "💵 Updated Balance",
-        value: `**Cash:** $${
+        value: `**Cash:** ${
           paymentMethod === "cash"
-            ? result.data?.fromBalance.toLocaleString()
-            : balances.cashOnHand.toLocaleString()
-        }\n**Bank:** $${
+            ? BotBranding.formatCurrency(result.data?.fromBalance || 0)
+            : BotBranding.formatCurrency(balances.cashOnHand)
+        }\n**Bank:** ${
           paymentMethod === "bank"
-            ? result.data?.fromBalance.toLocaleString()
-            : balances.bankBalance.toLocaleString()
+            ? BotBranding.formatCurrency(result.data?.fromBalance || 0)
+            : BotBranding.formatCurrency(balances.bankBalance)
         }`,
         inline: false,
       }
@@ -572,11 +572,9 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         name: "💡 Sell Maximum Instead?",
         value: `**Your Holdings:** ${maxCoinAmount.toFixed(6)} ${
           coin.symbol
-        }\n**Current Price:** $${maxPrice.toFixed(
-          2
-        )}\n**Gross Value:** $${Math.floor(
+        }\n**Current Price:** ${BotBranding.formatCurrency(parseFloat(maxPrice.toFixed(2)))}\n**Gross Value:** ${BotBranding.formatCurrency(Math.floor(
           maxGrossAmount
-        ).toLocaleString()}\n**Fee (4%):** $${maxFee.toLocaleString()}\n**You'd Receive:** $${maxNetCash.toLocaleString()}`,
+        ))}\n**Fee (4%):** ${BotBranding.formatCurrency(maxFee)}\n**You'd Receive:** ${BotBranding.formatCurrency(maxNetCash)}`,
         inline: false,
       });
 
@@ -644,25 +642,25 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
               name: `₿ ${coin.symbol} Sold`,
               value: `**Amount:** ${maxCoinAmount.toFixed(6)} ${
                 coin.symbol
-              }\n**Price:** $${maxPrice.toFixed(2)} per ${
+              }\n**Price:** ${BotBranding.formatCurrency(parseFloat(maxPrice.toFixed(2)))} per ${
                 coin.symbol
-              }\n**Gross Value:** $${Math.floor(
+              }\n**Gross Value:** ${BotBranding.formatCurrency(Math.floor(
                 maxGrossAmount
-              ).toLocaleString()}`,
+              ))}`,
               inline: true,
             },
             {
               name: "💰 Cash Received",
-              value: `**Gross Amount:** $${Math.floor(
+              value: `**Gross Amount:** ${BotBranding.formatCurrency(Math.floor(
                 maxGrossAmount
-              ).toLocaleString()}\n**Fee:** $${maxFee.toLocaleString()} (4%)\n**Net Cash:** $${maxNetCash.toLocaleString()}`,
+              ))}\n**Fee:** ${BotBranding.formatCurrency(maxFee)} (4%)\n**Net Cash:** ${BotBranding.formatCurrency(maxNetCash)}`,
               inline: true,
             },
             {
               name: "💵 Updated Balance",
-              value: `**Cash:** $${maxResult.data?.toBalance.toLocaleString()}\n**${
+              value: `**Cash:** ${BotBranding.formatCurrency(maxResult.data?.toBalance || 0)}\n**${
                 coin.symbol
-              } Remaining:** 0.000000\n**Total Worth:** $${maxResult.data?.toBalance.toLocaleString()}`,
+              } Remaining:** 0.000000\n**Total Worth:** ${BotBranding.formatCurrency(maxResult.data?.toBalance || 0)}`,
               inline: false,
             }
           );
@@ -751,25 +749,25 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
         name: `₿ ${coin.symbol} Sold`,
         value: `**Amount:** ${coinAmount.toFixed(6)} ${
           coin.symbol
-        }\n**Price:** $${currentPrice.toFixed(2)} per ${
+        }\n**Price:** ${BotBranding.formatCurrency(parseFloat(currentPrice.toFixed(2)))} per ${
           coin.symbol
-        }\n**Gross Value:** $${Math.floor(grossAmount).toLocaleString()}`,
+        }\n**Gross Value:** ${BotBranding.formatCurrency(Math.floor(grossAmount))}`,
         inline: true,
       },
       {
         name: "💰 Cash Received",
-        value: `**Gross Amount:** $${Math.floor(
+        value: `**Gross Amount:** ${BotBranding.formatCurrency(Math.floor(
           grossAmount
-        ).toLocaleString()}\n**Fee:** $${fee.toLocaleString()} (4%)\n**Net Cash:** $${netCash.toLocaleString()}`,
+        ))}\n**Fee:** ${BotBranding.formatCurrency(fee)} (4%)\n**Net Cash:** ${BotBranding.formatCurrency(netCash)}`,
         inline: true,
       },
       {
         name: "💵 Updated Balance",
-        value: `**Cash:** $${result.data?.toBalance.toLocaleString()}\n**${
+        value: `**Cash:** ${BotBranding.formatCurrency(result.data?.toBalance || 0)}\n**${
           coin.symbol
         } Remaining:** ${(currentHolding - coinAmount).toFixed(
           6
-        )}\n**Total Worth:** $${result.data?.toBalance.toLocaleString()}`,
+        )}\n**Total Worth:** ${BotBranding.formatCurrency(result.data?.toBalance || 0)}`,
         inline: false,
       }
     );

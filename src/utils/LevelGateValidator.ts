@@ -5,6 +5,7 @@
  * that match their current level and progression.
  */
 
+import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
 import type { GameItem } from "../data/items";
 import type { CrimeData } from "../data/crimes";
@@ -153,10 +154,10 @@ export class LevelGateValidator {
     // Check money requirement
     const moneyReq = asset.requirements?.money;
     if (moneyReq) {
-      requirements.push(`Money: $${moneyReq.toLocaleString()}`);
+      requirements.push(`Money: ${BotBranding.formatCurrency(moneyReq)}`);
       const playerMoney = player.money || 0;
       if (playerMoney < moneyReq) {
-        missingRequirements.push(`Money: $${moneyReq.toLocaleString()} (current: $${playerMoney.toLocaleString()})`);
+        missingRequirements.push(`Money: ${BotBranding.formatCurrency(moneyReq)} (current: ${BotBranding.formatCurrency(playerMoney)})`);
         isUnlocked = false;
       }
     }

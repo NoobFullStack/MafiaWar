@@ -79,7 +79,7 @@ export class CasinoService {
           result: this.createEmptySlotResult(betAmount),
           transaction: {
             success: false,
-            message: `Bet must be between $${casinoConfig.slots.minBet.toLocaleString()} and $${casinoConfig.slots.maxBet.toLocaleString()}`,
+            message: `Bet must be between ${BotBranding.formatCurrency(casinoConfig.slots.minBet)} and ${BotBranding.formatCurrency(casinoConfig.slots.maxBet)}`,
             error: "Invalid bet amount",
           },
         };
@@ -106,7 +106,7 @@ export class CasinoService {
           result: this.createEmptySlotResult(betAmount),
           transaction: {
             success: false,
-            message: `Insufficient ${paymentMethod} funds. You need $${betAmount.toLocaleString()} but only have $${availableFunds.toLocaleString()}`,
+            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(betAmount)} but only have ${BotBranding.formatCurrency(availableFunds)}`,
             error: "Insufficient funds",
           },
         };
@@ -136,7 +136,7 @@ export class CasinoService {
         transactionResult = {
           success: depositResult.success,
           message: depositResult.success
-            ? `🎉 You won $${payout.toLocaleString()}! (Profit: $${profit.toLocaleString()})`
+            ? `🎉 You won ${BotBranding.formatCurrency(payout)}! (Profit: ${BotBranding.formatCurrency(profit)})`
             : `Error processing winnings: ${depositResult.error}`,
           newBalance: depositResult.success
             ? {
@@ -157,7 +157,7 @@ export class CasinoService {
         transactionResult = {
           success: deductResult.success,
           message: deductResult.success
-            ? `💸 You lost $${betAmount.toLocaleString()}. Better luck next time!`
+            ? `💸 You lost ${BotBranding.formatCurrency(betAmount)}. Better luck next time!`
             : `Error processing bet: ${deductResult.error}`,
           newBalance: deductResult.success
             ? {
@@ -214,7 +214,7 @@ export class CasinoService {
           result: this.createEmptyRouletteResult(betType, betNumber, betAmount),
           transaction: {
             success: false,
-            message: `Bet must be between $${casinoConfig.roulette.minBet.toLocaleString()} and $${casinoConfig.roulette.maxBet.toLocaleString()}`,
+            message: `Bet must be between ${BotBranding.formatCurrency(casinoConfig.roulette.minBet)} and ${BotBranding.formatCurrency(casinoConfig.roulette.maxBet)}`,
             error: "Invalid bet amount",
           },
         };
@@ -277,7 +277,7 @@ export class CasinoService {
           result: this.createEmptyRouletteResult(betType, betNumber, betAmount),
           transaction: {
             success: false,
-            message: `Insufficient ${paymentMethod} funds. You need $${betAmount.toLocaleString()} but only have $${availableFunds.toLocaleString()}`,
+            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(betAmount)} but only have ${BotBranding.formatCurrency(availableFunds)}`,
             error: "Insufficient funds",
           },
         };
@@ -307,7 +307,7 @@ export class CasinoService {
         transactionResult = {
           success: depositResult.success,
           message: depositResult.success
-            ? `🎉 You won $${payout.toLocaleString()}! (Profit: $${profit.toLocaleString()})`
+            ? `🎉 You won ${BotBranding.formatCurrency(payout)}! (Profit: ${BotBranding.formatCurrency(profit)})`
             : `Error processing winnings: ${depositResult.error}`,
           newBalance: depositResult.success
             ? {
@@ -328,7 +328,7 @@ export class CasinoService {
         transactionResult = {
           success: deductResult.success,
           message: deductResult.success
-            ? `💸 You lost $${betAmount.toLocaleString()}. The house wins this time!`
+            ? `💸 You lost ${BotBranding.formatCurrency(betAmount)}. The house wins this time!`
             : `Error processing bet: ${deductResult.error}`,
           newBalance: deductResult.success
             ? {
@@ -404,7 +404,7 @@ export class CasinoService {
       },
       {
         name: "💰 Bet Information",
-        value: `**Bet Amount:** $${result.betAmount.toLocaleString()}\n**Result:** ${
+        value: `**Bet Amount:** ${BotBranding.formatCurrency(result.betAmount)}\n**Result:** ${
           result.isWin ? "🎉 **WIN!**" : "💸 **LOSE**"
         }`,
         inline: true,
@@ -419,7 +419,7 @@ export class CasinoService {
         name: "🏆 Winning Line",
         value: `${winningIcons}\n**Multiplier:** ${
           result.multiplier
-        }x\n**Payout:** $${result.payout.toLocaleString()}\n**Profit:** $${result.profit.toLocaleString()}`,
+        }x\n**Payout:** ${BotBranding.formatCurrency(result.payout)}\n**Profit:** ${BotBranding.formatCurrency(result.profit)}`,
         inline: true,
       });
     }
@@ -479,8 +479,8 @@ export class CasinoService {
         name: "💰 Result",
         value: `**${result.isWin ? "🎉 WIN!" : "💸 LOSE"}**\n${
           result.isWin
-            ? `Payout: $${result.payout.toLocaleString()}\nProfit: $${result.profit.toLocaleString()}`
-            : `Lost: $${result.betAmount.toLocaleString()}`
+            ? `Payout: ${BotBranding.formatCurrency(result.payout)}\nProfit: ${BotBranding.formatCurrency(result.profit)}`
+            : `Lost: ${BotBranding.formatCurrency(result.betAmount)}`
         }`,
         inline: true,
       }
@@ -514,14 +514,14 @@ export class CasinoService {
     embed.addFields(
       {
         name: "🎲 Slots",
-        value: `**Min Bet:** $${casinoConfig.slots.minBet.toLocaleString()}\n**Max Bet:** $${casinoConfig.slots.maxBet.toLocaleString()}\n**How to Play:** Three matching symbols in the middle row wins!\n**House Edge:** ${(
+        value: `**Min Bet:** ${BotBranding.formatCurrency(casinoConfig.slots.minBet)}\n**Max Bet:** ${BotBranding.formatCurrency(casinoConfig.slots.maxBet)}\n**How to Play:** Three matching symbols in the middle row wins!\n**House Edge:** ${(
           casinoConfig.slots.houseEdge * 100
         ).toFixed(1)}%\n🎰 *High win frequency with exciting jackpots!*`,
         inline: true,
       },
       {
         name: "🎡 Roulette",
-        value: `**Min Bet:** $${casinoConfig.roulette.minBet.toLocaleString()}\n**Max Bet:** $${casinoConfig.roulette.maxBet.toLocaleString()}\n**How to Play:** Bet on numbers (0, 00, 1-36), colors, or ranges\n**House Edge:** ${(
+        value: `**Min Bet:** ${BotBranding.formatCurrency(casinoConfig.roulette.minBet)}\n**Max Bet:** ${BotBranding.formatCurrency(casinoConfig.roulette.maxBet)}\n**How to Play:** Bet on numbers (0, 00, 1-36), colors, or ranges\n**House Edge:** ${(
           casinoConfig.roulette.houseEdge * 100
         ).toFixed(2)}%`,
         inline: true,
@@ -613,7 +613,7 @@ export class CasinoService {
         betDescription = betType;
     }
 
-    return `**${betDescription}**\nBet: $${betAmount.toLocaleString()}`;
+    return `**${betDescription}**\nBet: ${BotBranding.formatCurrency(betAmount)}`;
   }
 
   /**
@@ -698,7 +698,7 @@ export class CasinoService {
 
       return {
         success: true,
-        message: `Deducted $${amount.toLocaleString()} from ${paymentMethod}`,
+        message: `Deducted ${BotBranding.formatCurrency(amount)} from ${paymentMethod}`,
         newBalance: {
           cashOnHand: newCashOnHand,
           bankBalance: newBankBalance,
