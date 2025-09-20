@@ -191,11 +191,11 @@ export class AssetService {
 
     if (availableFunds < totalCost) {
       missing.push(
-        `$${totalCost.toLocaleString()} total (have $${availableFunds.toLocaleString()})`
+        `${BotBranding.formatCurrency(totalCost)} total (have ${BotBranding.formatCurrency(availableFunds)})`
       );
       return {
         canPurchase: false,
-        reason: `Insufficient funds - need $${totalCost.toLocaleString()}, have $${availableFunds.toLocaleString()}`,
+        reason: `Insufficient funds - need ${BotBranding.formatCurrency(totalCost)}, have ${BotBranding.formatCurrency(availableFunds)}`,
         requirements: missing,
       };
     }
@@ -268,7 +268,7 @@ export class AssetService {
             case "cash":
               if (currentUser.character.cashOnHand < totalCost) {
                 throw new Error(
-                  `Insufficient cash - need $${totalCost.toLocaleString()}, have $${currentUser.character.cashOnHand.toLocaleString()}`
+                  `Insufficient cash - need ${BotBranding.formatCurrency(totalCost)}, have ${BotBranding.formatCurrency(currentUser.character.cashOnHand)}`
                 );
               }
               // Deduct from cash
@@ -281,7 +281,7 @@ export class AssetService {
             case "bank":
               if (currentUser.character.bankBalance < totalCost) {
                 throw new Error(
-                  `Insufficient bank funds - need $${totalCost.toLocaleString()}, have $${currentUser.character.bankBalance.toLocaleString()}`
+                  `Insufficient bank funds - need ${BotBranding.formatCurrency(totalCost)}, have ${BotBranding.formatCurrency(currentUser.character.bankBalance)}`
                 );
               }
               // Deduct from bank
@@ -301,10 +301,10 @@ export class AssetService {
 
               if (cashAmount > currentUser.character.cashOnHand) {
                 throw new Error(
-                  `Insufficient funds - need $${totalCost.toLocaleString()}, have $${(
+                  `Insufficient funds - need ${BotBranding.formatCurrency(totalCost)}, have ${BotBranding.formatCurrency(
                     currentUser.character.cashOnHand +
                     currentUser.character.bankBalance
-                  ).toLocaleString()}`
+                  )}`
                 );
               }
 
@@ -892,7 +892,7 @@ export class AssetService {
         if (balance.cashOnHand < cost) {
           return {
             success: false,
-            message: `Insufficient cash - need $${cost.toLocaleString()}, have $${balance.cashOnHand.toLocaleString()}`,
+            message: `Insufficient cash - need ${BotBranding.formatCurrency(cost)}, have ${BotBranding.formatCurrency(balance.cashOnHand)}`,
             error: "Insufficient cash",
           };
         }
@@ -900,7 +900,7 @@ export class AssetService {
         if (balance.bankBalance < cost) {
           return {
             success: false,
-            message: `Insufficient bank funds - need $${cost.toLocaleString()}, have $${balance.bankBalance.toLocaleString()}`,
+            message: `Insufficient bank funds - need ${BotBranding.formatCurrency(cost)}, have ${BotBranding.formatCurrency(balance.bankBalance)}`,
             error: "Insufficient bank funds",
           };
         }
@@ -910,7 +910,7 @@ export class AssetService {
         if (totalAvailable < cost) {
           return {
             success: false,
-            message: `Insufficient funds - need $${cost.toLocaleString()}, have $${totalAvailable.toLocaleString()} (cash + bank)`,
+            message: `Insufficient funds - need ${BotBranding.formatCurrency(cost)}, have ${BotBranding.formatCurrency(totalAvailable)} (cash + bank)`,
             error: "Insufficient funds",
           };
         }

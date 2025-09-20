@@ -211,7 +211,7 @@ export class ResponseUtil {
       .addFields(
         {
           name: "💰 Money",
-          value: `$${character.money.toLocaleString()}`,
+          value: `${BotBranding.formatCurrency(character.money)}`,
           inline: true,
         },
         {
