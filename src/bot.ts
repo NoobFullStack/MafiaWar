@@ -141,6 +141,8 @@ class MafiaWarBot {
           } else {
             await interaction.deferReply({ flags: 64 }); // Ephemeral for info/errors
           }
+        } else if (interaction.commandName === "leaderboard") {
+          await interaction.deferReply(); // Public reply for leaderboard
         } else {
           await interaction.deferReply({ flags: 64 }); // 64 = ephemeral flag
         }

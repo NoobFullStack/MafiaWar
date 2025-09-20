@@ -43,6 +43,7 @@ const helpCommand: Command = {
           { name: "Business & Assets", value: "business" },
           { name: "Casino & Gambling", value: "casino" },
           { name: "Available Crimes", value: "crimes" },
+          { name: "Leaderboard", value: "leaderboard" },
           { name: "System & Info", value: "system" }
         )
     ),
@@ -112,6 +113,11 @@ const helpCommand: Command = {
             label: "📋 Available Crimes",
             description: "View all crimes & requirements",
             value: "crimes",
+          },
+          {
+            label: "🏆 Leaderboard",
+            description: "View top players by level & wealth",
+            value: "leaderboard",
           },
           {
             label: "⚙️ System & Info",
@@ -382,6 +388,32 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         );
       break;
 
+    case "leaderboard":
+      embed
+        .setTitle("🏆 Leaderboard")
+        .setDescription("See how you rank against other players")
+        .addFields(
+          {
+            name: "`/leaderboard`",
+            value:
+              "🏆 View top 25 players ranked by level and wealth brackets\nShows player names, levels, and wealth tiers (not exact amounts)",
+            inline: false,
+          },
+          {
+            name: "💡 Wealth Brackets",
+            value:
+              "💸 <$10K\n💵 $10K-$50K\n💴 $50K-$100K\n💶 $100K-$250K\n💷 $250K-$500K\n💰 $500K-$1M\n🏦 $1M-$5M\n🏛️ $5M-$10M\n👑 $10M+",
+            inline: true,
+          },
+          {
+            name: "🎯 Tips",
+            value:
+              "• Level up by committing crimes\n• Earn money through crimes and businesses\n• Bank your money to increase wealth safely\n• Buy businesses for passive income",
+            inline: true,
+          }
+        );
+      break;
+      
     case "system":
       embed
         .setTitle("⚙️ System & Information")
@@ -416,7 +448,7 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           {
             name: "📋 Quick Reference",
             value:
-              "**Essential Commands:**\n`/user-create` - Create character\n`/profile` - View stats\n`/crime <type>` - Commit crimes\n`/wallet` - Check money\n`/assets` - Browse businesses",
+              "**Essential Commands:**\n`/user-create` - Create character\n`/profile` - View stats\n`/crime <type>` - Commit crimes\n`/wallet` - Check money\n`/assets` - Browse businesses\n`/leaderboard` - View rankings",
             inline: true,
           },
           {
