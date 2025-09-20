@@ -8,7 +8,6 @@ import {
 import { BotBranding } from "../config/bot";
 import { getCryptoCoin } from "../data/money";
 import MoneyService from "../services/MoneyService";
-import JailService from "../services/JailService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
 import { ResponseUtil, logger } from "../utils/ResponseUtil";
@@ -46,7 +45,7 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     // Get price change from database
     const db = DatabaseManager.getClient();
     const priceData = await db.cryptoPrice.findUnique({
-      where: { coinType: coin.symbol },
+      where: { coinType: "crypto" },
     });
 
     const change24h = priceData?.change24h || 0;
@@ -64,32 +63,36 @@ async function handlePrices(context: CommandContext): Promise<CommandResult> {
     });
 
     embed.setFooter({
-      text: "💡 Use /crypto buy or /crypto sell to trade • Prices update every hour",
+      text: "💡 Use /crypto buy or /crypto sell to trade",
     });
 
     await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto prices:", error);
-    
+
     // Try to provide a graceful fallback response
     try {
       const embed = ResponseUtil.error(
-        "Market Data Unavailable", 
+        "Market Data Unavailable",
         "Unable to fetch current cryptocurrency prices. Please try again in a moment."
       );
-      
+
       embed.addFields({
         name: "💡 What you can do:",
-        value: "• Try the command again in a few seconds\n• Check `/crypto portfolio` to see your holdings\n• Contact support if the problem persists",
+        value:
+          "• Try the command again in a few seconds\n• Check `/crypto portfolio` to see your holdings\n• Contact support if the problem persists",
         inline: false,
       });
-      
+
       await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     } catch (replyError) {
-      logger.error("Failed to send error response for crypto prices:", replyError);
+      logger.error(
+        "Failed to send error response for crypto prices:",
+        replyError
+      );
     }
-    
+
     return { success: false, error: "Market data error" };
   }
 }
@@ -465,25 +468,26 @@ async function handleBuy(context: CommandContext): Promise<CommandResult> {
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto buy:", error);
-    
+
     // Try to provide a graceful fallback response
     try {
       const embed = ResponseUtil.error(
-        "Purchase Failed", 
+        "Purchase Failed",
         "Unable to complete your cryptocurrency purchase. Please try again."
       );
-      
+
       embed.addFields({
         name: "💡 What you can do:",
-        value: "• Verify you have sufficient funds with `/wallet`\n• Try a smaller purchase amount\n• Wait a moment and try again\n• Contact support if the problem persists",
+        value:
+          "• Verify you have sufficient funds with `/wallet`\n• Try a smaller purchase amount\n• Wait a moment and try again\n• Contact support if the problem persists",
         inline: false,
       });
-      
+
       await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     } catch (replyError) {
       logger.error("Failed to send error response for crypto buy:", replyError);
     }
-    
+
     return { success: false, error: "Purchase failed" };
   }
 }
@@ -510,11 +514,11 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
 
     // Get current holdings using fast service
     const balance = await MoneyService.getInstance().getUserBalance(userId);
-    
+
     // Check if user has any of this coin - check both ID and symbol for compatibility
     let currentHolding = 0;
     let cryptoKey = "";
-    
+
     if (balance?.cryptoWallet[coin.id]) {
       currentHolding = balance.cryptoWallet[coin.id];
       cryptoKey = coin.id;
@@ -717,7 +721,9 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     }
 
     // Get current price for display
-    const currentPrice = await MoneyService.getInstance().getCoinPrice(cryptoKey);
+    const currentPrice = await MoneyService.getInstance().getCoinPrice(
+      cryptoKey
+    );
     const grossAmount = coinAmount * currentPrice;
     const fee = Math.floor(grossAmount * 0.04); // 4% selling fee
     const netCash = grossAmount - fee;
@@ -776,25 +782,29 @@ async function handleSell(context: CommandContext): Promise<CommandResult> {
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto sell:", error);
-    
+
     // Try to provide a graceful fallback response
     try {
       const embed = ResponseUtil.error(
-        "Sale Failed", 
+        "Sale Failed",
         "Unable to complete your cryptocurrency sale. Please try again."
       );
-      
+
       embed.addFields({
         name: "💡 What you can do:",
-        value: "• Check your holdings with `/crypto portfolio`\n• Verify the amount you're trying to sell\n• Wait a moment and try again\n• Contact support if the problem persists",
+        value:
+          "• Check your holdings with `/crypto portfolio`\n• Verify the amount you're trying to sell\n• Wait a moment and try again\n• Contact support if the problem persists",
         inline: false,
       });
-      
+
       await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     } catch (replyError) {
-      logger.error("Failed to send error response for crypto sell:", replyError);
+      logger.error(
+        "Failed to send error response for crypto sell:",
+        replyError
+      );
     }
-    
+
     return { success: false, error: "Sale failed" };
   }
 }
@@ -842,7 +852,7 @@ async function handlePortfolio(
       // since crypto might be stored under symbol or ID depending on version
       let cryptoAmount = 0;
       let cryptoKey = "";
-      
+
       // First try the coin ID
       if (balance.cryptoWallet[coin.id]) {
         cryptoAmount = balance.cryptoWallet[coin.id];
@@ -875,7 +885,7 @@ async function handlePortfolio(
         // Get price change data
         const db = DatabaseManager.getClient();
         const priceData = await db.cryptoPrice.findUnique({
-          where: { coinType: cryptoKey },
+          where: { coinType: "crypto" },
         });
 
         const change24h = priceData?.change24h || 0;
@@ -932,25 +942,29 @@ async function handlePortfolio(
     return { success: true };
   } catch (error) {
     logger.error("Error in crypto portfolio:", error);
-    
+
     // Try to provide a graceful fallback response
     try {
       const embed = ResponseUtil.error(
-        "Portfolio Unavailable", 
+        "Portfolio Unavailable",
         "Unable to load your cryptocurrency portfolio. Please try again."
       );
-      
+
       embed.addFields({
         name: "💡 What you can do:",
-        value: "• Wait a moment and try again\n• Check your general wallet with `/wallet`\n• Try `/crypto prices` to see market data\n• Contact support if the problem persists",
+        value:
+          "• Wait a moment and try again\n• Check your general wallet with `/wallet`\n• Try `/crypto prices` to see market data\n• Contact support if the problem persists",
         inline: false,
       });
-      
+
       await ResponseUtil.smartReply(interaction, { embeds: [embed] });
     } catch (replyError) {
-      logger.error("Failed to send error response for crypto portfolio:", replyError);
+      logger.error(
+        "Failed to send error response for crypto portfolio:",
+        replyError
+      );
     }
-    
+
     return { success: false, error: "Portfolio error" };
   }
 }
