@@ -131,9 +131,21 @@ class MafiaWarBot {
     }
 
     try {
-      // Defer reply immediately for commands that might take time (except ping)
+      // Defer reply immediately for commands that might take time (except ping and casino gambling)
       if (interaction.commandName !== "ping") {
-        await interaction.deferReply({ flags: 64 }); // 64 = ephemeral flag
+        // Casino gambling results should be public, so defer without ephemeral flag
+        if (interaction.commandName === "casino") {
+          const subcommand = interaction.options.getSubcommand();
+          if (subcommand === "slots" || subcommand === "roulette") {
+            await interaction.deferReply(); // Public reply for gambling results
+          } else {
+            await interaction.deferReply({ flags: 64 }); // Ephemeral for info/errors
+          }
+        } else if (interaction.commandName === "leaderboard") {
+          await interaction.deferReply(); // Public reply for leaderboard
+        } else {
+          await interaction.deferReply({ flags: 64 }); // 64 = ephemeral flag
+        }
       }
 
       // Create command context
