@@ -100,13 +100,14 @@ const crimeCommand: Command = {
       try {
         const username = userTag.split("#")[0];
         console.log(
-          `DEBUG: Calling getCrimeAnnouncement with: crimeType=${crimeType}, success=${result.success}, username="${username}"`
+          `DEBUG: Calling getCrimeAnnouncement with: crimeType=${crimeType}, success=${result.success}, username="${username}", actuallyJailed=${result.actuallyJailed}`
         );
 
         const publicMessage = getCrimeAnnouncement(
           crimeType,
           result.success,
-          username // Always pass username for witness reports
+          username, // Always pass username for witness reports
+          result.actuallyJailed // Pass whether player was actually jailed
         );
 
         console.log(`DEBUG: Got public message: "${publicMessage}"`);

@@ -30,6 +30,7 @@ export interface CrimeResult {
   leveledUp?: boolean;
   newLevel?: number;
   criticalSuccess?: boolean;
+  actuallyJailed?: boolean; // Whether the player was actually sent to jail (false if protected by cooldown)
   // NEW: Strategic payout information
   paymentDetails?: {
     type: "cash" | "bank" | "crypto" | "mixed";
@@ -99,8 +100,6 @@ export class CrimeService {
         requirements: [`${crime.requirements.reputation} reputation`],
       };
     }
-
-
 
     // Check required items
     if (crime.requirements?.items && crime.requirements.items.length > 0) {
@@ -234,6 +233,12 @@ export class CrimeService {
       throw new Error(validation.reason || "Cannot commit this crime");
     }
 
+    // Check release cooldown status (informational)
+    const cooldownStatus = await JailService.checkReleaseCooldown(userId);
+    const cooldownInfo = cooldownStatus.onCooldown
+      ? `\n🎭 *Your street smarts are sharp after your recent release - you'll avoid capture for **${cooldownStatus.timeLeftFormatted}** more.*`
+      : "";
+
     // Calculate success rate
     const successRate = this.calculateSuccessRate(
       crime,
@@ -250,10 +255,11 @@ export class CrimeService {
           crime,
           character,
           player.stats,
-          currentLevel
+          currentLevel,
+          cooldownInfo
         );
       } else {
-        result = await this.handleFailedCrime(crime, character);
+        result = await this.handleFailedCrime(crime, character, cooldownInfo);
       }
 
       // Update database immediately with optimized single query
@@ -276,7 +282,8 @@ export class CrimeService {
     crime: CrimeData,
     character: any,
     stats: PlayerStats,
-    currentLevel: number
+    currentLevel: number,
+    cooldownInfo: string = ""
   ): Promise<CrimeResult> {
     // Calculate money reward
     const moneyEarned = Math.floor(
@@ -327,6 +334,11 @@ export class CrimeService {
 
     if (leveledUp) {
       message += `\n🎉 **LEVEL UP!** You are now Level ${newLevel}!`;
+    }
+
+    // Add cooldown information if applicable
+    if (cooldownInfo) {
+      message += cooldownInfo;
     }
 
     // Prepare payment details for strategic processing
@@ -396,7 +408,8 @@ export class CrimeService {
    */
   private static async handleFailedCrime(
     crime: CrimeData,
-    character: any
+    character: any,
+    cooldownInfo: string = ""
   ): Promise<CrimeResult> {
     // Calculate jail time
     const jailTime = Math.floor(
@@ -413,23 +426,53 @@ export class CrimeService {
       injuryDamage = Math.floor(Math.random() * 10) + 5; // 5-15 HP damage
     }
 
-    // Generate failure message
-    let message = `❌ **${crime.name} Failed!**\n`;
-    message += `🚔 You've been caught and sentenced to **${jailTime} minutes** in jail!\n`;
+    // Check if player is protected by cooldown
+    const isProtectedByCooldown = cooldownInfo.length > 0;
 
-    if (injuryDamage > 0) {
-      message += `🩸 You were injured in the process (${injuryDamage} damage)\n`;
+    // NEW: Sometimes players can escape even when the crime fails (15% chance)
+    // This is separate from cooldown protection - it's just luck/skill
+    const managedToEscape = Math.random() < 0.15; // 15% chance to escape
+
+    // Determine actual jail outcome
+    const willGoToJail = !isProtectedByCooldown && !managedToEscape;
+
+    // Generate failure message based on outcome
+    let message = `❌ **${crime.name} Failed!**\n`;
+
+    if (isProtectedByCooldown) {
+      // Player is protected - they spotted police and escaped due to street smarts
+      message += `🏃‍♂️ You spotted the police approaching and managed to escape just in time!`;
+    } else if (managedToEscape) {
+      // Player escaped by luck/skill even though not protected
+      message += `🏃‍♂️ The police showed up, but you managed to slip away before they could catch you!`;
+    } else {
+      // Player will actually go to jail
+      message += `🚔 You've been caught and sentenced to **${jailTime} minutes** in jail!`;
     }
 
-    message += `💡 *Tip: Higher stats increase your success rate!*`;
+    if (injuryDamage > 0) {
+      message += `\n🩸 You were injured in the process (${injuryDamage} damage)`;
+    }
+
+    if (willGoToJail) {
+      message += `\n💡 *Tip: Higher stats increase your success rate!*`;
+    } else if (managedToEscape && !isProtectedByCooldown) {
+      message += `\n🍀 *Lucky escape! Not all failed crimes result in jail time.*`;
+    }
+
+    // Add cooldown information if applicable
+    if (cooldownInfo) {
+      message += cooldownInfo;
+    }
 
     return {
       success: false,
       moneyEarned: 0,
       experienceGained: 0,
       message,
-      jailTime,
+      jailTime: willGoToJail ? jailTime : 0, // Only set jail time if they're actually going to jail
       injuryDamage,
+      actuallyJailed: willGoToJail, // True only if player actually goes to jail
     };
   }
 
@@ -504,27 +547,48 @@ export class CrimeService {
           });
         }
       } else if (!result.success && result.jailTime && result.jailTime > 0) {
-        // Handle failed crime - send to jail
-        try {
-          await JailService.sendToJail(
-            user.discordId,
-            result.jailTime,
-            crime.name,
-            crime.difficulty
-          );
-          logger.info(
-            `Player ${user.discordId} sent to jail for ${result.jailTime} minutes (crime: ${crime.name})`
-          );
-        } catch (jailError) {
-          logger.error(
-            `Failed to send player ${user.discordId} to jail:`,
-            jailError
-          );
-          // Don't throw here - crime already failed, we just couldn't jail them
-          // But we should notify the user somehow
-          logger.warn(
-            `Player ${user.discordId} escaped jail due to system error after failed ${crime.name}`
-          );
+        // Handle failed crime with jail time - check if player can be jailed first
+        const canBeJailed = await JailService.canPlayerBeJailed(user.discordId);
+
+        if (canBeJailed.canBeJailed) {
+          // Player can be jailed - proceed normally
+          try {
+            await JailService.sendToJail(
+              user.discordId,
+              result.jailTime,
+              crime.name,
+              crime.difficulty
+            );
+            logger.info(
+              `Player ${user.discordId} sent to jail for ${result.jailTime} minutes (crime: ${crime.name})`
+            );
+          } catch (jailError) {
+            logger.error(
+              `Failed to send player ${user.discordId} to jail:`,
+              jailError
+            );
+            // Some unexpected error occurred
+            logger.warn(
+              `Player ${user.discordId} escaped jail due to system error after failed ${crime.name}`
+            );
+          }
+        } else {
+          // Player cannot be jailed (cooldown protection) - this is expected, not an error
+          const cooldownStatus = canBeJailed.cooldownStatus;
+          if (cooldownStatus) {
+            result.message +=
+              `\n\n🎭 **Lucky Escape!**\n` +
+              `Your street smarts kept you one step ahead of the law!\n` +
+              `🕐 You'll need to lay low for another **${cooldownStatus.timeLeftFormatted}** before risking capture again.\n` +
+              `💡 *Use this time wisely - maybe train your stats or plan your next move!*`;
+            logger.info(
+              `Player ${user.discordId} escaped jail due to release cooldown (${cooldownStatus.timeLeftFormatted} remaining)`
+            );
+          } else {
+            logger.info(
+              `Player ${user.discordId} escaped jail - ${canBeJailed.reason}`
+            );
+          }
         }
       }
 
