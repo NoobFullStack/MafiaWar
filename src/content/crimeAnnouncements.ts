@@ -345,22 +345,37 @@ export function getRandomMessage(messages: string[]): string {
 export function getCrimeAnnouncement(
   crimeId: string,
   success: boolean,
-  username?: string
+  username?: string,
+  actuallyJailed?: boolean // New parameter to indicate if player actually went to jail
 ): string {
   const announcement = crimeAnnouncements[crimeId];
   if (!announcement) {
     // Fallback for unknown crimes
     if (success) {
       return "🚨 **CRIME ALERT** 🚨\nCriminal activity detected in the area. Stay vigilant!";
-    } else {
+    } else if (actuallyJailed) {
       return `🚔 **ARREST MADE** 🚔\n${username} has been apprehended and sent to jail!`;
+    } else {
+      return `🚨 **CRIME ALERT** 🚨\n${username} was spotted engaging in criminal activity but escaped!`;
     }
   }
 
   if (!success) {
-    // Crime failed - use jail message
-    const message = getRandomMessage(announcement.jailMessages);
-    return message.replace("{username}", username || "A criminal");
+    // Crime failed - only use jail message if player was actually jailed
+    if (actuallyJailed) {
+      const message = getRandomMessage(announcement.jailMessages);
+      return message.replace("{username}", username || "A criminal");
+    } else {
+      // Crime failed but player wasn't jailed (protected by cooldown)
+      // Use witness message instead since they were caught but escaped consequences
+      if (username) {
+        const message = getRandomMessage(announcement.witnessMessages);
+        return message.replace("{username}", username);
+      } else {
+        // Fallback to generic crime alert
+        return getRandomMessage(announcement.successMessages);
+      }
+    }
   }
 
   // Crime succeeded - 66.6% chance of witness message, 33.3% generic

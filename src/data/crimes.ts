@@ -81,9 +81,9 @@ export const crimeData: CrimeData[] = [
     rewardMin: 50,
     rewardMax: 100,
     xpReward: 5,
-    baseSuccessRate: 0.95,
-    jailTimeMin: 2,
-    jailTimeMax: 5,
+    baseSuccessRate: 0.5,
+    jailTimeMin: 1,
+    jailTimeMax: 1,
     category: "petty",
     paymentType: "cash",
     requirements: {
