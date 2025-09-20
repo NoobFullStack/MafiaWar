@@ -395,7 +395,8 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
         .addFields(
           {
             name: "`/leaderboard`",
-            value: "🏆 View top 25 players ranked by level and wealth brackets\nShows player names, levels, and wealth tiers (not exact amounts)",
+            value:
+              "🏆 View top 25 players ranked by level and wealth brackets\nShows player names, levels, and wealth tiers (not exact amounts)",
             inline: false,
           },
           {
@@ -412,7 +413,7 @@ function createHelpEmbed(category: string, character: any): EmbedBuilder {
           }
         );
       break;
-
+      
     case "system":
       embed
         .setTitle("⚙️ System & Information")
