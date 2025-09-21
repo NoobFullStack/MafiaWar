@@ -4,7 +4,7 @@
  */
 
 import { config } from "dotenv";
-import { logger } from "../src/utils/ResponseUtil";
+import { logger } from "../../src/utils/ResponseUtil";
 
 // Load environment variables
 config();
