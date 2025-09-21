@@ -70,18 +70,6 @@ yarn install || {
     exit 1
 }
 
-print_status "Building TypeScript..."
-yarn build || {
-    print_error "Build failed!"
-    exit 1
-}
-
-print_status "Generating Prisma client..."
-yarn db:generate || {
-    print_error "Prisma generate failed!"
-    exit 1
-}
-
 # SQLite-specific database setup
 print_status "Setting up SQLite database..."
 
@@ -110,6 +98,18 @@ else
         print_warning "Database migration failed or no new migrations"
     }
 fi
+
+print_status "Generating Prisma client (post-migration)..."
+yarn db:generate || {
+    print_error "Prisma generate failed!"
+    exit 1
+}
+
+print_status "Building TypeScript..."
+yarn build || {
+    print_error "Build failed!"
+    exit 1
+}
 
 print_status "Force registering Discord commands..."
 yarn commands:register || {
