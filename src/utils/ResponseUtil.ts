@@ -91,23 +91,76 @@ export class ErrorHandler {
   }
 
   /**
-   * Handle cooldown errors
+   * Handle cooldown errors with countdown timer
    */
   static async handleCooldownError(
     interaction: ChatInputCommandInteraction,
-    timeLeft: number
+    timeLeft: number,
+    commandName?: string
   ): Promise<void> {
-    const cooldownEmbed = new EmbedBuilder()
-      .setColor(0xffaa00)
-      .setTitle("⏰ Command Cooldown")
-      .setDescription(
-        `Please wait ${timeLeft.toFixed(
-          1
-        )} more seconds before using this command again.`
-      )
-      .setTimestamp();
+    let remainingTime = timeLeft;
 
-    await interaction.reply({ embeds: [cooldownEmbed], flags: 64 });
+    const createCooldownEmbed = (timeRemaining: number): EmbedBuilder => {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = Math.floor(timeRemaining % 60);
+      const timeString =
+        minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+      return new EmbedBuilder()
+        .setColor(0xffaa00)
+        .setTitle("⏰ Command Cooldown")
+        .setDescription(
+          `Please wait **${timeString}** before using this command again.`
+        )
+        .setTimestamp();
+    };
+
+    // Send initial message
+    const initialEmbed = createCooldownEmbed(remainingTime);
+
+    const response = await interaction.reply({
+      embeds: [initialEmbed],
+      flags: 64,
+    });
+
+    // Update countdown every second
+    const countdownInterval = setInterval(async () => {
+      remainingTime -= 1;
+
+      if (remainingTime <= 0) {
+        clearInterval(countdownInterval);
+
+        // Final update - cooldown complete
+        const finalEmbed = new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setTitle("✅ Cooldown Complete")
+          .setDescription("You can now use this command again!")
+          .setTimestamp();
+
+        try {
+          await response.edit({
+            embeds: [finalEmbed],
+          });
+        } catch (error) {
+          logger.error("Failed to update cooldown message", error);
+        }
+
+        return;
+      }
+
+      // Update the embed with new time
+      const updatedEmbed = createCooldownEmbed(remainingTime);
+
+      try {
+        await response.edit({
+          embeds: [updatedEmbed],
+        });
+      } catch (error) {
+        // If we can't edit anymore (message deleted, etc.), stop the countdown
+        clearInterval(countdownInterval);
+        logger.debug("Cooldown countdown stopped - message no longer editable");
+      }
+    }, 1000);
   }
 
   /**
