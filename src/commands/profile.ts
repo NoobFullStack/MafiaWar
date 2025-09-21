@@ -85,7 +85,7 @@ const profileCommand: Command = {
 
       // Calculate total asset value and income (including upgrade costs)
       const assetService = AssetService.getInstance();
-      const totalAssetValue = user.assets.reduce((sum, asset) => {
+      const totalAssetValue = user.assets.reduce((sum: number, asset: any) => {
         const baseValue = asset.value;
 
         // Calculate upgrade costs based on asset level
@@ -114,7 +114,7 @@ const profileCommand: Command = {
         return sum + baseValue + upgradeValue;
       }, 0);
       const totalAssetIncome = user.assets.reduce(
-        (sum, asset) => sum + asset.incomeRate,
+        (sum: number, asset: any) => sum + asset.incomeRate,
         0
       );
 

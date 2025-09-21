@@ -1,4 +1,4 @@
-# 🎮 MafiaWar Discord Bot - Setup # 🎮 MafiaWar Discord Bot - Setup Guide
+# 🎮 MafiaWar Discord Bot - Setup Guide
 
 Your modular, maintainable Discord bot infrastructure is now ready! Here's what we've built:
 
