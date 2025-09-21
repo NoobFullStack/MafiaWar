@@ -92,8 +92,7 @@ async function completeForceMigration() {
     const charactersResult = await sourceClient.query(`
       SELECT id, name, "userId", stats, "cashOnHand", "bankBalance", 
              "cryptoWallet", "bankAccessLevel", "lastBankVisit", 
-             "bankInterestAccrued", "jailUntil", "jailCrime", 
-             "jailSeverity", "jailBribeAmount", "totalJailTime",
+             "bankInterestAccrued", "totalJailTime",
              money, reputation, level, experience
       FROM "Character"
       ORDER BY id
@@ -112,10 +111,6 @@ async function completeForceMigration() {
           bankAccessLevel: char.bankAccessLevel || 1,
           lastBankVisit: char.lastBankVisit,
           bankInterestAccrued: char.bankInterestAccrued || 0,
-          jailUntil: char.jailUntil,
-          jailCrime: char.jailCrime,
-          jailSeverity: char.jailSeverity || 0,
-          jailBribeAmount: char.jailBribeAmount,
           totalJailTime: char.totalJailTime || 0,
           money: char.money || 0,
           reputation: char.reputation || 0,

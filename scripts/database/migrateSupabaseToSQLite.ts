@@ -237,8 +237,7 @@ async function migrateCharacters(source: Client, target: PrismaClient) {
   const result = await source.query(`
     SELECT id, name, "userId", stats, "cashOnHand", "bankBalance", 
            "cryptoWallet", "bankAccessLevel", "lastBankVisit", 
-           "bankInterestAccrued", "jailUntil", "jailCrime", 
-           "jailSeverity", "jailBribeAmount", "totalJailTime",
+           "bankInterestAccrued", "totalJailTime",
            money, reputation, level, experience
     FROM "Character"
     ORDER BY id
@@ -260,10 +259,6 @@ async function migrateCharacters(source: Client, target: PrismaClient) {
           bankAccessLevel: row.bankAccessLevel || 1,
           lastBankVisit: row.lastBankVisit,
           bankInterestAccrued: row.bankInterestAccrued || 0,
-          jailUntil: row.jailUntil,
-          jailCrime: row.jailCrime,
-          jailSeverity: row.jailSeverity || 0,
-          jailBribeAmount: row.jailBribeAmount,
           totalJailTime: row.totalJailTime || 0,
           money: row.money || 0,
           reputation: row.reputation || 0,
@@ -281,10 +276,6 @@ async function migrateCharacters(source: Client, target: PrismaClient) {
           bankAccessLevel: row.bankAccessLevel || 1,
           lastBankVisit: row.lastBankVisit,
           bankInterestAccrued: row.bankInterestAccrued || 0,
-          jailUntil: row.jailUntil,
-          jailCrime: row.jailCrime,
-          jailSeverity: row.jailSeverity || 0,
-          jailBribeAmount: row.jailBribeAmount,
           totalJailTime: row.totalJailTime || 0,
           money: row.money || 0,
           reputation: row.reputation || 0,

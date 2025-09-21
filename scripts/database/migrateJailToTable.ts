@@ -1,6 +1,11 @@
 /**
  * MIGRATION SCRIPT: Character Jail Data to Jail Table
  *
+ * ⚠️  WARNING: This script references deprecated Character table jail columns
+ * ⚠️  (jailUntil, jailCrime, jailSeverity, jailBribeAmount) that have been removed.
+ * ⚠️  This script is kept for historical reference and should only be run
+ * ⚠️  on databases that still have the deprecated columns.
+ *
  * This script migrates existing jail data from the Character table to the new Jail table.
  * It preserves all existing jail information and creates proper jail records for players
  * who are currently in jail.
