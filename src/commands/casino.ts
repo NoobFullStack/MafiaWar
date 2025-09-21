@@ -86,6 +86,11 @@ const casinoCommand: Command = {
               { name: "Bank", value: "bank" }
             )
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("last10")
+        .setDescription("View the last 10 roulette results for audit purposes")
     ),
 
   async execute(context: CommandContext): Promise<CommandResult> {
@@ -93,12 +98,20 @@ const casinoCommand: Command = {
     const subcommand = interaction.options.getSubcommand();
 
     try {
-      // Handle info command immediately without deferring (it's fast)
+      // Handle info and last10 commands immediately without requiring authentication
       if (subcommand === "info") {
         const casinoService = CasinoService.getInstance();
         const infoEmbed = casinoService.getCasinoInfo();
         await interaction.editReply({ embeds: [infoEmbed] });
         return { success: true, message: "Casino info displayed" };
+      }
+
+      if (subcommand === "last10") {
+        const casinoService = CasinoService.getInstance();
+        const results = await casinoService.getLastRouletteResults(10);
+        const auditEmbed = casinoService.createRouletteAuditEmbed(results);
+        await interaction.editReply({ embeds: [auditEmbed] });
+        return { success: true, message: "Displayed last 10 roulette results" };
       }
 
       // For gambling commands, check auth and jail (reply is already deferred by bot.ts)
@@ -144,7 +157,10 @@ const casinoCommand: Command = {
               );
               // Delete the original deferred message and send ephemeral followup
               await interaction.deleteReply();
-              await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+              await interaction.followUp({
+                embeds: [errorEmbed],
+                ephemeral: true,
+              });
             } else {
               // Other errors can be public
               const errorEmbed = ResponseUtil.error(
@@ -231,7 +247,10 @@ const casinoCommand: Command = {
               );
               // Delete the original deferred message and send ephemeral followup
               await interaction.deleteReply();
-              await interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
+              await interaction.followUp({
+                embeds: [errorEmbed],
+                ephemeral: true,
+              });
             } else {
               // Other errors can be public
               const errorEmbed = ResponseUtil.error(

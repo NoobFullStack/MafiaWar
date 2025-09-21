@@ -79,7 +79,9 @@ export class CasinoService {
           result: this.createEmptySlotResult(betAmount),
           transaction: {
             success: false,
-            message: `Bet must be between ${BotBranding.formatCurrency(casinoConfig.slots.minBet)} and ${BotBranding.formatCurrency(casinoConfig.slots.maxBet)}`,
+            message: `Bet must be between ${BotBranding.formatCurrency(
+              casinoConfig.slots.minBet
+            )} and ${BotBranding.formatCurrency(casinoConfig.slots.maxBet)}`,
             error: "Invalid bet amount",
           },
         };
@@ -106,7 +108,9 @@ export class CasinoService {
           result: this.createEmptySlotResult(betAmount),
           transaction: {
             success: false,
-            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(betAmount)} but only have ${BotBranding.formatCurrency(availableFunds)}`,
+            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(
+              betAmount
+            )} but only have ${BotBranding.formatCurrency(availableFunds)}`,
             error: "Insufficient funds",
           },
         };
@@ -136,7 +140,9 @@ export class CasinoService {
         transactionResult = {
           success: depositResult.success,
           message: depositResult.success
-            ? `🎉 You won ${BotBranding.formatCurrency(payout)}! (Profit: ${BotBranding.formatCurrency(profit)})`
+            ? `🎉 You won ${BotBranding.formatCurrency(
+                payout
+              )}! (Profit: ${BotBranding.formatCurrency(profit)})`
             : `Error processing winnings: ${depositResult.error}`,
           newBalance: depositResult.success
             ? {
@@ -157,7 +163,9 @@ export class CasinoService {
         transactionResult = {
           success: deductResult.success,
           message: deductResult.success
-            ? `💸 You lost ${BotBranding.formatCurrency(betAmount)}. Better luck next time!`
+            ? `💸 You lost ${BotBranding.formatCurrency(
+                betAmount
+              )}. Better luck next time!`
             : `Error processing bet: ${deductResult.error}`,
           newBalance: deductResult.success
             ? {
@@ -214,7 +222,9 @@ export class CasinoService {
           result: this.createEmptyRouletteResult(betType, betNumber, betAmount),
           transaction: {
             success: false,
-            message: `Bet must be between ${BotBranding.formatCurrency(casinoConfig.roulette.minBet)} and ${BotBranding.formatCurrency(casinoConfig.roulette.maxBet)}`,
+            message: `Bet must be between ${BotBranding.formatCurrency(
+              casinoConfig.roulette.minBet
+            )} and ${BotBranding.formatCurrency(casinoConfig.roulette.maxBet)}`,
             error: "Invalid bet amount",
           },
         };
@@ -277,7 +287,9 @@ export class CasinoService {
           result: this.createEmptyRouletteResult(betType, betNumber, betAmount),
           transaction: {
             success: false,
-            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(betAmount)} but only have ${BotBranding.formatCurrency(availableFunds)}`,
+            message: `Insufficient ${paymentMethod} funds. You need ${BotBranding.formatCurrency(
+              betAmount
+            )} but only have ${BotBranding.formatCurrency(availableFunds)}`,
             error: "Insufficient funds",
           },
         };
@@ -307,7 +319,9 @@ export class CasinoService {
         transactionResult = {
           success: depositResult.success,
           message: depositResult.success
-            ? `🎉 You won ${BotBranding.formatCurrency(payout)}! (Profit: ${BotBranding.formatCurrency(profit)})`
+            ? `🎉 You won ${BotBranding.formatCurrency(
+                payout
+              )}! (Profit: ${BotBranding.formatCurrency(profit)})`
             : `Error processing winnings: ${depositResult.error}`,
           newBalance: depositResult.success
             ? {
@@ -328,7 +342,9 @@ export class CasinoService {
         transactionResult = {
           success: deductResult.success,
           message: deductResult.success
-            ? `💸 You lost ${BotBranding.formatCurrency(betAmount)}. The house wins this time!`
+            ? `💸 You lost ${BotBranding.formatCurrency(
+                betAmount
+              )}. The house wins this time!`
             : `Error processing bet: ${deductResult.error}`,
           newBalance: deductResult.success
             ? {
@@ -349,6 +365,33 @@ export class CasinoService {
         payout,
         profit,
       };
+
+      // Log to audit table for analysis
+      try {
+        const user = await DatabaseManager.getUserForAuth(userId);
+        if (user) {
+          const db = DatabaseManager.getClient();
+          await db.rouletteAudit.create({
+            data: {
+              userId: user.id,
+              discordId: user.discordId,
+              username: user.username,
+              betType,
+              betNumber: betNumber?.toString() || null,
+              betAmount,
+              paymentMethod,
+              spinNumber: spinResult.number.toString(),
+              spinColor: spinResult.color,
+              isWin: betCheck.isWin,
+              payout,
+              profit,
+            },
+          });
+        }
+      } catch (auditError) {
+        // Don't fail the whole transaction if audit logging fails
+        logger.error("Error logging roulette result to audit:", auditError);
+      }
 
       return { result, transaction: transactionResult };
     } catch (error) {
@@ -404,9 +447,9 @@ export class CasinoService {
       },
       {
         name: "💰 Bet Information",
-        value: `**Bet Amount:** ${BotBranding.formatCurrency(result.betAmount)}\n**Result:** ${
-          result.isWin ? "🎉 **WIN!**" : "💸 **LOSE**"
-        }`,
+        value: `**Bet Amount:** ${BotBranding.formatCurrency(
+          result.betAmount
+        )}\n**Result:** ${result.isWin ? "🎉 **WIN!**" : "💸 **LOSE**"}`,
         inline: true,
       }
     );
@@ -419,7 +462,9 @@ export class CasinoService {
         name: "🏆 Winning Line",
         value: `${winningIcons}\n**Multiplier:** ${
           result.multiplier
-        }x\n**Payout:** ${BotBranding.formatCurrency(result.payout)}\n**Profit:** ${BotBranding.formatCurrency(result.profit)}`,
+        }x\n**Payout:** ${BotBranding.formatCurrency(
+          result.payout
+        )}\n**Profit:** ${BotBranding.formatCurrency(result.profit)}`,
         inline: true,
       });
     }
@@ -479,7 +524,9 @@ export class CasinoService {
         name: "💰 Result",
         value: `**${result.isWin ? "🎉 WIN!" : "💸 LOSE"}**\n${
           result.isWin
-            ? `Payout: ${BotBranding.formatCurrency(result.payout)}\nProfit: ${BotBranding.formatCurrency(result.profit)}`
+            ? `Payout: ${BotBranding.formatCurrency(
+                result.payout
+              )}\nProfit: ${BotBranding.formatCurrency(result.profit)}`
             : `Lost: ${BotBranding.formatCurrency(result.betAmount)}`
         }`,
         inline: true,
@@ -514,14 +561,22 @@ export class CasinoService {
     embed.addFields(
       {
         name: "🎲 Slots",
-        value: `**Min Bet:** ${BotBranding.formatCurrency(casinoConfig.slots.minBet)}\n**Max Bet:** ${BotBranding.formatCurrency(casinoConfig.slots.maxBet)}\n**How to Play:** Three matching symbols in the middle row wins!\n**House Edge:** ${(
+        value: `**Min Bet:** ${BotBranding.formatCurrency(
+          casinoConfig.slots.minBet
+        )}\n**Max Bet:** ${BotBranding.formatCurrency(
+          casinoConfig.slots.maxBet
+        )}\n**How to Play:** Three matching symbols in the middle row wins!\n**House Edge:** ${(
           casinoConfig.slots.houseEdge * 100
         ).toFixed(1)}%\n🎰 *High win frequency with exciting jackpots!*`,
         inline: true,
       },
       {
         name: "🎡 Roulette",
-        value: `**Min Bet:** ${BotBranding.formatCurrency(casinoConfig.roulette.minBet)}\n**Max Bet:** ${BotBranding.formatCurrency(casinoConfig.roulette.maxBet)}\n**How to Play:** Bet on numbers (0, 00, 1-36), colors, or ranges\n**House Edge:** ${(
+        value: `**Min Bet:** ${BotBranding.formatCurrency(
+          casinoConfig.roulette.minBet
+        )}\n**Max Bet:** ${BotBranding.formatCurrency(
+          casinoConfig.roulette.maxBet
+        )}\n**How to Play:** Bet on numbers (0, 00, 1-36), colors, or ranges\n**House Edge:** ${(
           casinoConfig.roulette.houseEdge * 100
         ).toFixed(2)}%`,
         inline: true,
@@ -613,7 +668,9 @@ export class CasinoService {
         betDescription = betType;
     }
 
-    return `**${betDescription}**\nBet: ${BotBranding.formatCurrency(betAmount)}`;
+    return `**${betDescription}**\nBet: ${BotBranding.formatCurrency(
+      betAmount
+    )}`;
   }
 
   /**
@@ -698,7 +755,9 @@ export class CasinoService {
 
       return {
         success: true,
-        message: `Deducted ${BotBranding.formatCurrency(amount)} from ${paymentMethod}`,
+        message: `Deducted ${BotBranding.formatCurrency(
+          amount
+        )} from ${paymentMethod}`,
         newBalance: {
           cashOnHand: newCashOnHand,
           bankBalance: newBankBalance,
@@ -712,6 +771,128 @@ export class CasinoService {
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  }
+
+  /**
+   * Get the last N roulette results for audit/analysis
+   */
+  async getLastRouletteResults(limit: number = 10): Promise<any[]> {
+    try {
+      const db = DatabaseManager.getClient();
+      const results = await db.rouletteAudit.findMany({
+        orderBy: { timestamp: "desc" },
+        take: limit,
+        select: {
+          id: true,
+          username: true,
+          betType: true,
+          betNumber: true,
+          betAmount: true,
+          spinNumber: true,
+          spinColor: true,
+          isWin: true,
+          payout: true,
+          profit: true,
+          timestamp: true,
+        },
+      });
+
+      return results;
+    } catch (error) {
+      logger.error("Error fetching roulette audit results:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Create player-friendly embed for displaying recent roulette results
+   */
+  createRouletteAuditEmbed(results: any[]): EmbedBuilder {
+    const embed = new EmbedBuilder()
+      .setColor(BotBranding.getThemeColor())
+      .setTitle("🎡 Recent Roulette Spins")
+      .setDescription(
+        `🎲 **Last ${results.length} results** • See what numbers are hot!`
+      );
+
+    if (results.length === 0) {
+      embed.addFields({
+        name: "📭 No Results",
+        value: "No roulette games have been played yet. Be the first to spin!",
+        inline: false,
+      });
+      return embed;
+    }
+
+    // Count occurrences of each number for quick analysis
+    const numberCounts: { [key: string]: number } = {};
+    const colorCounts = { red: 0, black: 0, green: 0 };
+    let totalWins = 0;
+
+    results.forEach((result) => {
+      numberCounts[result.spinNumber] =
+        (numberCounts[result.spinNumber] || 0) + 1;
+      colorCounts[result.spinColor as keyof typeof colorCounts]++;
+      if (result.isWin) totalWins++;
+    });
+
+    // Create simplified results display
+    let resultsText = "```\n";
+    resultsText += "#  | Number | Result\n";
+    resultsText += "---|--------|-------\n";
+
+    results.forEach((result, index) => {
+      const colorEmoji =
+        result.spinColor === "red"
+          ? "🔴"
+          : result.spinColor === "black"
+          ? "⚫"
+          : "🟢";
+      const winStatus = result.isWin ? "WIN" : "---";
+
+      resultsText += `${String(index + 1).padStart(2)} | ${colorEmoji} ${String(
+        result.spinNumber
+      ).padEnd(4)} | ${winStatus}\n`;
+    });
+    resultsText += "```";
+
+    embed.addFields({
+      name: "🎲 Spin History",
+      value: resultsText,
+      inline: false,
+    });
+
+    // Enhanced analysis section
+    const frequentNumbers = Object.entries(numberCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 4)
+      .map(([num, count]) => {
+        const percentage = ((count / results.length) * 100).toFixed(1);
+        return `**${num}**: ${count}x (${percentage}%)`;
+      })
+      .join(" • ");
+
+    const winRate = ((totalWins / results.length) * 100).toFixed(1);
+
+    embed.addFields({
+      name: "📈 Statistical Overview",
+      value: `**Colors:** 🔴 ${colorCounts.red} • ⚫ ${colorCounts.black} • 🟢 ${colorCounts.green}\n**Player Win Rate:** ${winRate}% (${totalWins}/${results.length} spins)`,
+      inline: false,
+    });
+
+    if (frequentNumbers) {
+      embed.addFields({
+        name: "🔥 Hot Numbers",
+        value: frequentNumbers,
+        inline: false,
+      });
+    }
+
+    embed.setFooter({
+      text: `${BotBranding.getName()} Casino • Good luck on your next spin! 🍀`,
+    });
+
+    return embed;
   }
 }
 
