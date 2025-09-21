@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import { BotBranding } from "../config/bot";
 import { LevelCalculator } from "../config/economy";
+import { AssetService } from "../services/AssetService";
 import { MoneyService } from "../services/MoneyService";
 import { Command, CommandContext, CommandResult } from "../types/command";
 import DatabaseManager from "../utils/DatabaseManager";
@@ -22,7 +23,7 @@ const profileCommand: Command = {
           character: true,
           assets: {
             include: {
-              // Include any asset upgrades if needed
+              upgrades: true, // Include asset upgrades for value calculation
             },
           },
         },
@@ -82,11 +83,36 @@ const profileCommand: Command = {
         user.character.bankAccessLevel || 1
       );
 
-      // Calculate total asset value and income
-      const totalAssetValue = user.assets.reduce(
-        (sum, asset) => sum + asset.value,
-        0
-      );
+      // Calculate total asset value and income (including upgrade costs)
+      const assetService = AssetService.getInstance();
+      const totalAssetValue = user.assets.reduce((sum, asset) => {
+        const baseValue = asset.value;
+
+        // Calculate upgrade costs based on asset level
+        // Find the template by matching asset name
+        let template = null;
+        if (asset.name === "Convenience Store") {
+          template = assetService.getAssetTemplate("convenience_store");
+        } else if (asset.name === "Family Restaurant") {
+          template = assetService.getAssetTemplate("restaurant");
+        } else if (asset.name === "Lemonade Stand") {
+          template = assetService.getAssetTemplate("test_lemonade_stand");
+        }
+        // Add more mappings as needed
+
+        let upgradeValue = 0;
+        if (template && template.upgrades?.income && asset.level > 1) {
+          // Sum up all upgrade costs from level 1 to current level
+          for (let level = 1; level < asset.level; level++) {
+            const upgradeIndex = level - 1; // Array is 0-indexed
+            if (template.upgrades.income[upgradeIndex]) {
+              upgradeValue += template.upgrades.income[upgradeIndex].cost;
+            }
+          }
+        }
+
+        return sum + baseValue + upgradeValue;
+      }, 0);
       const totalAssetIncome = user.assets.reduce(
         (sum, asset) => sum + asset.incomeRate,
         0
@@ -217,7 +243,7 @@ const profileCommand: Command = {
           name: "📈 Passive Income",
           value: `**${BotBranding.formatCurrency(
             totalAssetIncome
-          )}**\n*Daily earnings*`,
+          )}**\n*Hourly earnings*`,
           inline: true,
         }
       );

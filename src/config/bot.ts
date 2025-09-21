@@ -96,7 +96,12 @@ export class BotBranding {
    * Format currency amounts consistently
    */
   static formatCurrency(amount: number): string {
-    return `${botConfig.currency.symbol}${amount.toLocaleString()}`;
+    // Use European formatting: 1.234.567 (dot for thousands, no decimals)
+    const formatted = amount.toLocaleString("de-DE", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    return `${botConfig.currency.symbol}${formatted}`;
   }
 
   /**
