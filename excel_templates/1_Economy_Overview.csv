@@ -1,0 +1,45 @@
+Economy Overview Dashboard - MafiaWar Game,,,,,,,,
+Date Generated,September 21 2025,,,,,,,,
+,,,,,,,,,,
+PLAYER PROGRESSION OVERVIEW,,,,,,,,,,
+Level,Title,XP Required,Cumulative XP,Expected Wealth,Key Unlocks,Hours to Reach (Est),Income/Hour Potential,Notes,Status
+1,Street Thug,0,0,$500,"pickpocket, shoplifting",0,$600,Starting level,✓
+3,Petty Criminal,269,269,$5000,"bike_theft, credit_card_fraud",1.3,$600,Early progression,✓
+5,Amateur Thief,854,1123,$25000,"car_theft, lockpick_advanced",5.6,$1800,Tool unlocks,✓
+8,Professional Criminal,2359,3482,$75000,"burglary, store_robbery",17.4,$3600,Mid-game start,⚠️
+12,Crime Specialist,6014,9496,$200000,"hacking, cyber_crimes",47.5,$6000,Specialization,⚠️
+15,Criminal Mastermind,11180,20676,$500000,"bank_robbery, gang_creation",103.4,$6000,Leadership unlocks,❌
+20,Crime Boss,24000,44676,$1000000,"territory_control, illegal_businesses",223.4,$12000,Asset focus,❌
+25,Mafia Lieutenant,42411,87087,$5000000,"money_laundering, high_stakes_heists",435.4,$12000,Elite operations,❌
+30,Underworld King,70560,157647,$10000000,"international_crimes, cartel_operations",788.2,$12000,Global reach,❌
+50,Criminal Legend,392040,1570440,$50000000,"prestige_system, legacy_bonuses",7852.2,$12000,End game,❌
+,,,,,,,,,,
+INCOME PROGRESSION BY CRIME TIER,,,,,,,,,,
+Crime Tier,Difficulty Range,Income/Hour,Example Crimes,Success Rate,Risk Level,Progression Notes,Recommendations,Balance Status,
+Beginner,1-2,$600,"pickpocket, shoplifting",87-95%,Low,Entry level income,Good for new players,✓,
+Amateur,3-4,$1800,"car_theft, vandalism",71-79%,Medium,3x income increase,Solid progression,✓,
+Professional,5-6,$3600,"burglary, identity_theft",55-63%,High,2x income increase,Good risk/reward,✓,
+Expert,7-8,$6000,"hacking, store_robbery",39-47%,Very High,1.7x income increase,Consider buffing,⚠️,
+Master,9-11,$30000,"assassination, heist",15-31%,Extreme,5x income jump,Very high risk justified,✓,
+,,,,,,,,,,
+ECONOMIC HEALTH METRICS,,,,,,,,,,
+Metric,Current Value,Target Range,Status,Recommendation,Impact,Priority,Action Required,Last Updated,
+Crime Income Scaling,1.5-5x per tier,1.5-3x per tier,⚠️,Review expert tier scaling,Medium,High,Yes,Sep 2025,
+Asset ROI Timeline,6-50 hours,8-30 hours,✓,Good balance,Low,Low,No,Sep 2025,
+Item Affordability,5-40% of wealth,5-25% of wealth,⚠️,Review legendary pricing,Medium,Medium,Yes,Sep 2025,
+XP Progression Curve,Exponential 1.5,Exponential 1.3-1.6,✓,Well balanced,Low,Low,No,Sep 2025,
+Payment Method Distribution,60% cash / 25% bank / 15% crypto,40% cash / 35% bank / 25% crypto,⚠️,Increase crypto usage,Low,Medium,Yes,Sep 2025,
+Level Gate Spacing,Appropriate,Every 2-5 levels,✓,Good pacing,Low,Low,No,Sep 2025,
+Risk/Reward Balance,Mostly balanced,Linear increase,✓,Maintain current,Low,Low,No,Sep 2025,
+Player Retention Rate,Unknown,>70% at level 10,❌,Need analytics,High,High,Yes,Sep 2025,
+,,,,,,,,,,
+FORMULAS USED,,,,,,,,,,
+Income Per Hour,=(Avg_Reward * Success_Rate * 60) / Cooldown_Minutes,,,,,,,,
+Payback Period,=Item_Cost / (Income_Bonus_Per_Hour * Hours_Per_Day),,,,,,,,
+Level XP Required,=((Level * 1.2) ^ 1.5) * 100,,,,,,,,
+Economic Value Rating,=MIN(Income_Growth Rate Assets_ROI Item_Affordability),,,,,,,,
+,,,,,,,,,,
+LEGEND,,,,,,,,,,
+✓,Balanced/Good,,,,,,,,
+⚠️,Needs Monitoring,,,,,,,,
+❌,Requires Action,,,,,,,,

@@ -1,0 +1,66 @@
+Asset Economics Analysis - MafiaWar Game,,,,,,,,,,,,,,,,
+Date Generated,September 21 2025,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+Asset ID,Name,Category,Base Price,Level Required,Reputation Required,Base Income/Hour,Max Level,Total Upgrade Cost,Max Income/Hour,ROI Base (Hours),ROI Max (Hours),Cash %,Bank %,Crypto %,Balance Status
+test_lemonade_stand,Lemonade Stand,legitimate,$666,1,0,$60,3,$150,$120,11.1,6.8,70%,30%,0%,✓ (Test only)
+convenience_store,Convenience Store,legitimate,$15000,1,0,$500,5,$75000,$1000,30.0,22.5,90%,10%,0%,✓
+restaurant,Family Restaurant,legitimate,$45000,5,0,$1200,5,$160000,$3000,37.5,21.7,85%,15%,0%,✓
+pawn_shop,Pawn Shop,semi_legal,$35000,3,0,$800,5,$137000,$2000,43.8,23.4,80%,15%,5%,✓
+nightclub,Underground Nightclub,semi_legal,$150000,8,25,$3500,5,$750000,$12250,42.9,24.5,50%,35%,15%,✓
+warehouse,Storage Warehouse,illegal,$200000,12,50,$2500,5,$930000,$10000,80.0,35.0,25%,25%,50%,⚠️
+casino,Underground Casino,illegal,$500000,20,100,$8000,5,$2100000,$24000,62.5,31.3,20%,30%,50%,✓
+,,,,,,,,,,,,,,,
+ASSET UPGRADE ANALYSIS,,,,,,,,,,,,,,
+Asset,Upgrade Level,Upgrade Cost,Income Multiplier,New Income/Hour,Cumulative Cost,ROI This Level (Hours),Total ROI (Hours),Recommended?,Notes,
+Convenience Store,1,$5000,1.2x,$600,$20000,8.3,33.3,✓,Quick payback
+Convenience Store,2,$10000,1.4x,$700,$30000,14.3,42.9,✓,Still reasonable
+Convenience Store,3,$20000,1.6x,$800,$50000,25.0,62.5,⚠️,Long payback
+Convenience Store,4,$40000,2.0x,$1000,$90000,40.0,90.0,❌,Too expensive
+,,,,,,,,,,,,,,,
+Restaurant,1,$15000,1.3x,$1560,$60000,9.6,38.5,✓,Good return
+Restaurant,2,$25000,1.6x,$1920,$85000,13.0,44.3,✓,Reasonable
+Restaurant,3,$40000,2.0x,$2400,$125000,16.7,52.1,⚠️,Consider carefully
+Restaurant,4,$80000,2.5x,$3000,$205000,26.7,68.3,❌,Very long payback
+,,,,,,,,,,,,,,,
+Nightclub,1,$50000,1.5x,$5250,$200000,9.5,38.1,✓,Excellent return
+Nightclub,2,$100000,2.0x,$7000,$300000,14.3,42.9,✓,Good investment
+Nightclub,3,$200000,2.7x,$9450,$500000,21.2,52.9,⚠️,High cost
+Nightclub,4,$400000,3.5x,$12250,$900000,32.7,73.5,❌,Elite tier only
+,,,,,,,,,,,,,,,
+Casino,1,$150000,1.4x,$11200,$650000,13.4,58.0,✓,High income tier
+Casino,2,$300000,1.8x,$14400,$950000,20.8,66.0,⚠️,Expensive but profitable
+Casino,3,$600000,2.3x,$18400,$1550000,32.6,84.2,❌,Elite investment
+Casino,4,$1200000,3.0x,$24000,$2700000,50.0,112.5,❌,End-game only
+,,,,,,,,,,,,,,,
+INCOME DISTRIBUTION ANALYSIS,,,,,,,,,,,,,,
+Category,Average Cash %,Average Bank %,Average Crypto %,Risk Profile,Government Vulnerability,Player Theft Risk,Recommendation,
+Legitimate,85%,13%,2%,Low,Low,High,Good for new players,
+Semi-Legal,65%,25%,10%,Medium,Medium,Medium,Balanced risk/reward,
+Illegal,22%,28%,50%,High,High,Low,End-game focused,
+,,,,,,,,,,,,,,,
+PROGRESSION GATES,,,,,,,,,,,,,,
+Level Range,Available Assets,Total Investment Range,Expected Income Range,Progression Notes,Recommendations,
+1-5,Convenience Store + Restaurant,$15k-$60k,$500-$1560/hr,Entry level businesses,Good starter options,
+6-10,+ Pawn Shop + Nightclub,$35k-$200k,$800-$5250/hr,Semi-legal introduction,Risk/reward balance,
+11-15,+ Warehouse,$200k-$1.13M,$2500-$10k/hr,High-end illegal start,Major investment tier,
+16-25,+ Casino,$500k-$2.7M,$8k-$24k/hr,Elite criminal empire,End-game content,
+,,,,,,,,,,,,,,,
+ROI COMPARISON,,,,,,,,,,,,,,
+Investment Tier,ROI Range (Hours),Risk Level,Recommendation,Suitable For,
+Quick Return (6-15 hrs),Nightclub L1-2 Restaurant L1,Low-Medium,✓ Recommended,Active players,
+Medium Return (15-35 hrs),Most L1 assets,Medium,✓ Good choice,Regular players,
+Long Return (35-60 hrs),Most L2-3 upgrades,Medium-High,⚠️ Consider carefully,Dedicated players,
+Elite Return (60+ hrs),L4 upgrades Warehouse,High,❌ Elite only,End-game players,
+,,,,,,,,,,,,,,,
+BALANCE RECOMMENDATIONS,,,,,,,,,,,,,,
+Priority,Asset,Issue,Current Value,Recommended Value,Impact,
+High,Warehouse,ROI too long,$2500/hr base,$3500/hr base,Improve illegal tier access,
+Medium,All L4 Upgrades,Too expensive for benefit,Various,Reduce costs 25%,Better progression,
+Low,Crypto Distribution,Increase crypto %,Current mix,+10% crypto each,Strategic variety,
+,,,,,,,,,,,,,,,
+SEASONAL/MARKET FACTORS,,,,,,,,,,,,,,
+Asset,Seasonality Multiplier,Market Sensitivity,Raid Vulnerability,Economic Events Impact,Strategic Notes,
+Restaurant,1.1x (holidays),0.4 (medium),0.02 (very low),Holiday bonuses,Stable legitimate business,
+Nightclub,1.2x (party season),0.5 (medium),0.25 (high),Entertainment economy,High risk/reward,
+Warehouse,1.0x (stable),0.8 (high),0.4 (very high),Market crash vulnerable,High-stakes investment,
+Casino,1.1x (events),0.9 (very high),0.35 (high),Gambling economy,Elite tier volatility,

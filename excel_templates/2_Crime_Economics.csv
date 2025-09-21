@@ -1,0 +1,54 @@
+Crime Economics Analysis - MafiaWar Game,,,,,,,,,,,,,,,,
+Date Generated,September 21 2025,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+Crime ID,Name,Category,Level Required,Difficulty,Cooldown (min),Success Rate %,Reward Min,Reward Max,Average Reward,XP Reward,Jail Time (min),Income Per Hour,Risk/Reward Ratio,Payment Type,Payment Reason,Balance Status
+pickpocketing,Pickpocketing,petty,1,1,2,50%,$50,$100,$75,5,1,$1125,High,$cash,Street crime,✓
+shoplifting,Shoplifting,petty,1,2,5,87%,$100,$200,$150,10,10,$1566,Good,$cash,Retail theft,✓
+bike_theft,Bike Theft,petty,2,2,8,87%,$150,$300,$225,15,15,$1472,Good,$cash,Quick sale,✓
+vandalism,Vandalism,petty,3,3,10,79%,$250,$500,$375,20,20,$1778,Good,$cash,Gang payment,✓
+car_break_in,Car Break-in,theft,5,4,15,71%,$400,$800,$600,30,30,$1704,Good,$cash,Immediate fence,✓
+car_theft,Car Theft,theft,7,5,20,63%,$700,$1400,$1050,40,40,$1984,Good,$cash,Chop shop,✓
+credit_card_fraud,Credit Card Fraud,white_collar,8,4,25,71%,$600,$1200,$900,35,45,$1533,Good,$crypto,Digital theft untraceable,✓
+burglary,Burglary,theft,10,6,30,55%,$1200,$2400,$1800,60,60,$1980,Good,$mixed,Multiple fence channels,✓
+identity_theft,Identity Theft,white_collar,12,5,40,63%,$1000,$2000,$1500,50,70,$1418,Good,$bank,Fraudulent accounts,✓
+mugging,Armed Mugging,robbery,12,6,35,55%,$800,$1600,$1200,65,80,$1029,Medium,$cash,Direct theft,⚠️
+hacking,Corporate Hacking,white_collar,15,7,60,47%,$2500,$5000,$3750,80,90,$1763,Good,$crypto,Digital assets,✓
+store_robbery,Armed Store Robbery,robbery,15,7,50,47%,$1500,$3000,$2250,85,120,$1269,Medium,$cash,Armed robbery,⚠️
+bank_robbery,Bank Robbery,robbery,18,8,80,39%,$4000,$8000,$6000,120,150,$1170,Medium,$mixed,Cash + digital transfers,⚠️
+drug_dealing,Drug Distribution,organized,18,7,60,47%,$3000,$6000,$4500,90,135,$2115,Good,$cash,Street transactions,✓
+extortion,Business Extortion,organized,20,8,70,39%,$4000,$8000,$6000,110,160,$1300,Medium,$mixed,Protection payments,⚠️
+money_laundering,Money Laundering Operation,organized,22,9,90,31%,$6000,$12000,$9000,140,180,$1240,Medium,$bank,Laundered funds,⚠️
+arms_trafficking,Arms Trafficking,organized,24,9,100,31%,$8000,$16000,$12000,150,180,$1488,Good,$mixed,International weapons,✓
+assassination,Contract Assassination,violence,25,10,120,23%,$15000,$30000,$22500,200,180,$1725,Good,$crypto,Contract payments,✓
+heist,Grand Heist,violence,28,10,140,23%,$20000,$40000,$30000,220,180,$2071,Good,$mixed,Multi-target proceeds,✓
+cartel_operation,International Cartel Operation,organized,30,11,180,15%,$30000,$60000,$45000,280,180,$1500,Medium,$mixed,Complex networks,⚠️
+,,,,,,,,,,,,,,,
+CALCULATIONS AND FORMULAS,,,,,,,,,,,,,,
+Income Per Hour Formula,=(Average_Reward * Success_Rate * 60) / Cooldown_Minutes,,,,,,,,,,,,,
+Risk/Reward Ratio,=Income_Per_Hour / (Jail_Time_Minutes / 60),,,,,,,,,,,,,
+Success Rate Formula,=95% - (Difficulty * 8%),,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+ECONOMIC ANALYSIS,,,,,,,,,,,,,,
+Crime Tier,Average Income/Hour,Success Rate Range,Risk Level,Recommendation,Progression Notes,,,,,,,,
+Petty (1-3),$1485,50-87%,Low,Well balanced,Good entry progression,,,,,,,,
+Theft (4-6),$1652,55-71%,Medium,Slight buff needed,Income scaling good,,,,,,,,
+White Collar (4-7),$1571,47-71%,Medium,Crypto focus good,Tech crime theme,,,,,,,,
+Robbery (6-8),$1156,39-55%,High,Needs income buff,Risk too high for reward,,,,,,,,
+Organized (7-11),$1636,15-47%,Very High,Good high-end balance,Elite tier appropriate,,,,,,,,
+Violence (10-11),$1898,15-23%,Extreme,Excellent risk/reward,End-game content,,,,,,,,
+,,,,,,,,,,,,,,,
+BALANCE RECOMMENDATIONS,,,,,,,,,,,,,,
+Priority,Crime,Current Income/Hour,Recommended Income/Hour,Reason,Action Required,,,,,,,,
+High,mugging,$1029,$1500,Too low for robbery risk,Increase rewards 45%,,,,,,,,
+High,store_robbery,$1269,$1800,Below category average,Increase rewards 42%,,,,,,,,
+Medium,bank_robbery,$1170,$1800,Iconic crime underperforming,Increase rewards 54%,,,,,,,,
+Medium,extortion,$1300,$1800,Organized crime too low,Increase rewards 38%,,,,,,,,
+Medium,money_laundering,$1240,$1800,Elite skill undervalued,Increase rewards 45%,,,,,,,,
+Low,cartel_operation,$1500,$1800,Slight buff needed,Increase rewards 20%,,,,,,,,
+,,,,,,,,,,,,,,,
+PAYMENT TYPE DISTRIBUTION,,,,,,,,,,,,,,
+Payment Type,Count,Percentage,Target %,Status,Recommendation,,,,,,,,
+Cash,10,50%,40%,⚠️,Convert 2 crimes to crypto/bank,,,,,,,,
+Bank,3,15%,35%,❌,Need more bank crimes,,,,,,,,
+Crypto,4,20%,25%,✓,Good distribution,,,,,,,,
+Mixed,3,15%,15%,✓,Perfect for complex crimes,,,,,,,,

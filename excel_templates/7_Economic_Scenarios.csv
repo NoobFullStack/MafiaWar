@@ -1,0 +1,84 @@
+Economic Scenarios & What-If Analysis - MafiaWar Game,,,,,,,,,,,,,,
+Date Generated,September 21 2025,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+SCENARIO TESTING MATRIX,,,,,,,,,,,,,,
+Scenario,Current Value,Test Value 1,Test Value 2,Test Value 3,Impact Analysis,Recommendation,Player Level Affected,Economic Health,Implementation Risk
+Crime Success Rates +10%,Current rates,+10% all crimes,+15% early crimes,+5% elite crimes,+67% income across board,Moderate buff to early crimes,All levels,Positive inflation,Low
+Crime Rewards +20%,Current rewards,+20% all crimes,+30% mid-tier crimes,+10% early +40% elite,+20-40% income by tier,Targeted buffs by tier,Level dependent,Inflation risk,Medium
+Asset Income +15%,Current income,+15% all assets,+25% illegal assets,+10% legitimate +30% illegal,Passive income boost,Buff illegal assets,Asset owners,Wealth gap increase,Low
+Item Costs -25%,Current costs,25% reduction all,-50% common items,-10% rare +25% legendary,Improved accessibility,Reduce common/uncommon only,Low-mid level,Improved retention,Low
+XP Requirements -20%,Current XP curve,20% reduction all,30% reduction levels 15+,10% early 40% late,Faster progression,Target late game,Mid-high level,Better retention,Medium
+Bank Fees -50%,Current fees,50% reduction all,75% reduction,25% reduction,More bank adoption,Significant reduction,All bank users,Minor deflation,Low
+Crypto Volatility +50%,Current volatility,50% increase,100% increase,25% increase,Higher risk/reward,Moderate increase,Crypto users,Speculation increase,Medium
+Money Event Frequency -30%,Current frequency,30% less frequent,50% less frequent,Events off,Less economic pressure,Moderate reduction,All players,Less dynamic,Low
+,,,,,,,,,,,,,
+INFLATION/DEFLATION IMPACT ANALYSIS,,,,,,,,,,,,,,
+Change Type,Scenario,Money Supply Impact,Player Wealth Effect,Economic Pressure,Long-term Balance,Mitigation Strategies,
+INFLATIONARY,Crime rewards +20%,+20% new money/hour,Faster wealth accumulation,Reduced item costs relative,Item costs need adjustment,Increase item costs 15%
+INFLATIONARY,Asset income +15%,+15% passive money,Passive wealth growth,Reduced grinding pressure,Wealth gap widens,Progressive asset taxes
+DEFLATIONARY,Item costs -25%,No direct impact,Increased purchasing power,Lower barriers to entry,Better progression flow,Monitor for over-accessibility
+DEFLATIONARY,Bank fees -50%,Slight money retention,More disposable income,Reduced banking friction,Healthier money flow,Perfect as-is
+NEUTRAL,XP changes,-,Faster content access,Time pressure reduction,Better retention,No economic adjustment needed
+NEUTRAL,Money event frequency,-,Less wealth destruction,Reduced strategic pressure,Less dynamic economy,Compensate with new events
+,,,,,,,,,,,,,
+PLAYER PROGRESSION SCENARIOS,,,,,,,,,,,,,,
+Scenario,Level 5 Impact,Level 10 Impact,Level 15 Impact,Level 20 Impact,Level 25+ Impact,Overall Assessment,Retention Impact,Balance Impact
+Current System,7 days to reach,43 days total,125 days total,269 days total,492+ days total,Front-loaded then brutal,High dropout at 15+,Late game broken
+Crime Buff +20%,5.8 days (-17%),36 days (-16%),104 days (-17%),224 days (-17%),410 days (-17%),Proportional improvement,Moderate improvement,Inflation risk
+XP Reduction -20%,5.6 days (-20%),34 days (-21%),100 days (-20%),215 days (-20%),394 days (-20%),Even improvement,Significant improvement,No economic impact
+Combined Moderate,4.8 days (-31%),29 days (-33%),83 days (-33%),180 days (-33%),328 days (-33%),Major improvement,Substantial retention,Manageable inflation
+Combined Aggressive,3.5 days (-50%),21 days (-51%),60 days (-52%),130 days (-52%),236 days (-52%),Transformation,Massive retention,High inflation risk
+,,,,,,,,,,,,,
+ECONOMIC TIER REBALANCING,,,,,,,,,,,,,,
+Current Tier,Income/Hour,Time to Next Tier,Player Frustration,Recommended Income,Recommended Timeline,Balance Rationale,Implementation Priority
+Early Game (1-5),$600-$1800,1-7 days,Low,Keep current,Keep current,Good foundation,Low
+Early Mid (6-10),$1800-$3600,7-43 days,Low,+20% income,Reduce to 30 days,Smooth transition,Medium
+Mid Game (11-15),$3600-$6000,43-125 days,Medium,+30% income,Reduce to 80 days,Critical retention point,High
+Late Mid (16-20),$6000-$12000,125-269 days,High,+50% income,Reduce to 160 days,Emergency intervention,Critical
+End Game (21-25),$12000+,269+ days,Very High,+100% income,Reduce to 240 days,Complete overhaul,Critical
+Elite (25+),$12000+,Impossible,Extreme,+200% income,Reduce to 300 days,Fundamental redesign,Critical
+,,,,,,,,,,,,,
+WEALTH DISTRIBUTION SCENARIOS,,,,,,,,,,,,,,
+Scenario,Gini Coefficient,Wealth Gap,Player Satisfaction,Social Dynamics,Economic Health,Recommendation
+Current System,0.85 (estimated),Extreme inequality,Low at high levels,Frustration and abandonment,Unhealthy,Major reform needed
+Income Buffs Only,0.80,High inequality,Medium improvement,Some resentment,Better but unstable,Partial solution
+XP Reduction Only,0.85,Same inequality faster,Higher satisfaction,Time-based equity,Healthy progression,Good foundation
+Progressive Asset Taxes,0.70,Reduced inequality,Mixed reactions,Wealth redistribution,Very healthy,Consider for balance
+Wealth Caps,0.60,Artificial equality,Controversial,Potential backlash,Artificially healthy,Avoid implementation
+Combined Rebalancing,0.75,Moderate inequality,High satisfaction,Healthy competition,Optimal balance,Recommended approach
+,,,,,,,,,,,,,
+CONTENT UNLOCK SCENARIOS,,,,,,,,,,,,,,
+Current Gaps,Proposed Solutions,Content Density,Player Engagement,Development Cost,ROI Estimate,Implementation Timeline
+Levels 16-19,2 crimes 1 asset each,+12 pieces,High improvement,High,Excellent,3 months
+Levels 2 4 6 8,Mini-rewards,+4 pieces,Medium improvement,Low,Good,1 month
+Levels 11-14,1 crime 1 item each,+8 pieces,Medium improvement,Medium,Good,2 months
+Levels 21-24,Prestige content,+8+ pieces,High improvement,Very High,Uncertain,6+ months
+Level 25+ redesign,Complete overhaul,+20+ pieces,Massive improvement,Extreme,Excellent if done right,12+ months
+,,,,,,,,,,,,,
+RISK ASSESSMENT MATRIX,,,,,,,,,,,,,,
+Change Type,Implementation Risk,Player Reaction Risk,Economic Risk,Technical Risk,Overall Risk,Mitigation Strategy
+Crime income buffs,Low,Positive,Medium inflation,Low,Low-Medium,Monitor and adjust item costs
+Asset income buffs,Low,Positive,Medium inflation,Low,Low-Medium,Progressive taxation system
+Item cost reductions,Low,Very Positive,Low deflation,Low,Low,Monitor purchasing patterns
+XP reductions,Medium,Very Positive,None,Low,Low-Medium,Gradual implementation
+Bank improvements,Low,Positive,Minor deflation,Low,Low,Perfect as-is
+Money event changes,Low,Mixed,Low,Low,Low,Player feedback first
+Major level redesign,High,Unknown,High,High,Very High,Extensive testing required
+,,,,,,,,,,,,,
+RECOMMENDED IMPLEMENTATION PHASES,,,,,,,,,,,,,,
+Phase,Changes,Timeline,Risk Level,Expected Impact,Success Metrics,Rollback Plan
+Phase 1 (Emergency),Bank cost reduction Cheap pistol fix Item gap filling,1 month,Low,Immediate improvement,Player complaints reduction,Simple value reverts
+Phase 2 (Foundation),Crime income buffs XP reductions for 15+,2 months,Medium,Retention improvement,Level 15+ progression rates,Gradual adjustments
+Phase 3 (Enhancement),New content for 16-19 Money system improvements,3-4 months,Medium,Engagement improvement,Time-to-level metrics,Content can be disabled
+Phase 4 (Optimization),Advanced balance tuning Economic event additions,2 months,Low,Polish and refinement,Player satisfaction surveys,System toggles
+Phase 5 (Future),End-game redesign Prestige systems,6+ months,High,Long-term sustainability,Retention at 25+,Complete system rollback
+,,,,,,,,,,,,,
+MONITORING METRICS,,,,,,,,,,,,,,
+Metric,Current Value,Target Value,Monitoring Frequency,Alert Threshold,Action Trigger,Data Source
+Average time to level 15,125 days,80 days,Weekly,>100 days,Immediate buff,Player analytics
+Level 15+ retention rate,Unknown,>60%,Daily,<40%,Emergency intervention,Player tracking
+Money inflation rate,Unknown,<5% weekly,Daily,>10% weekly,Economy adjustment,Transaction logs
+Item purchase distribution,Unknown,Balanced across tiers,Weekly,>80% single tier,Pricing adjustment,Purchase logs
+Player satisfaction score,Unknown,>7.5/10,Monthly,<6.0/10,Major review,Surveys
+Bank adoption rate,Unknown,>70% at level 10,Weekly,<50%,Bank improvements,User behavior
+Crypto usage rate,Unknown,>25% of transactions,Weekly,<15%,Crypto incentives,Transaction analysis
