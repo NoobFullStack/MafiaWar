@@ -1,272 +1,363 @@
-import { PrismaClient } from "@prisma/client";
 import { config } from "dotenv";
-import CasinoService from "../../src/services/CasinoService";
+import { spinRoulette } from "../../src/data/casino";
 
 // Load environment variables
 config();
 
-const prisma = new PrismaClient();
-
-// Helper function to clean crypto wallet of unsupported coins
-async function cleanCryptoWallet(discordId: string) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { discordId },
-      include: { character: true },
-    });
-
-    if (user?.character) {
-      const cryptoWallet = user.character.cryptoWallet as any;
-      if (cryptoWallet && typeof cryptoWallet === 'object') {
-        // Remove bitcoin and other unsupported coins, keep only NXS/crypto
-        const cleanWallet: any = {};
-        if (cryptoWallet.crypto) cleanWallet.crypto = cryptoWallet.crypto;
-        if (cryptoWallet.NXS) cleanWallet.NXS = cryptoWallet.NXS;
-        
-        await prisma.character.update({
-          where: { id: user.character.id },
-          data: { cryptoWallet: cleanWallet },
-        });
-        
-        console.log("🧹 Cleaned crypto wallet of unsupported coins");
-      }
-    }
-  } catch (error) {
-    console.log("⚠️  Could not clean crypto wallet:", (error as Error).message);
-  }
-}
-
-// Comprehensive roulette statistics analysis
-function analyzeRouletteResults(results: any[]) {
-  if (results.length === 0) {
+// Comprehensive roulette distribution analysis
+function analyzeSpinDistribution(spins: any[]) {
+  if (spins.length === 0) {
     console.log("No data to analyze");
     return;
   }
 
-  console.log(`\n📊 COMPREHENSIVE ROULETTE ANALYSIS (${results.length} spins)`);
-  console.log("═".repeat(60));
+  console.log(
+    `\n📊 ROULETTE SPIN DISTRIBUTION ANALYSIS (${spins.length.toLocaleString()} spins)`
+  );
+  console.log("═".repeat(80));
 
   // Color analysis
-  const redCount = results.filter(r => r.spinColor === "red").length;
-  const blackCount = results.filter(r => r.spinColor === "black").length;
-  const greenCount = results.filter(r => r.spinColor === "green").length;
-  
-  console.log("\n🎨 COLOR DISTRIBUTION:");
-  console.log(`🔴 Red:   ${redCount.toString().padStart(3)} (${(redCount/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
-  console.log(`⚫ Black: ${blackCount.toString().padStart(3)} (${(blackCount/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
-  console.log(`🟢 Green: ${greenCount.toString().padStart(3)} (${(greenCount/results.length*100).toFixed(1)}%) - Expected: 5.3%`);
+  const redCount = spins.filter((s) => s.color === "red").length;
+  const blackCount = spins.filter((s) => s.color === "black").length;
+  const greenCount = spins.filter((s) => s.color === "green").length;
 
-  // Even/Odd analysis
-  const evenNumbers = results.filter(r => {
-    const num = parseInt(r.spinNumber);
+  console.log("\n🎨 COLOR DISTRIBUTION:");
+  console.log(
+    `🔴 Red:   ${redCount.toString().padStart(5)} (${(
+      (redCount / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
+  console.log(
+    `⚫ Black: ${blackCount.toString().padStart(5)} (${(
+      (blackCount / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
+  console.log(
+    `🟢 Green: ${greenCount.toString().padStart(5)} (${(
+      (greenCount / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected:  5.26% (2/38)`
+  );
+
+  // Even/Odd analysis (excluding 0 and 00)
+  const evenNumbers = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
     return !isNaN(num) && num > 0 && num % 2 === 0;
   }).length;
-  const oddNumbers = results.filter(r => {
-    const num = parseInt(r.spinNumber);
+  const oddNumbers = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
     return !isNaN(num) && num > 0 && num % 2 === 1;
   }).length;
-  
+
   console.log("\n🔢 EVEN/ODD DISTRIBUTION:");
-  console.log(`Even: ${evenNumbers.toString().padStart(3)} (${(evenNumbers/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
-  console.log(`Odd:  ${oddNumbers.toString().padStart(3)} (${(oddNumbers/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
+  console.log(
+    `Even: ${evenNumbers.toString().padStart(5)} (${(
+      (evenNumbers / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
+  console.log(
+    `Odd:  ${oddNumbers.toString().padStart(5)} (${(
+      (oddNumbers / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
 
   // Range analysis (1-18, 19-36)
-  const lowNumbers = results.filter(r => {
-    const num = parseInt(r.spinNumber);
+  const lowNumbers = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
     return !isNaN(num) && num >= 1 && num <= 18;
   }).length;
-  const highNumbers = results.filter(r => {
-    const num = parseInt(r.spinNumber);
+  const highNumbers = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
     return !isNaN(num) && num >= 19 && num <= 36;
   }).length;
-  
+
   console.log("\n📏 RANGE DISTRIBUTION:");
-  console.log(`Low (1-18):  ${lowNumbers.toString().padStart(3)} (${(lowNumbers/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
-  console.log(`High (19-36): ${highNumbers.toString().padStart(3)} (${(highNumbers/results.length*100).toFixed(1)}%) - Expected: 47.4%`);
+  console.log(
+    `Low (1-18):   ${lowNumbers.toString().padStart(5)} (${(
+      (lowNumbers / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
+  console.log(
+    `High (19-36): ${highNumbers.toString().padStart(5)} (${(
+      (highNumbers / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 47.37% (18/38)`
+  );
 
   // Special numbers analysis
-  const zeroCount = results.filter(r => r.spinNumber === "0").length;
-  const doubleZeroCount = results.filter(r => r.spinNumber === "00").length;
-  
+  const zeroCount = spins.filter((s) => s.number === 0).length;
+  const doubleZeroCount = spins.filter((s) => s.number === "00").length;
+
   console.log("\n🎯 SPECIAL NUMBERS:");
-  console.log(`0:  ${zeroCount.toString().padStart(3)} (${(zeroCount/results.length*100).toFixed(1)}%) - Expected: 2.6%`);
-  console.log(`00: ${doubleZeroCount.toString().padStart(3)} (${(doubleZeroCount/results.length*100).toFixed(1)}%) - Expected: 2.6%`);
+  console.log(
+    `0:  ${zeroCount.toString().padStart(5)} (${(
+      (zeroCount / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 2.63% (1/38)`
+  );
+  console.log(
+    `00: ${doubleZeroCount.toString().padStart(5)} (${(
+      (doubleZeroCount / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 2.63% (1/38)`
+  );
 
-  // Hot and cold numbers
+  // Individual number frequency
   const numberFreq: { [key: string]: number } = {};
-  results.forEach(r => {
-    numberFreq[r.spinNumber] = (numberFreq[r.spinNumber] || 0) + 1;
+  spins.forEach((s) => {
+    const numStr = s.number.toString();
+    numberFreq[numStr] = (numberFreq[numStr] || 0) + 1;
   });
 
-  const sortedNumbers = Object.entries(numberFreq)
-    .sort(([,a], [,b]) => b - a);
+  const sortedNumbers = Object.entries(numberFreq).sort(
+    ([, a], [, b]) => b - a
+  );
 
-  console.log("\n🔥 HOT NUMBERS (Top 5):");
-  sortedNumbers.slice(0, 5).forEach(([num, count], index) => {
-    const percentage = (count / results.length * 100).toFixed(1);
-    console.log(`${index + 1}. ${num.padStart(2)}: ${count.toString().padStart(2)} times (${percentage}%)`);
+  console.log("\n🔥 HOT NUMBERS (Top 10):");
+  sortedNumbers.slice(0, 10).forEach(([num, count], index) => {
+    const percentage = ((count / spins.length) * 100).toFixed(2);
+    const expected = (100 / 38).toFixed(2);
+    console.log(
+      `${(index + 1).toString().padStart(2)}. ${num.padStart(2)}: ${count
+        .toString()
+        .padStart(4)} times (${percentage}%) - Expected: ${expected}%`
+    );
   });
 
-  console.log("\n❄️  COLD NUMBERS (Bottom 5):");
-  sortedNumbers.slice(-5).reverse().forEach(([num, count], index) => {
-    const percentage = (count / results.length * 100).toFixed(1);
-    console.log(`${index + 1}. ${num.padStart(2)}: ${count.toString().padStart(2)} times (${percentage}%)`);
+  console.log("\n❄️  COLD NUMBERS (Bottom 10):");
+  sortedNumbers
+    .slice(-10)
+    .reverse()
+    .forEach(([num, count], index) => {
+      const percentage = ((count / spins.length) * 100).toFixed(2);
+      const expected = (100 / 38).toFixed(2);
+      console.log(
+        `${(index + 1).toString().padStart(2)}. ${num.padStart(2)}: ${count
+          .toString()
+          .padStart(4)} times (${percentage}%) - Expected: ${expected}%`
+      );
+    });
+
+  // Dozen analysis
+  const dozen1 = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
+    return !isNaN(num) && num >= 1 && num <= 12;
+  }).length;
+  const dozen2 = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
+    return !isNaN(num) && num >= 13 && num <= 24;
+  }).length;
+  const dozen3 = spins.filter((s) => {
+    const num = typeof s.number === "number" ? s.number : parseInt(s.number);
+    return !isNaN(num) && num >= 25 && num <= 36;
+  }).length;
+
+  console.log("\n� DOZEN DISTRIBUTION:");
+  console.log(
+    `1st Dozen (1-12):  ${dozen1.toString().padStart(5)} (${(
+      (dozen1 / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 31.58% (12/38)`
+  );
+  console.log(
+    `2nd Dozen (13-24): ${dozen2.toString().padStart(5)} (${(
+      (dozen2 / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 31.58% (12/38)`
+  );
+  console.log(
+    `3rd Dozen (25-36): ${dozen3.toString().padStart(5)} (${(
+      (dozen3 / spins.length) *
+      100
+    ).toFixed(2)}%) - Expected: 31.58% (12/38)`
+  );
+
+  // Statistical variance analysis
+  console.log("\n📈 STATISTICAL ANALYSIS:");
+
+  // Chi-square test approximation for color distribution
+  const expectedColorCount = (spins.length * 18) / 38; // Expected red or black
+  const expectedGreenCount = (spins.length * 2) / 38; // Expected green
+
+  const redVariance =
+    Math.pow(redCount - expectedColorCount, 2) / expectedColorCount;
+  const blackVariance =
+    Math.pow(blackCount - expectedColorCount, 2) / expectedColorCount;
+  const greenVariance =
+    Math.pow(greenCount - expectedGreenCount, 2) / expectedGreenCount;
+  const colorChiSquare = redVariance + blackVariance + greenVariance;
+
+  console.log(
+    `Color Chi-Square: ${colorChiSquare.toFixed(
+      2
+    )} (lower is better, <7.815 for 95% confidence)`
+  );
+
+  // Individual number variance
+  const expectedPerNumber = spins.length / 38;
+  let numberChiSquare = 0;
+  Object.values(numberFreq).forEach((count) => {
+    numberChiSquare +=
+      Math.pow(count - expectedPerNumber, 2) / expectedPerNumber;
   });
 
-  // Win rate analysis
-  const totalWins = results.filter(r => r.isWin).length;
-  const totalProfit = results.reduce((sum, r) => sum + r.profit, 0);
-  
-  console.log("\n💰 FINANCIAL ANALYSIS:");
-  console.log(`Win Rate: ${(totalWins/results.length*100).toFixed(1)}%`);
-  console.log(`Total Profit/Loss: $${totalProfit >= 0 ? '+' : ''}${totalProfit.toLocaleString()}`);
-  console.log(`Average per spin: $${(totalProfit/results.length).toFixed(2)}`);
+  console.log(
+    `Number Chi-Square: ${numberChiSquare.toFixed(
+      2
+    )} (critical value ~52.19 for 37 degrees of freedom)`
+  );
 
   // Bias warnings
   console.log("\n⚠️  BIAS ALERTS:");
   let biasFound = false;
-  
-  if (doubleZeroCount / results.length > 0.05) {
-    console.log(`🚨 00 appearing unusually high: ${(doubleZeroCount/results.length*100).toFixed(1)}% (Expected: 2.6%)`);
+
+  // Check for color bias
+  const colorDeviation = Math.abs(redCount - blackCount) / spins.length;
+  if (colorDeviation > 0.05) {
+    console.log(
+      `🚨 Significant red/black imbalance: ${(colorDeviation * 100).toFixed(
+        2
+      )}% deviation`
+    );
     biasFound = true;
   }
-  
-  if (Math.abs(redCount - blackCount) / results.length > 0.15) {
-    console.log(`🚨 Significant red/black imbalance detected`);
+
+  // Check for green bias
+  const greenDeviation =
+    Math.abs(greenCount - expectedGreenCount) / spins.length;
+  if (greenDeviation > 0.02) {
+    console.log(
+      `🚨 Green number bias detected: ${(greenDeviation * 100).toFixed(
+        2
+      )}% deviation from expected`
+    );
     biasFound = true;
   }
-  
+
+  // Check for hot number bias
+  const maxCount = Math.max(...Object.values(numberFreq));
+  const maxDeviation = (maxCount - expectedPerNumber) / expectedPerNumber;
+  if (maxDeviation > 0.5) {
+    const hotNumber = Object.entries(numberFreq).find(
+      ([, count]) => count === maxCount
+    )?.[0];
+    console.log(
+      `🚨 Hot number detected: ${hotNumber} appears ${(
+        (maxDeviation + 1) *
+        100
+      ).toFixed(1)}% more than expected`
+    );
+    biasFound = true;
+  }
+
   if (!biasFound) {
-    console.log("✅ No significant biases detected");
+    console.log(
+      "✅ No significant biases detected - randomness appears healthy"
+    );
   }
+
+  // Streaks analysis
+  console.log("\n🔄 STREAK ANALYSIS:");
+  let longestRedStreak = 0;
+  let longestBlackStreak = 0;
+  let longestEvenStreak = 0;
+  let longestOddStreak = 0;
+
+  let currentRedStreak = 0;
+  let currentBlackStreak = 0;
+  let currentEvenStreak = 0;
+  let currentOddStreak = 0;
+
+  spins.forEach((spin) => {
+    // Color streaks
+    if (spin.color === "red") {
+      currentRedStreak++;
+      currentBlackStreak = 0;
+      longestRedStreak = Math.max(longestRedStreak, currentRedStreak);
+    } else if (spin.color === "black") {
+      currentBlackStreak++;
+      currentRedStreak = 0;
+      longestBlackStreak = Math.max(longestBlackStreak, currentBlackStreak);
+    } else {
+      currentRedStreak = 0;
+      currentBlackStreak = 0;
+    }
+
+    // Even/Odd streaks
+    const num =
+      typeof spin.number === "number" ? spin.number : parseInt(spin.number);
+    if (!isNaN(num) && num > 0) {
+      if (num % 2 === 0) {
+        currentEvenStreak++;
+        currentOddStreak = 0;
+        longestEvenStreak = Math.max(longestEvenStreak, currentEvenStreak);
+      } else {
+        currentOddStreak++;
+        currentEvenStreak = 0;
+        longestOddStreak = Math.max(longestOddStreak, currentOddStreak);
+      }
+    } else {
+      currentEvenStreak = 0;
+      currentOddStreak = 0;
+    }
+  });
+
+  console.log(`Longest Red Streak:   ${longestRedStreak}`);
+  console.log(`Longest Black Streak: ${longestBlackStreak}`);
+  console.log(`Longest Even Streak:  ${longestEvenStreak}`);
+  console.log(`Longest Odd Streak:   ${longestOddStreak}`);
 }
 
-async function testRouletteAudit() {
+async function testRouletteDistribution() {
   try {
-    console.log("🧪 Testing Roulette Audit & Statistics System...\n");
+    console.log("🧪 Testing Roulette Number Distribution...\n");
 
-    // Use the debug Discord ID from environment or command line
-    const testDiscordId = process.argv[2] || process.env.DEBUG_DISCORD_ID;
-
-    if (!testDiscordId) {
-      console.log("Usage: ts-node testRouletteAudit.ts [discordId]");
-      console.log(
-        "Will use DEBUG_DISCORD_ID from .env if no argument provided"
-      );
-      console.log("Example: ts-node testRouletteAudit.ts 123456789012345678");
-      process.exit(1);
-    }
-
-    console.log(`🎯 Testing with Discord ID: ${testDiscordId}`);
-
-    // Clean crypto wallet first to avoid Bitcoin errors
-    await cleanCryptoWallet(testDiscordId);
-
-    const user = await prisma.user.findUnique({
-      where: { discordId: testDiscordId },
-      include: { character: true },
-    });
-
-    if (!user || !user.character) {
-      console.log("❌ User or character not found!");
-      console.log(
-        "Make sure the Discord ID is correct and the user has a character."
-      );
-      process.exit(1);
-    }
-
-    console.log(`Found user: ${user.username} (${user.character.name})`);
+    const totalSpins = 10000;
     console.log(
-      `Current balance: $${user.character.cashOnHand.toLocaleString()}\n`
+      `🎲 Generating ${totalSpins.toLocaleString()} roulette spins for distribution analysis...`
     );
 
-    const casinoService = CasinoService.getInstance();
+    const spins: any[] = [];
 
-    // Test multiple roulette spins to generate audit data
-    console.log("🎲 Simulating roulette spins...");
-
-    const bets = [
-      { type: "red", amount: 100 },
-      { type: "black", amount: 50 },
-      { type: "straight", amount: 25, number: "00" },
-      { type: "even", amount: 75 },
-      { type: "straight", amount: 20, number: 7 },
-      { type: "odd", amount: 60 },
-      { type: "high", amount: 40 },
-      { type: "low", amount: 30 },
-    ];
-
-    for (let i = 0; i < bets.length; i++) {
-      const bet = bets[i];
-      console.log(
-        `Spin ${i + 1}: Betting $${bet.amount} on ${bet.type}${
-          bet.number ? ` (${bet.number})` : ""
-        }`
-      );
-
-      const { result, transaction } = await casinoService.playRoulette(
-        testDiscordId,
-        bet.type,
-        bet.amount,
-        bet.number || null,
-        "cash"
-      );
-
-      if (transaction.success) {
-        const winStatus = result.isWin ? "WON" : "LOST";
-        const colorEmoji =
-          result.spinResult.color === "red"
-            ? "🔴"
-            : result.spinResult.color === "black"
-            ? "⚫"
-            : "🟢";
-
+    for (let i = 0; i < totalSpins; i++) {
+      if (i % 1000 === 0) {
         console.log(
-          `  → Result: ${colorEmoji} ${result.spinResult.number} | ${winStatus} | Profit: $${result.profit >= 0 ? '+' : ''}${result.profit}`
+          `  Progress: ${i.toLocaleString()}/${totalSpins.toLocaleString()} spins (${(
+            (i / totalSpins) *
+            100
+          ).toFixed(1)}%)`
         );
-      } else {
-        console.log(`  → Error: ${transaction.message}`);
-        break;
       }
 
-      // Small delay to make timestamps more distinct
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
+      const result = spinRoulette();
+      spins.push(result);
 
-    console.log("\n📊 Retrieving audit data for analysis...");
-
-    // Get larger sample for better statistical analysis
-    const auditResults = await casinoService.getLastRouletteResults(50);
-    console.log(`Retrieved ${auditResults.length} audit records`);
-
-    if (auditResults.length > 0) {
-      console.log("\n📋 RECENT RESULTS (Last 10):");
-      auditResults.slice(0, 10).forEach((result, index) => {
+      // Log first few spins for verification
+      if (i < 10) {
         const colorEmoji =
-          result.spinColor === "red"
+          result.color === "red"
             ? "🔴"
-            : result.spinColor === "black"
+            : result.color === "black"
             ? "⚫"
             : "🟢";
-        const winStatus = result.isWin ? "✅" : "❌";
-        console.log(
-          `  ${(index + 1).toString().padStart(2)}. ${colorEmoji} ${result.spinNumber.toString().padStart(2)} | ${winStatus} | ${result.username} | $${
-            result.profit >= 0 ? "+" : ""
-          }${result.profit}`
-        );
-      });
-
-      // Comprehensive statistical analysis
-      analyzeRouletteResults(auditResults);
+        console.log(`Spin ${i + 1}: ${colorEmoji} ${result.number}`);
+      }
     }
 
-    console.log("\n✅ Roulette audit and statistics test completed successfully!");
+    console.log(`\n✅ Generated ${spins.length.toLocaleString()} spins\n`);
+
+    // Analyze the distribution
+    analyzeSpinDistribution(spins);
+
+    console.log("\n✅ Roulette distribution analysis completed successfully!");
   } catch (error) {
-    console.error("❌ Error testing roulette audit:", error);
-  } finally {
-    await prisma.$disconnect();
-    process.exit(0);
+    console.error("❌ Error testing roulette distribution:", error);
   }
 }
 
-testRouletteAudit();
+testRouletteDistribution();

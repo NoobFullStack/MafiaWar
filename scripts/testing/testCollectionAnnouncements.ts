@@ -8,12 +8,12 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { BotBranding } from "../src/config/bot";
+import { BotBranding } from "../../src/config/bot";
 import {
   collectionAnnouncements,
   getCollectionAnnouncement,
   shouldAnnounceCollection,
-} from "../src/content/collectionAnnouncements";
+} from "../../src/content/collectionAnnouncements";
 
 const prisma = new PrismaClient();
 
