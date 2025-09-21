@@ -30,6 +30,7 @@ model User {
   moneyEvents    MoneyEvent[]
   bankTransactions BankTransaction[]
   cryptoTransactions CryptoTransaction[]
+  rouletteAudits RouletteAudit[]
 }
 
 model Character {
@@ -278,4 +279,32 @@ model MoneyEventHistory {
   isActive        Boolean  @default(true)
   eventData       Json     // Configuration and results
   timestamp       DateTime @default(now())
+}
+
+// === CASINO AUDIT MODELS ===
+
+model RouletteAudit {
+  id            String   @id @default(uuid())
+  userId        String
+  discordId     String   // For easy lookup
+  username      String   // For display purposes
+  
+  // Bet details
+  betType       String   // "red", "black", "straight", etc.
+  betNumber     String?  // For straight bets (can be "00")
+  betAmount     Int
+  paymentMethod String   // "cash" or "bank"
+  
+  // Spin result
+  spinNumber    String   // The number that came up (can be "00")
+  spinColor     String   // "red", "black", "green"
+  
+  // Outcome
+  isWin         Boolean
+  payout        Int      // Amount won (0 if lost)
+  profit        Int      // payout - betAmount (negative if lost)
+  
+  // Metadata
+  timestamp     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
