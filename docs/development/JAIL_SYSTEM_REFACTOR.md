@@ -19,11 +19,11 @@ The jail system has been refactored to use a dedicated `Jail` table instead of s
 - **Detailed Statistics**: Track total sentences, bribes used, last jailed time
 - **Better History**: Complete audit trail of all jail activities
 
-### 3. **Backward Compatibility**
+### 3. **Migration Completed**
 
-- Old jail fields in Character table marked as deprecated but preserved
-- Migration script handles existing data safely
-- No data loss during transition
+- Deprecated jail fields in Character table have been successfully removed
+- All functionality now uses the dedicated Jail table
+- No data loss during transition - historical data preserved in Jail table
 
 ## Database Schema Changes
 
@@ -51,12 +51,8 @@ model Jail {
 
 ```sql
 model Character {
-  // Jail system - moved to separate Jail table, keeping these for migration compatibility
-  jailUntil       DateTime? // DEPRECATED: Will be removed after migration
-  jailCrime       String?   // DEPRECATED: Will be removed after migration
-  jailSeverity    Int       @default(0) // DEPRECATED: Will be removed after migration
-  jailBribeAmount Int?      // DEPRECATED: Will be removed after migration
-  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats) - will be kept
+  // Jail system - now using dedicated Jail table
+  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats)
 
   jailRecords     Jail[]    // Jail records for this character
 }
@@ -172,9 +168,9 @@ Release Cooldown: 12m
 
 ### Backward Compatibility
 
-- Old character jail fields preserved during migration
-- Migration script creates jail records from existing data
-- Gradual removal of deprecated fields in future updates
+- ✅ **Migration Complete**: Deprecated character jail fields have been removed
+- ✅ **Data Preserved**: Migration script created jail records from existing data
+- ✅ **No Data Loss**: All historical jail data moved to dedicated Jail table
 
 ## Error Handling
 
@@ -240,7 +236,7 @@ The `testJailSystem.ts` script covers:
 
 ### Cleanup Tasks
 
-1. Remove deprecated Character table jail fields after verification
+1. ✅ **COMPLETED**: Remove deprecated Character table jail fields after verification
 2. Add more comprehensive jail history queries
 3. Implement jail record cleanup for very old records
 

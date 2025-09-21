@@ -49,12 +49,8 @@ model Character {
   lastBankVisit   DateTime?
   bankInterestAccrued Float @default(0)
   
-  // Jail system - moved to separate Jail table, keeping these for migration compatibility
-  jailUntil       DateTime? // DEPRECATED: Will be removed after migration
-  jailCrime       String?   // DEPRECATED: Will be removed after migration
-  jailSeverity    Int       @default(0) // DEPRECATED: Will be removed after migration
-  jailBribeAmount Int?      // DEPRECATED: Will be removed after migration
-  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats) - will be kept
+  // Jail system - now using dedicated Jail table
+  totalJailTime   Int       @default(0) // Total minutes spent in jail (for stats)
   
   // Legacy field for backward compatibility (will be migrated to cashOnHand)
   money           Int      @default(0)

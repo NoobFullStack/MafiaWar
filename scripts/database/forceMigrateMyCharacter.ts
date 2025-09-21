@@ -53,8 +53,7 @@ async function forceMigrateCharacterData() {
     const characterResult = await sourceClient.query(`
       SELECT id, name, "userId", stats, "cashOnHand", "bankBalance", 
              "cryptoWallet", "bankAccessLevel", "lastBankVisit", 
-             "bankInterestAccrued", "jailUntil", "jailCrime", 
-             "jailSeverity", "jailBribeAmount", "totalJailTime",
+             "bankInterestAccrued", "totalJailTime",
              money, reputation, level, experience
       FROM "Character" 
       WHERE "userId" = $1
@@ -105,10 +104,6 @@ async function forceMigrateCharacterData() {
         bankAccessLevel: supabaseCharacter.bankAccessLevel || 1,
         lastBankVisit: supabaseCharacter.lastBankVisit,
         bankInterestAccrued: supabaseCharacter.bankInterestAccrued || 0,
-        jailUntil: supabaseCharacter.jailUntil,
-        jailCrime: supabaseCharacter.jailCrime,
-        jailSeverity: supabaseCharacter.jailSeverity || 0,
-        jailBribeAmount: supabaseCharacter.jailBribeAmount,
         totalJailTime: supabaseCharacter.totalJailTime || 0,
         money: supabaseCharacter.money || 0,
         reputation: supabaseCharacter.reputation || 0,
