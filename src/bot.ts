@@ -136,8 +136,12 @@ class MafiaWarBot {
         // Casino gambling results should be public, so defer without ephemeral flag
         if (interaction.commandName === "casino") {
           const subcommand = interaction.options.getSubcommand();
-          if (subcommand === "slots" || subcommand === "roulette") {
-            await interaction.deferReply(); // Public reply for gambling results
+          if (
+            subcommand === "slots" ||
+            subcommand === "roulette" ||
+            subcommand === "last10"
+          ) {
+            await interaction.deferReply(); // Public reply for gambling results and audit
           } else {
             await interaction.deferReply({ flags: 64 }); // Ephemeral for info/errors
           }
