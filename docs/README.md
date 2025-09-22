@@ -28,7 +28,10 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ### **Feature Implementation**
 
 - 🏢 **[Asset Integration](development/ASSET_INTEGRATION.md)** - Complete asset system implementation and architecture
-- � **[Development Status](development/STATUS.md)** - Current progress and completed features
+- ⚔️ **[PvP System Analysis](development/pvp-system-analysis.md)** - Comprehensive Player vs Player system proposal and design
+- 📊 **[PvP User Flows](development/pvp-user-flows.md)** - Visual diagrams and interaction flows for PvP features
+- 🔧 **[PvP Implementation Reference](development/pvp-implementation-reference.md)** - Technical implementation guide and code examples
+- 📋 **[Development Status](development/STATUS.md)** - Current progress and completed features
 - ✅ **[TODO List](development/TODO.md)** - Planned features and development tasks
 
 ## �📖 Quick Navigation
@@ -52,6 +55,7 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ### **For System Understanding**
 
 - 🏢 **Asset System** - [Asset Integration Guide](development/ASSET_INTEGRATION.md)
+- ⚔️ **PvP System** - [PvP Analysis](development/pvp-system-analysis.md) and [Implementation Guide](development/pvp-implementation-reference.md)
 - 💰 **Money Management** - [Money System Architecture](economy/MONEY_SYSTEM.md)
 - 📊 **Game Balance** - [Economics Analysis](economy/ECONOMICS.md)
 - 🎮 **Core Mechanics** - [Game Design Document](development/game-design.md)
@@ -68,16 +72,26 @@ docs/
 │   ├── ECONOMICS.md       # Economic analysis and XP progression
 │   └── economy-analysis.md # Real-time balance validation data
 └── development/
-    ├── game-design.md          # Game mechanics and features
-    ├── roadmap.md              # Development phases and timeline
-    ├── feature-ideas.md        # Command ideas and future features
-    ├── communications-planning.md # Public/private message strategy
-    ├── ASSET_INTEGRATION.md    # Asset system implementation
-    ├── STATUS.md              # Current development progress
-    └── TODO.md               # Planned features and tasks
+    ├── game-design.md              # Game mechanics and features
+    ├── roadmap.md                  # Development phases and timeline
+    ├── feature-ideas.md            # Command ideas and future features
+    ├── communications-planning.md  # Public/private message strategy
+    ├── ASSET_INTEGRATION.md        # Asset system implementation
+    ├── pvp-system-analysis.md      # Comprehensive PvP system proposal
+    ├── pvp-user-flows.md          # PvP interaction diagrams and flows
+    ├── pvp-implementation-reference.md # Technical PvP implementation guide
+    ├── STATUS.md                   # Current development progress
+    └── TODO.md                    # Planned features and tasks
 ```
 
 ## 🌟 Recent Updates
+
+### **PvP System Analysis** (September 2025)
+- **[Comprehensive PvP Analysis](development/pvp-system-analysis.md)** - Complete Player vs Player system proposal
+- **[PvP User Flow Diagrams](development/pvp-user-flows.md)** - Visual representations of PvP interactions
+- **[Technical Implementation Guide](development/pvp-implementation-reference.md)** - Code examples and architecture patterns
+- **Integration strategy** with existing asset, gang, and economy systems
+- **Anti-abuse measures** and fair play enforcement systems
 
 ### **Asset System Documentation** (September 2025)
 - **[Asset Integration Guide](development/ASSET_INTEGRATION.md)** - Complete implementation details
