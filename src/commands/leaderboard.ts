@@ -60,7 +60,7 @@ const leaderboardCommand: Command = {
 
       // Add leaderboard entries
       let leaderboardText = "";
-      characters.forEach((character, index) => {
+      characters.forEach((character: any, index: number) => {
         const rank = index + 1;
         const totalWealth = character.cashOnHand + character.bankBalance;
 

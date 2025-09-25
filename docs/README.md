@@ -13,7 +13,7 @@ Welcome to the MafiaWar Discord Bot documentation! This directory contains compr
 ### **Core Systems**
 
 - 🌱 **[Seeding System](setup/SEEDING.md)** - Managing game data (items, crimes, assets)
-- 🗄️ **[SQLite3 Migration](development/SQLITE_MIGRATION.md)** - Database migration and write queue system implementation
+- 🗄️ **[SQLite3 Migration Summary](deployment/MIGRATION_SUMMARY.md)** - Database migration and write queue system implementation
 - 💰 **[Money System](economy/MONEY_SYSTEM.md)** - Multi-layered strategic money management with risk profiles
 - 📊 **[Economics Analysis](economy/ECONOMICS.md)** - Gameplay-based economy balance and XP progression analysis
 - 📈 **[XP Progression](economy/ECONOMICS.md#mmo-style-xp-progression)** - 50-level progression system with content gating
