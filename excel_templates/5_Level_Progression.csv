@@ -1,0 +1,97 @@
+Level Progression Analysis - MafiaWar Game,,,,,,,,,,,,,,
+Date Generated,September 21 2025,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+Level,Title,XP Required,Cumulative XP,Days to Reach,Expected Wealth,Crime Unlocks,Asset Unlocks,Item Unlocks,Income Potential/Hour,Milestone Rewards,Balance Status,Progression Notes
+1,Street Thug,0,0,0,$500,pickpocket/shoplifting,Convenience Store,Basic tools,$600,Starting gear,✓,Good foundation
+2,N/A,144,144,0.7,$1500,bike_theft,N/A,N/A,$600,N/A,✓,Quick early level
+3,Petty Criminal,269,413,2.1,$5000,vandalism,Pawn Shop,Crowbar,$1800,New category unlock,✓,Tool progression
+4,N/A,432,845,4.2,$7500,N/A,N/A,N/A,$1800,N/A,✓,Steady growth
+5,Amateur Thief,634,1479,7.4,$25000,car_break_in/car_theft,Restaurant,Advanced Lockpick,$1800,Major wealth jump,✓,Mid-tier start
+6,N/A,863,2342,11.7,$35000,N/A,N/A,N/A,$3600,N/A,✓,Asset focus
+7,N/A,1120,3462,17.3,$45000,N/A,N/A,N/A,$3600,N/A,✓,Continued growth
+8,Professional Criminal,1404,4866,24.3,$75000,credit_card_fraud,Nightclub,Cheap Pistol,$6000,Semi-legal introduction,✓,Important transition
+9,N/A,1715,6581,32.9,$90000,N/A,N/A,N/A,$6000,N/A,✓,Building wealth
+10,N/A,2053,8634,43.2,$150000,burglary,N/A,N/A,$6000,N/A,✓,Major crime unlock
+11,N/A,2418,11052,55.3,$175000,N/A,N/A,N/A,$6000,N/A,✓,Preparation phase
+12,Crime Specialist,2810,13862,69.3,$200000,identity_theft/mugging,Warehouse,Hacking Laptop,$6000,Tech crimes,⚠️,Long gap to next unlock
+13,N/A,3229,17091,85.5,$225000,N/A,N/A,N/A,$6000,N/A,⚠️,Slow progression
+14,N/A,3675,20766,103.8,$250000,N/A,N/A,N/A,$6000,N/A,⚠️,Wealth building slow
+15,Criminal Mastermind,4148,24914,124.6,$500000,hacking/store_robbery,N/A,Gold Watch,$6000,Major wealth requirement,❌,Massive wealth jump
+16,N/A,4648,29562,147.8,$600000,N/A,N/A,N/A,$6000,N/A,❌,No new content
+17,N/A,5175,34737,173.7,$700000,N/A,N/A,N/A,$6000,N/A,❌,Stagnant period
+18,N/A,5729,40466,202.3,$800000,bank_robbery/drug_dealing,N/A,N/A,$12000,Elite crimes,⚠️,Finally new content
+19,N/A,6310,46776,233.9,$900000,N/A,N/A,N/A,$12000,N/A,⚠️,Building up
+20,Crime Boss,6918,53694,268.5,$1000000,extortion,Casino,N/A,$12000,Territory control,✓,Major milestone
+21,N/A,7553,61247,306.2,$1500000,N/A,N/A,N/A,$12000,N/A,✓,Good progression
+22,N/A,8215,69462,347.3,$2000000,money_laundering,N/A,N/A,$12000,Financial crimes,✓,Thematic unlock
+23,N/A,8904,78366,391.8,$2500000,N/A,N/A,N/A,$12000,N/A,✓,Wealth building
+24,N/A,9620,87986,439.9,$3000000,arms_trafficking,N/A,N/A,$12000,International crime,✓,Dangerous escalation
+25,Mafia Lieutenant,10363,98349,491.7,$5000000,assassination,N/A,Mafia Ring,$12000,Violence tier,⚠️,Huge wealth gap
+26-29,N/A,Variable,Variable,Variable,Variable,N/A,N/A,N/A,$12000,N/A,❌,No content
+30,Underworld King,Variable,~157647,~788,$10000000,cartel_operation,N/A,N/A,$12000,Global operations,❌,Extreme requirements
+,,,,,,,,,,,,,
+XP PROGRESSION ANALYSIS,,,,,,,,,,,,,,
+Level Range,XP Growth Rate,Time Investment,Player Retention Risk,Content Density,Recommendation,
+1-5,Moderate,1 week,Low,High,✓ Good pacing,
+6-10,Steady,2-3 weeks,Low,Medium,✓ Asset focus good,
+11-15,Slow,4-8 weeks,Medium,Low,⚠️ Need more content,
+16-20,Very Slow,12+ weeks,High,Very Low,❌ Major content gap,
+21-25,Extremely Slow,20+ weeks,Very High,Low,❌ Elite tier only,
+25+,Prohibitive,Months,Extreme,Minimal,❌ Needs complete rework,
+,,,,,,,,,,,,,
+WEALTH PROGRESSION ANALYSIS,,,,,,,,,,,,,,
+Level,Expected Wealth,Wealth Growth,Income Required,Time to Accumulate,Feasibility,Status,
+1-5,$500 → $25k,50x growth,$1800/hr,14 hours,✓ Reasonable,Good,
+5-10,$25k → $150k,6x growth,$3600/hr,35 hours,✓ Achievable,Good,
+10-15,$150k → $500k,3.3x growth,$6000/hr,58 hours,⚠️ Challenging,Difficult,
+15-20,$500k → $1M,2x growth,$6000/hr,83 hours,⚠️ Very challenging,Hard,
+20-25,$1M → $5M,5x growth,$12000/hr,333 hours,❌ Extreme,Broken,
+25+,$5M → $10M+,2x+ growth,$12000/hr,400+ hours,❌ Impossible,Broken,
+,,,,,,,,,,,,,
+CONTENT UNLOCK DENSITY,,,,,,,,,,,,,,
+Level Range,Crimes Unlocked,Assets Unlocked,Items Unlocked,Total Content,Content per Level,Engagement Level,
+1-5,6,3,5,14,2.8,High,
+6-10,1,1,2,4,0.8,Medium,
+11-15,4,1,2,7,1.4,Medium,
+16-20,3,1,0,4,0.8,Low,
+21-25,3,0,1,4,0.8,Low,
+25+,2,0,0,2,0.4,Very Low,
+,,,,,,,,,,,,,
+MILESTONE BALANCE,,,,,,,,,,,,,,
+Level,Title,Content Unlocked,Wealth Requirement,Time Investment,Reward/Effort Ratio,Player Psychology,Status,
+1,Street Thug,Starter content,$500,0 hours,Infinite,Immediate gratification,✓,
+3,Petty Criminal,Basic progression,$5000,2.1 days,High,Quick advancement,✓,
+5,Amateur Thief,Tool advancement,$25000,7.4 days,Good,Meaningful progress,✓,
+8,Professional Criminal,Semi-legal tier,$75000,24.3 days,Good,Major transition,✓,
+12,Crime Specialist,Tech crimes,$200000,69.3 days,Medium,Long but worthwhile,⚠️,
+15,Criminal Mastermind,Elite crimes,$500000,124.6 days,Low,Frustrating grind,❌,
+20,Crime Boss,Territory control,$1000000,268.5 days,Very Low,Extreme dedication,❌,
+25,Mafia Lieutenant,Violence tier,$5000000,491.7 days,Terrible,Only for addicts,❌,
+,,,,,,,,,,,,,
+RECOMMENDATIONS BY PRIORITY,,,,,,,,,,,,,,
+Priority,Issue,Current State,Recommended Change,Impact,Implementation Effort,
+CRITICAL,Levels 15-20 wealth gap,$500k → $1M jump,Reduce to $250k → $500k,Player retention,Low,
+CRITICAL,Levels 16-19 content gap,No unlocks,Add 2 crimes 1 asset per level,Engagement,High,
+HIGH,Level 25 wealth requirement,$5M requirement,Reduce to $2M,Accessibility,Low,
+HIGH,XP scaling post-15,Too slow,Reduce XP requirements 20%,Progression feel,Medium,
+MEDIUM,Milestone spacing,Uneven gaps,More frequent mini-milestones,Motivation,Medium,
+MEDIUM,End-game content,Levels 25+,Add prestige system,Long-term goals,High,
+LOW,Early game pacing,Good but could improve,Add level 2 4 6 8 mini-rewards,Polish,Low,
+,,,,,,,,,,,,,
+PLAYER PSYCHOLOGY ANALYSIS,,,,,,,,,,,,,,
+Psychological Factor,Current Design,Player Impact,Recommendation,
+Achievement Frequency,Front-loaded,Early engagement high Late frustration,Distribute evenly,
+Progression Visibility,Clear early Unclear late,Motivation drops,Add progress indicators,
+Goal Attainability,Reasonable early Impossible late,Abandonment at level 15,Realistic goals throughout,
+Power Fantasy,Good crime progression,Satisfying growth,Maintain power curve,
+Social Comparison,Wealth leaderboards,Competitive pressure,Balance competition vs cooperation,
+Effort Justification,High time investment,Sunk cost fallacy,Ensure fair rewards,
+,,,,,,,,,,,,,
+RETENTION RISK ANALYSIS,,,,,,,,,,,,,,
+Level Range,Risk Level,Primary Risk Factors,Mitigation Strategies,
+1-5,Low,Learning curve,Good tutorial/onboarding,
+6-10,Low,Routine setting in,Introduce asset gameplay,
+11-15,Medium,Content gaps/slow progress,Add mini-milestones,
+16-20,High,Major content drought,Emergency content injection,
+21-25,Very High,Extreme requirements,Fundamental rebalancing,
+25+,Critical,Impossibly high barriers,Complete redesign needed,

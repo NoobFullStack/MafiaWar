@@ -209,6 +209,13 @@ docker-compose.override.yml
 test-db.js
 *.tmp
 
+# Excel/CSV lock files (LibreOffice/OpenOffice)
+.~lock.*#
+*.~lock*
+~$*.csv
+~$*.xlsx
+~$*.xls
+
 # IDE
 .vscode/
 .idea/
