@@ -399,11 +399,18 @@ export class MoneyService {
         );
       }
 
-      // Simulate price fluctuation
+      // Simulate price fluctuation using symmetric multiplicative process
       const lastPrice = dbPrice?.price || coin.basePrice;
       const volatility = coin.volatility;
-      const change = (Math.random() - 0.5) * 2 * volatility; // -volatility to +volatility
-      const newPrice = Math.max(lastPrice * (1 + change), 0.01); // Minimum price of $0.01
+      // Use a symmetric approach that prevents systematic bias
+      // This maintains price stability while allowing natural fluctuations
+      const isUp = Math.random() < 0.5;
+      const changeAmount = Math.random() * volatility; // 0 to volatility
+      const multiplier = isUp ? 1 + changeAmount : 1 / (1 + changeAmount);
+      const newPrice = Math.max(lastPrice * multiplier, 0.01); // Minimum price of $0.01
+
+      // Calculate percentage change for display
+      const percentChange = ((newPrice - lastPrice) / lastPrice) * 100;
 
       // Always use "crypto" as the standard key for database storage
 
@@ -412,14 +419,14 @@ export class MoneyService {
         where: { coinType: standardCoinType },
         update: {
           price: newPrice,
-          change24h: change * 100, // Convert to percentage
+          change24h: percentChange, // Use calculated percentage change
           change7d: Math.random() * 20 - 10, // Random 7d change
           updatedAt: new Date(),
         },
         create: {
           coinType: standardCoinType,
           price: newPrice,
-          change24h: change * 100,
+          change24h: percentChange,
           change7d: Math.random() * 20 - 10,
           marketCap: newPrice * 1000000, // Fake market cap
           volume24h: newPrice * 10000, // Fake volume
@@ -429,7 +436,7 @@ export class MoneyService {
       // Update cache with both standard key and requested key for compatibility
       const cacheData = {
         price: newPrice,
-        change24h: change * 100,
+        change24h: percentChange,
         lastUpdate: new Date(),
       };
       this.cryptoPrices.set(standardCoinType, cacheData);
