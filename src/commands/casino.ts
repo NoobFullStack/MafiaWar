@@ -60,13 +60,14 @@ const casinoCommand: Command = {
               { name: "Straight (Single Number)", value: "straight" }
             )
         )
-        .addIntegerOption((option) =>
-          option
-            .setName("bet_amount")
-            .setDescription("Amount to bet")
-            .setRequired(true)
-            .setMinValue(5)
-            .setMaxValue(50000)
+        .addIntegerOption(
+          (option) =>
+            option
+              .setName("bet_amount")
+              .setDescription("Amount to bet")
+              .setRequired(true)
+              .setMinValue(5)
+              .setMaxValue(50_000_000) // 50 million
         )
         .addStringOption((option) =>
           option

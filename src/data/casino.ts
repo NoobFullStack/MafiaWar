@@ -268,13 +268,13 @@ export const rouletteNumbers: RouletteNumber[] = [
 export const casinoConfig: CasinoConfig = {
   slots: {
     minBet: 10,
-    maxBet: 10000,
+    maxBet: 50_000_000,
     gridSize: { rows: 3, cols: 3 },
     houseEdge: 0.15, // 15% house edge - more balanced for fun gameplay
   },
   roulette: {
     minBet: 5,
-    maxBet: 50000,
+    maxBet: 50_000_000,
     houseEdge: 0.0526, // 5.26% house edge (American roulette with 0 and 00)
   },
 };

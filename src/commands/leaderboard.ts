@@ -47,15 +47,16 @@ const leaderboardCommand: Command = {
 
       // Function to get wealth bracket
       const getWealthBracket = (totalWealth: number): string => {
-        if (totalWealth < 10000) return "💸 <$10K";
-        if (totalWealth < 50000) return "💵 $10K-$50K";
-        if (totalWealth < 100000) return "💴 $50K-$100K";
-        if (totalWealth < 250000) return "💶 $100K-$250K";
-        if (totalWealth < 500000) return "💷 $250K-$500K";
-        if (totalWealth < 1000000) return "💰 $500K-$1M";
-        if (totalWealth < 5000000) return "🏦 $1M-$5M";
-        if (totalWealth < 10000000) return "🏛️ $5M-$10M";
-        return "👑 $10M+";
+        if (totalWealth < 10_000) return "💸 <$10K";
+        if (totalWealth < 50_000) return "💵 $10K-$50K";
+        if (totalWealth < 100_000) return "💴 $50K-$100K";
+        if (totalWealth < 250_000) return "💶 $100K-$250K";
+        if (totalWealth < 500_000) return "💷 $250K-$500K";
+        if (totalWealth < 1_000_000) return "💰 $500K-$1M";
+        if (totalWealth < 5_000_000) return "🏦 $1M-$5M";
+        if (totalWealth < 10_000_000) return "🏛️ $5M-$10M";
+        if (totalWealth < 50_000_000) return "🏙️ $10M-$50M";
+        return "👑 $50M+"; // Updated top tier
       };
 
       // Add leaderboard entries
